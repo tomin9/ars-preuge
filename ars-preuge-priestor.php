@@ -83,6 +83,11 @@ function arsp_activate() {
 
 register_deactivation_hook(__FILE__, function () { flush_rewrite_rules(); });
 
+/* safety net: if the plugin was installed/updated without the activation hook (e.g. synced from GitHub), finish setup */
+add_action('init', function () {
+    if (get_option('arsp_version') !== ARSP_VER) arsp_activate();
+}, 20);
+
 /** Import bundled data the first time (only into an empty table). */
 function arsp_seed() {
     global $wpdb;
