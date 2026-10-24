@@ -1933,7 +1933,7 @@ function zbRows(x,key){
         <label>Dátum <input type="date" id="zb-${id}-p${i}-d" data-zb="${id}|personal|${i}|den" value="${esc(r.den)}"></label>
         <label>Od <input type="time" id="zb-${id}-p${i}-o" data-zb="${id}|personal|${i}|od" value="${esc(r.od)}"></label>
         <label>Do <input type="time" id="zb-${id}-p${i}-p" data-zb="${id}|personal|${i}|do" value="${esc(r.do)}"></label>
-        <button type="button" class="zb-add" data-zbwhen="${id}|${i}">Hotovo</button></div>`:""}${zbAlso(x,r,i)}</div>`;}).join("");
+        <button type="button" class="zb-add" data-zbwhen="${id}|${i}">Hotovo</button></div>`:""}</div>`;}).join("");
   if(key==="ulohy")return L.map((r,i)=>`<div class="zb-row ul ${r.hotovo?"done":""}">
       <input type="checkbox" id="zb-${id}-u${i}-h" data-zb="${id}|ulohy|${i}|hotovo" ${r.hotovo?"checked":""} aria-label="Hotovo">
       <input type="text" id="zb-${id}-u${i}-t" data-zb="${id}|ulohy|${i}|text" value="${esc(r.text)}" placeholder="čo treba vybaviť">
