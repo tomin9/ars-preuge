@@ -1939,8 +1939,7 @@ function zbRows(x,key){
 function zbAlso(x,r,i){
   const p=r.kto&&(S.zbP||{})[zbKey(r.kto)];if(!p)return"";
   const me=p.items.find(a=>a.x.id===x.id&&a.i===i);const other=p.items.filter(a=>a!==me);if(!other.length)return"";
-  const bad=me&&me.clash.length;
-  return`<div class="zb-also ${bad?"bad":""}">${bad?"Prekrýva sa! ":""}${esc(p.name)} je aj: ${other.map(a=>`<a href="#zb-${esc(a.x.id)}" data-zbjump="${esc(a.x.id)}" class="${me&&me.clash.includes(a)?"bad":""}">${zbWhere(a)}${a.r.den?" · "+esc(zbShort(a.r)):""}</a>`).join(", ")}</div>`;
+  return`<div class="zb-also">${esc(p.name)} má aj: ${other.map(a=>`<a href="#zb-${esc(a.x.id)}" data-zbjump="${esc(a.x.id)}">${zbWhere(a)}${a.r.den?" · "+esc(zbShort(a.r)):""}</a>`).join(", ")}</div>`;
 }
 function zbCard(x){
   const id=x.id,st=x.stav||"navrh",ph=zbPhoto(x);
@@ -1983,9 +1982,9 @@ function zbPeopleView(){
   const P=Object.values(S.zbP||{}).sort((a,b)=>a.name.localeCompare(b.name,"sk"));
   const free=[];zbList().forEach(x=>(x.personal||[]).forEach((r,i)=>{if(!zbKey(r.kto)&&(r.rola||r.den))free.push({x,r,i});}));
   free.sort((a,b)=>(a.r.den||"9").localeCompare(b.r.den||"9")||(a.r.od||"").localeCompare(b.r.od||"")||(+a.x.ord||0)-(+b.x.ord||0));
-  const row=a=>`<tr class="${a.clash&&a.clash.length?"bad":""}"><td style="width:150px;white-space:nowrap">${a.r.den?esc(zbShort(a.r)):'<span class="miss">bez času</span>'}</td><td><a href="#zb-${esc(a.x.id)}" data-zbjump="${esc(a.x.id)}">${zbWhere(a)}</a></td><td>${esc(a.r.rola||"")}</td><td>${a.r.ok?"✓ potvrdené":""}${a.clash&&a.clash.length?' <b class="zb-bad">prekrýva sa</b>':""}</td></tr>`;
+  const row=a=>`<tr><td style="width:150px;white-space:nowrap">${a.r.den?esc(zbShort(a.r)):'<span class="miss">bez času</span>'}</td><td><a href="#zb-${esc(a.x.id)}" data-zbjump="${esc(a.x.id)}">${zbWhere(a)}</a></td><td>${esc(a.r.rola||"")}</td><td>${a.r.ok?"✓ potvrdené":""}</td></tr>`;
   return`${free.length?`<div class="panel" style="margin-bottom:18px"><h2 style="margin:0 0 8px">Neobsadené miesta <span class="meta">${free.length}</span></h2><div class="tw"><table class="zb-t"><tr><th>Kedy</th><th>Kde</th><th>Rola</th><th>Kto</th></tr>${free.map(a=>`<tr><td style="width:150px;white-space:nowrap">${a.r.den?esc(zbShort(a.r)):'<span class="miss">bez času</span>'}</td><td><a href="#zb-${esc(a.x.id)}" data-zbjump="${esc(a.x.id)}">${zbWhere(a)}</a></td><td>${esc(a.r.rola||"")}</td><td style="min-width:160px"><input type="text" class="zb-assign" id="zb-${esc(a.x.id)}-p${a.i}-k" data-zb="${esc(a.x.id)}|personal|${a.i}|kto" list="zb-dl-kto" autocomplete="off" placeholder="priradiť meno"></td></tr>`).join("")}</table></div></div>`:""}
-  ${P.length?`<div class="zb-people">${P.map(p=>`<div class="panel zb-person ${p.clash?"bad":""}"><div class="spread"><h3>${esc(p.name)}</h3><span class="meta">${p.items.length} ${p.items.length===1?"miesto":p.items.length<5?"miesta":"miest"}</span></div>${p.clash?'<div class="zb-also bad">Niektoré časy sa prekrývajú.</div>':""}<div class="tw"><table class="zb-t">${p.items.map(row).join("")}</table></div></div>`).join("")}</div>`
+  ${P.length?`<div class="zb-people">${P.map(p=>`<div class="panel zb-person"><div class="spread"><h3>${esc(p.name)}</h3><span class="meta">${p.items.length} ${p.items.length===1?"miesto":p.items.length<5?"miesta":"miest"}</span></div><div class="tw"><table class="zb-t">${p.items.map(row).join("")}</table></div></div>`).join("")}</div>`
    :`<div class="panel"><div class="empty">Zatiaľ nikto nemá pridelené miesto. Ľudí pridáte pri dielach v časti Ľudia.</div></div>`}`;
 }
 VIEWS.zabezpecenie=()=>{
