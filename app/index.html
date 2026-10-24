@@ -344,7 +344,10 @@ table.prog td{padding:4px 6px}table.prog input,table.prog select{width:100%;bord
 .zb-prog .lbl{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .zb-bar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;display:flex;margin-top:6px}
 .zb-bar i{display:block;height:100%}
-.zb-sum{margin-bottom:18px}
+.zb-sum{margin-bottom:12px}.zb-list{margin-top:18px}
+.zb-sbody{margin-top:12px;min-width:0}
+.zb-sbody h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;font-weight:600}
+.zb-sbody h4{font-size:14px;margin:12px 0 4px}
 .zb-sum>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px;font-weight:700;font-size:16px}
 .zb-sum>summary::-webkit-details-marker{display:none}
 .zb-sum>summary::after{content:"Zobraziť";font-weight:600;font-size:13px;color:var(--accent)}
@@ -1882,7 +1885,7 @@ async function exportCsv(kind,id){
 /* ================= Zabezpečenie: technický plán po dielach ================= */
 const ZB_STAV=[["navrh","Neriešené"],["rozpracovane","Rozpracované"],["potvrdene","Potvrdené"]];
 const ZB_KIND={vo:"VO",bud:"Budova",bat:"Batéria",gen:"Elektrocentrála",tbd:"TBD",none:"Bez napájania"};
-S.zb={f:"all",open:{},mode:"diela"};
+S.zb={f:"all",open:{},mode:"diela",sums:{}};
 const zbNum=v=>{const n=parseFloat(String(v??"").replace(",","."));return isFinite(n)?n:0;};
 const zbList=()=>[...S.d.zab].sort((a,b)=>(+a.ord||0)-(+b.ord||0)||(a.createdAt||0)-(b.createdAt||0));
 const zbPhoto=x=>!x.photo?"":(String(x.photo).startsWith("data:")?x.photo:(typeof ARSP_BLOB!=="undefined"?ARSP_BLOB:"")+x.photo);
@@ -1980,12 +1983,11 @@ function zbSummary(L){
     (x.ulohy||[]).forEach(r=>{if(r.text&&!r.hotovo)ul.push({c:x.ord,id:x.id,t:r.text});});
   });
   const T=Object.values(tech),dk=Object.keys(days).sort();
-  return`<details class="panel zb-sum" id="zb-sum" ${S.zb.sum?"open":""}><summary>Súhrn techniky, ľudí a úloh</summary><div class="zb-sgrid">
-  <div class="wide"><h3>Technika, káble a príslušenstvo spolu</h3>${T.length?`<div class="tw"><table class="zb-t"><tr><th>Položka</th><th class="n">Ks</th><th class="n">Máme</th><th class="n">W</th><th class="n">m</th><th>Diela</th></tr>${T.map(t=>`<tr><td>${esc(t.n)}</td><td class="n">${t.ks}</td><td class="n">${t.ok===t.ks?"✓":t.ok}</td><td class="n">${t.w?Math.round(t.w):"–"}</td><td class="n">${t.m?Math.round(t.m):"–"}</td><td>${[...t.d].join(", ")}</td></tr>`).join("")}<tr><th>Spolu</th><th></th><th></th><th class="n">${Math.round(tW)} W</th><th class="n">${Math.round(tM)} m</th><th></th></tr></table></div>`:`<div class="empty">Zatiaľ nič.</div>`}</div>
-  <div class="wide"><h3>Ľudia</h3>${zbSumPeople()}</div>
-  <div><h3>Otvorené úlohy</h3>${ul.length?`<div class="tw"><table class="zb-t">${ul.map(u=>`<tr><td class="n"><a href="#zb-${esc(u.id)}" data-zbjump="${esc(u.id)}">${esc(u.c)}</a></td><td>${esc(u.t)}</td></tr>`).join("")}</table></div>`:`<div class="empty">Žiadne otvorené úlohy.</div>`}</div>
-  <div class="wide"><h3>Rozpis ľudí po dňoch</h3>${dk.length?dk.map(d=>`<h4>${zbDay(d)}</h4><div class="tw"><table class="zb-t">${days[d].sort((a,b)=>(a.od||"").localeCompare(b.od||"")).map(t=>`<tr><td class="n" style="width:110px">${esc(t.od||"?")}–${esc(t.do||"?")}</td><td>${esc(t.kto)||'<span class="miss">doplniť</span>'}</td><td>${esc(t.rola)}</td><td class="n">${esc(t.c)}</td></tr>`).join("")}</table></div>`).join(""):`<div class="empty">Keď ľuďom nastavíte dni a časy, zobrazí sa tu rozpis po dňoch.</div>`}</div>
-  </div></details>`;
+  const box=(k,title,count,body)=>`<details class="panel zb-sum" data-zbsum="${k}" ${S.zb.sums[k]?"open":""}><summary><span>${title}${count?` <span class="meta">${count}</span>`:""}</span></summary><div class="zb-sbody">${body}</div></details>`;
+  const np=Object.keys(S.zbP||{}).length;
+  return box("tech","Súhrn techniky, káblov a príslušenstva",T.length,`${T.length?`<div class="tw"><table class="zb-t"><tr><th>Položka</th><th class="n">Ks</th><th class="n">Máme</th><th class="n">W</th><th class="n">m</th><th>Diela</th></tr>${T.map(t=>`<tr><td>${esc(t.n)}</td><td class="n">${t.ks}</td><td class="n">${t.ok===t.ks?"✓":t.ok}</td><td class="n">${t.w?Math.round(t.w):"–"}</td><td class="n">${t.m?Math.round(t.m):"–"}</td><td>${[...t.d].join(", ")}</td></tr>`).join("")}<tr><th>Spolu</th><th></th><th></th><th class="n">${Math.round(tW)} W</th><th class="n">${Math.round(tM)} m</th><th></th></tr></table></div>`:`<div class="empty">Zatiaľ nič.</div>`}`)
+   +box("ludia","Súhrn ľudí",np,`${zbSumPeople()}<h3 style="margin-top:16px">Rozpis po dňoch</h3>${dk.length?dk.map(d=>`<h4>${zbDay(d)}</h4><div class="tw"><table class="zb-t">${days[d].sort((a,b)=>(a.od||"").localeCompare(b.od||"")).map(t=>`<tr><td class="n" style="width:110px">${esc(t.od||"?")}–${esc(t.do||"?")}</td><td style="width:200px">${esc(t.kto)||'<span class="miss">doplniť</span>'}</td><td>${esc(t.rola)}</td><td class="n" style="width:60px">${esc(t.c)}</td></tr>`).join("")}</table></div>`).join(""):`<div class="empty">Keď ľuďom nastavíte dni a časy, zobrazí sa tu rozpis po dňoch.</div>`}`)
+   +box("ulohy","Súhrn otvorených úloh",ul.length,`${ul.length?`<div class="tw"><table class="zb-t">${ul.map(u=>`<tr><td class="n"><a href="#zb-${esc(u.id)}" data-zbjump="${esc(u.id)}">${esc(u.c)}</a></td><td>${esc(u.t)}</td></tr>`).join("")}</table></div>`:`<div class="empty">Žiadne otvorené úlohy.</div>`}`);
 }
 function zbPeopleView(){
   const P=Object.values(S.zbP||{}).sort((a,b)=>a.name.localeCompare(b.name,"sk"));
@@ -2013,7 +2015,7 @@ VIEWS.zabezpecenie=()=>{
 };
 function zbBind(v){
   if(S.view!=="zabezpecenie")return;
-  const sum=v.querySelector("#zb-sum");if(sum)sum.addEventListener("toggle",()=>{S.zb.sum=sum.open;});
+  v.querySelectorAll("[data-zbsum]").forEach(d=>d.addEventListener("toggle",()=>{S.zb.sums[d.dataset.zbsum]=d.open;}));
   v.querySelectorAll("[data-zbf]").forEach(b=>b.onclick=()=>{S.zb.f=b.dataset.zbf;render();});
   v.querySelectorAll("[data-zbmode]").forEach(b=>b.onclick=()=>{S.zb.mode=b.dataset.zbmode;render();});
   v.querySelectorAll("[data-zbjump]").forEach(a=>a.onclick=e=>{e.preventDefault();S.zb.f="all";S.zb.mode="diela";render();const el=document.getElementById("zb-"+a.dataset.zbjump);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});});
