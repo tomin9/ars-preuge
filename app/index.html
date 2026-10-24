@@ -406,6 +406,7 @@ table.prog td{padding:4px 6px}table.prog input,table.prog select{width:100%;bord
 .zb-person h3{margin:0;font-size:17px}
 .zb-person.bad{border-color:color-mix(in srgb,var(--bad) 50%,var(--line))}
 .zb-t tr.bad td{color:var(--bad)}
+.zb-pl{display:flex;flex-wrap:wrap;gap:2px 8px;padding:2px 0}.zb-pt{font-variant-numeric:tabular-nums;white-space:nowrap;flex:0 0 150px}
 .zb-assign{width:100%;min-width:0;font-size:14px;background:var(--surface3);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
 @media (max-width:760px){
   .zb-top{grid-template-columns:1fr}
@@ -1962,6 +1963,14 @@ function zbCard(x){
     <div class="zb-foot"><button type="button" class="btn ghost sm danger" data-zbrm="${id}">Odstrániť dielo</button></div>
   </div></article>`;
 }
+function zbSumPeople(){
+  const P=Object.values(S.zbP||zbPeople()).sort((a,b)=>a.name.localeCompare(b.name,"sk"));
+  const free=[];zbList().forEach(x=>(x.personal||[]).forEach((r,i)=>{if(!zbKey(r.kto)&&(r.rola||r.den))free.push({x,r,i});}));
+  free.sort((a,b)=>(a.r.den||"9").localeCompare(b.r.den||"9")||(a.r.od||"").localeCompare(b.r.od||"")||(+a.x.ord||0)-(+b.x.ord||0));
+  const line=a=>`<div class="zb-pl">${a.r.den?`<span class="zb-pt">${esc(zbShort(a.r))}</span>`:'<span class="zb-pt miss">bez času</span>'}<a href="#zb-${esc(a.x.id)}" data-zbjump="${esc(a.x.id)}">${zbWhere(a)}</a>${a.r.rola?` <span class="meta">· ${esc(a.r.rola)}</span>`:""}${a.r.ok?' <span class="meta">✓</span>':""}</div>`;
+  if(!P.length&&!free.length)return`<div class="empty">Zatiaľ nikto.</div>`;
+  return`<div class="tw"><table class="zb-t"><tr><th style="width:200px">Kto</th><th>Kde a kedy</th></tr>${P.map(p=>`<tr><td><b>${esc(p.name)}</b><div class="meta">${p.items.length} ${p.items.length===1?"miesto":p.items.length<5?"miesta":"miest"}</div></td><td>${p.items.map(line).join("")}</td></tr>`).join("")}${free.length?`<tr><td><span class="miss">Neobsadené</span><div class="meta">${free.length} ${free.length===1?"miesto":free.length<5?"miesta":"miest"}</div></td><td>${free.map(line).join("")}</td></tr>`:""}</table></div>`;
+}
 function zbSummary(L){
   const tech={},per=[],ul=[],days={};let tW=0,tM=0;
   L.forEach(x=>{
@@ -1973,7 +1982,7 @@ function zbSummary(L){
   const T=Object.values(tech),dk=Object.keys(days).sort();
   return`<details class="panel zb-sum" id="zb-sum" ${S.zb.sum?"open":""}><summary>Súhrn techniky, ľudí a úloh</summary><div class="zb-sgrid">
   <div class="wide"><h3>Technika, káble a príslušenstvo spolu</h3>${T.length?`<div class="tw"><table class="zb-t"><tr><th>Položka</th><th class="n">Ks</th><th class="n">Máme</th><th class="n">W</th><th class="n">m</th><th>Diela</th></tr>${T.map(t=>`<tr><td>${esc(t.n)}</td><td class="n">${t.ks}</td><td class="n">${t.ok===t.ks?"✓":t.ok}</td><td class="n">${t.w?Math.round(t.w):"–"}</td><td class="n">${t.m?Math.round(t.m):"–"}</td><td>${[...t.d].join(", ")}</td></tr>`).join("")}<tr><th>Spolu</th><th></th><th></th><th class="n">${Math.round(tW)} W</th><th class="n">${Math.round(tM)} m</th><th></th></tr></table></div>`:`<div class="empty">Zatiaľ nič.</div>`}</div>
-  <div><h3>Ľudia</h3>${per.length?`<div class="tw"><table class="zb-t"><tr><th>Dielo</th><th>Rola</th><th>Kto</th><th>Kedy</th><th>OK</th></tr>${per.map(p=>`<tr><td class="n">${esc(p.c)}</td><td>${esc(p.rola)}</td><td>${esc(p.kto)||'<span class="miss">doplniť</span>'}</td><td>${p.den?esc(zbShort(p)):""}</td><td>${p.ok?"✓":""}</td></tr>`).join("")}</table></div>`:`<div class="empty">Zatiaľ nikto.</div>`}</div>
+  <div class="wide"><h3>Ľudia</h3>${zbSumPeople()}</div>
   <div><h3>Otvorené úlohy</h3>${ul.length?`<div class="tw"><table class="zb-t">${ul.map(u=>`<tr><td class="n"><a href="#zb-${esc(u.id)}" data-zbjump="${esc(u.id)}">${esc(u.c)}</a></td><td>${esc(u.t)}</td></tr>`).join("")}</table></div>`:`<div class="empty">Žiadne otvorené úlohy.</div>`}</div>
   <div class="wide"><h3>Rozpis ľudí po dňoch</h3>${dk.length?dk.map(d=>`<h4>${zbDay(d)}</h4><div class="tw"><table class="zb-t">${days[d].sort((a,b)=>(a.od||"").localeCompare(b.od||"")).map(t=>`<tr><td class="n" style="width:110px">${esc(t.od||"?")}–${esc(t.do||"?")}</td><td>${esc(t.kto)||'<span class="miss">doplniť</span>'}</td><td>${esc(t.rola)}</td><td class="n">${esc(t.c)}</td></tr>`).join("")}</table></div>`).join(""):`<div class="empty">Keď ľuďom nastavíte dni a časy, zobrazí sa tu rozpis po dňoch.</div>`}</div>
   </div></details>`;
