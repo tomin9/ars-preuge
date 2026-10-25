@@ -1205,7 +1205,7 @@ VIEWS.prehlad=()=>{
   const feed=[];KEYS.filter(k=>k!=="comments"&&k!=="partnerships"&&k!=="zab").forEach(k=>S.d[k].forEach(r=>feed.push({k,r,t:r.updatedAt||r.createdAt||0})));
   S.d.comments.forEach(c=>{const[k,id]=(c.parent||"").split(":");const r=get(k,id);if(r)feed.push({k,r,t:c.at,c});});
   feed.sort((a,b)=>b.t-a.t);
-  const first=(S.me&&S.me.name)?S.me.name.split(" ")[0]:"";
+  const first=S.me?(S.me.firstName||(S.me.name||"").split(" ")[0]):"";
   const dstr=new Date().toLocaleDateString("sk-SK",{weekday:"long",day:"numeric",month:"long"});
   return`<div class="head"><div><h1>${first?`Ahoj, ${esc(first)}`:"Prehľad"}</h1><p class="sub">${esc(dstr)}</p></div>
     <div class="row"><button class="btn" data-create="ledger">Zapísať platbu</button><button class="btn pri" data-create="tasks">Nová úloha</button></div></div>
