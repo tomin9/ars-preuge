@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.5.0
+ * Version: 1.5.1
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.5.0');
+define('ARSP_VER', '1.5.1');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -40,9 +40,14 @@ function arsp_valid_id($i)  { return is_string($i) && preg_match('/^[A-Za-z0-9_.
 function arsp_user_id_str($uid) { return 'wp_' . (int) $uid; }
 
 function arsp_profile($u) {
+    // prefer the real name from the WordPress profile over the login name
+    $first = trim((string) get_user_meta($u->ID, 'first_name', true));
+    $last  = trim((string) get_user_meta($u->ID, 'last_name', true));
+    $full  = trim($first . ' ' . $last);
     return array(
         'id'        => arsp_user_id_str($u->ID),
-        'name'      => $u->display_name ? $u->display_name : $u->user_login,
+        'name'      => $full !== '' ? $full : ($u->display_name ? $u->display_name : $u->user_login),
+        'firstName' => $first,
         'avatarUrl' => get_avatar_url($u->ID, array('size' => 64)),
     );
 }
