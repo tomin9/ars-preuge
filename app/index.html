@@ -386,7 +386,10 @@ table.prog td{padding:4px 6px}table.prog input,table.prog select{width:100%;bord
 .zb-plan input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
 .zb-rows{display:grid;gap:6px;min-width:0}
 .zb-row{display:grid;gap:6px;align-items:center;min-width:0}
-.zb-row.tech{grid-template-columns:46px minmax(0,3fr) 64px minmax(0,2fr) 30px}
+.zb-row.tech{grid-template-columns:46px minmax(0,3fr) 56px 122px minmax(0,2fr) 30px}
+.zb-row select.typ{width:100%;min-width:0;font-size:13.5px;padding:6px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface3);color:var(--muted)}
+.zb-row select.typ.t-pozicane,.zb-row select.typ.t-darovane{color:var(--accent);font-weight:600}
+.zb-row select.typ.t-kupene,.zb-row select.typ.t-objednane{color:var(--ink)}
 .zb-row.per{grid-template-columns:46px minmax(0,2fr) minmax(0,2fr) 172px minmax(0,2fr) 30px}
 .zb-row.ul{grid-template-columns:46px minmax(0,1fr) 30px}
 .zb-lead{display:flex;align-items:center;gap:4px}
@@ -450,16 +453,18 @@ button.zb-rest{cursor:pointer}button.zb-rest:hover{background:color-mix(in srgb,
 .zb-newsup{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .zb-newsup input{flex:1 1 180px;min-width:0;font-size:14px;padding:6px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface3)}
 .zb-newsup input[type=number]{flex:0 0 70px}
+.zb-newsup select{font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface3)}
 button.lnk{border:0;background:transparent;color:var(--accent);cursor:pointer;font-size:12.5px;padding:2px 0}
+.zb-tag{font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:1px 6px;white-space:nowrap}
 .zb-assign{width:100%;min-width:0;font-size:14px;background:var(--surface3);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
 @media (max-width:760px){
   .zb-top{grid-template-columns:1fr}
   .zb-head{grid-template-columns:1fr}
   .zb-ph{width:100%;height:auto;aspect-ratio:4/3}
   .zb-row.hd{display:none}
-  .zb-row.tech{grid-template-columns:46px 64px minmax(0,1fr) 30px;grid-template-areas:"cb nm nm x" ". ks zd .";padding-bottom:6px;border-bottom:1px dashed var(--line)}
+  .zb-row.tech{grid-template-columns:46px 64px minmax(0,1fr) 30px;grid-template-areas:"cb nm nm x" ". ks ty ." ". zd zd .";padding-bottom:6px;border-bottom:1px dashed var(--line)}
   .zb-row.tech>:nth-child(1){grid-area:cb}.zb-row.tech>:nth-child(2){grid-area:nm}.zb-row.tech>:nth-child(3){grid-area:ks}
-  .zb-row.tech>:nth-child(4){grid-area:zd}.zb-row.tech>:nth-child(5){grid-area:x}
+  .zb-row.tech>:nth-child(4){grid-area:ty}.zb-row.tech>:nth-child(5){grid-area:zd}.zb-row.tech>:nth-child(6){grid-area:x}
   .zb-row.per{grid-template-columns:46px minmax(0,1fr) minmax(0,1fr) 30px;grid-template-areas:"cb ro kt x" ". wh wh ." ". pz pz ." ". ed ed ." ". al al .";padding-bottom:6px;border-bottom:1px dashed var(--line)}
   .zb-row.per>:nth-child(1){grid-area:cb}.zb-row.per>:nth-child(2){grid-area:ro}.zb-row.per>:nth-child(3){grid-area:kt}
   .zb-row.per>:nth-child(4){grid-area:wh}.zb-row.per>:nth-child(5){grid-area:pz}.zb-row.per>:nth-child(6){grid-area:x}.zb-row.per>.zb-whenedit{grid-area:ed}.zb-row.per>.zb-also{grid-area:al}
@@ -1934,7 +1939,7 @@ async function exportCsv(kind,id){
 /* ================= Zabezpečenie: technický plán po dielach ================= */
 const ZB_STAV=[["navrh","Neriešené"],["rozpracovane","Rozpracované"],["potvrdene","Potvrdené"]];
 const ZB_KIND={vo:"VO",bud:"Budova",bat:"Batéria",gen:"Elektrocentrála",tbd:"TBD",none:"Bez napájania"};
-S.zb={f:"all",open:{},mode:"diela",sums:{},ns:{kto:"",naz:"",ks:""},give:{}};
+S.zb={f:"all",open:{},mode:"diela",sums:{},ns:{kto:"",naz:"",ks:"",typ:"pozicane"},give:{}};
 const zbNum=v=>{const n=parseFloat(String(v??"").replace(",","."));return isFinite(n)?n:0;};
 const zbList=()=>[...S.d.zab].sort((a,b)=>(+a.ord||0)-(+b.ord||0)||(a.createdAt||0)-(b.createdAt||0));
 const zbPhoto=x=>!x.photo?"":(String(x.photo).startsWith("data:")?x.photo:(typeof ARSP_BLOB!=="undefined"?ARSP_BLOB:"")+x.photo);
@@ -1962,12 +1967,13 @@ function zbSave(id,patch){return new Promise(r=>setTimeout(()=>{const x=get("zab
 
 function zbRows(x,key){
   const id=x.id,L=x[key]||[];
-  if(key==="technika")return(L.length?`<div class="zb-row tech hd"><span></span><span>Položka</span><span>Ks</span><span>Zdroj (máme, požičať, kúpiť…)</span><span></span></div>`:"")+
+  if(key==="technika")return(L.length?`<div class="zb-row tech hd"><span></span><span>Položka</span><span>Ks</span><span>Druh</span><span>Od koho / kde</span><span></span></div>`:"")+
     L.map((r,i)=>`<div class="zb-row tech ${r.ok?"ok":""}" data-zbrow="${i}">
       <span class="zb-lead"><button type="button" class="zb-h" id="zb-${id}-ht${i}" data-zbdrag="${id}|technika|${i}" aria-label="Presunúť riadok (šípky hore/dole)" title="Potiahni a presuň">⠿</button><input type="checkbox" id="zb-${id}-t${i}-ok" data-zb="${id}|technika|${i}|ok" ${r.ok?"checked":""} aria-label="Zabezpečené"></span>
       <input type="text" id="zb-${id}-t${i}-n" data-zb="${id}|technika|${i}|nazov" list="zb-dl-tech" autocomplete="off" value="${esc(r.nazov)}" placeholder="napr. LED reflektor">
       <input type="number" id="zb-${id}-t${i}-k" data-zb="${id}|technika|${i}|ks" value="${esc(r.ks)}" min="0" placeholder="ks">
-      <input type="text" class="zdroj" id="zb-${id}-t${i}-z" data-zb="${id}|technika|${i}|zdroj" list="zb-dl-zdroj" autocomplete="off" value="${esc(r.zdroj)}" placeholder="zdroj">
+      <select class="typ t-${esc(zbTyp(r))}" id="zb-${id}-t${i}-y" data-zb="${id}|technika|${i}|typ" aria-label="Druh">${ZB_TYP.map(([k,l])=>`<option value="${k}" ${zbTyp(r)===k?"selected":""}>${l}</option>`).join("")}</select>
+      <input type="text" class="zdroj" id="zb-${id}-t${i}-z" data-zb="${id}|technika|${i}|zdroj" list="zb-dl-zdroj" autocomplete="off" value="${esc(r.zdroj)}" placeholder="od koho / kde">
       <button type="button" class="zb-x" data-zbdel="${id}|technika|${i}" aria-label="Odstrániť položku">×</button></div>`).join("");
   if(key==="personal")return(L.length?`<div class="zb-row per hd"><span></span><span>Rola</span><span>Kto</span><span>Kedy</span><span>Poznámka</span><span></span></div>`:"")+
     L.map((r,i)=>{const open=S.zb.open[id+"-"+i];return`<div class="zb-row per ${r.ok?"ok":""}" data-zbrow="${i}">
@@ -2034,7 +2040,7 @@ function zbSumSources(){
   const alloc={};works.forEach(x=>(x.technika||[]).forEach((r,i)=>{if(r.supplyId)(alloc[r.supplyId]=alloc[r.supplyId]||[]).push({x,r,i});}));
   const G={};const grp=(name)=>{const k=zbKey(name);return G[k]||(G[k]={k,name:String(name||"").trim().replace(/\s+/g," "),sup:[],loose:[]});};
   D.forEach(d=>grp(d.kto).sup.push(d));
-  works.forEach(x=>(x.technika||[]).forEach((r,i)=>{if(r.nazov&&!r.supplyId&&zbKey(r.zdroj))grp(r.zdroj).loose.push({x,r,i});}));
+  works.forEach(x=>(x.technika||[]).forEach((r,i)=>{if(r.nazov&&!r.supplyId&&zbKey(r.zdroj)&&zbLent(r))grp(r.zdroj).loose.push({x,r,i});}));
   const named=zbOrd("zdroj",Object.values(G).filter(g=>g.k).sort((a,b)=>a.name.localeCompare(b.name,"sk")),g=>g.k);
   const opts=works.map(x=>`<option value="${esc(x.id)}">${esc(x.ord||"")} ${esc(x.title||"")}</option>`).join("");
   const supRow=d=>{const A=alloc[d.id]||[],used=A.reduce((t,a)=>t+zbNum(a.r.ks||1),0),tot=zbNum(d.ks),rest=tot-used;
@@ -2042,13 +2048,13 @@ function zbSumSources(){
     return`<div class="zb-sup ${d.ok?"ok":""}">
       <div class="zb-supl"><input type="checkbox" data-zbsok="sup|${esc(d.id)}" ${d.ok?"checked":""} aria-label="Máme">
         <input class="zb-sname b" id="zb-dn-${esc(d.id)}" data-zbsname="dnaz|${esc(d.id)}" value="${esc(d.nazov||"")}" size="${Math.max(4,String(d.nazov||"").length)}" list="zb-dl-tech" autocomplete="off" placeholder="čo" aria-label="Položka">
-        <span class="zb-chips">${chips}</span>
+        ${d.typ==="darovane"?'<span class="zb-tag">darované</span>':""}<span class="zb-chips">${chips}</span>
         <input type="number" class="zb-dks" id="zb-dk-${esc(d.id)}" data-zbsname="dks|${esc(d.id)}" value="${esc(d.ks??"")}" min="0" placeholder="ks" aria-label="Počet kusov"><span class="meta">ks</span>
         ${rest<0?`<button type="button" class="zb-rest bad" data-zbdopen="${esc(d.id)}">pridelené o ${-rest} ks viac</button>`:rest===0&&tot?`<span class="zb-rest done">pridelené</span>`:`<button type="button" class="zb-rest" data-zbdopen="${esc(d.id)}" aria-expanded="${!!S.zb.give[d.id]}">prideliť</button>`}
         <button type="button" class="zb-x" data-zbddel="${esc(d.id)}" aria-label="Odstrániť dodávku">×</button></div>
       ${S.zb.give[d.id]?`<div class="zb-alloc"><span class="zb-give"><select id="zb-dw-${esc(d.id)}" aria-label="Dielo"><option value="">prideliť k dielu…</option>${opts}</select><input type="number" id="zb-dq-${esc(d.id)}" min="1" value="${rest>0?rest:1}" aria-label="Kusov"><button type="button" class="btn sm pri" data-zbdgive="${esc(d.id)}">Prideliť</button></span></div>`:""}</div>`;};
   const looseRow=g=>g.loose.length?`<div class="zb-loose"><span class="meta">Zadané len pri dieloch:</span> ${g.loose.map(a=>`<span class="zb-chip">${esc(a.r.nazov)} · ${esc(a.r.ks||1)} ks · č. ${esc(a.x.ord||"")}<button type="button" class="lnk" data-zbdadopt="${esc(a.x.id)}|${a.i}" title="Zapísať ako dodávku">+ do dodávok</button></span>`).join("")}</div>`:"";
-  const form=`<div class="zb-newsup"><input id="zb-ns-kto" value="${esc(S.zb.ns.kto)}" list="zb-dl-zdroj" autocomplete="off" placeholder="Kto (napr. Štefan Strašidelný)"><input id="zb-ns-naz" value="${esc(S.zb.ns.naz)}" list="zb-dl-tech" autocomplete="off" placeholder="Čo (napr. Kábel 20 m)"><input id="zb-ns-ks" value="${esc(S.zb.ns.ks)}" type="number" min="1" placeholder="ks"><button type="button" class="btn pri sm" data-zbdnew>Pridať dodávku</button></div>`;
+  const form=`<div class="zb-newsup"><input id="zb-ns-kto" value="${esc(S.zb.ns.kto)}" list="zb-dl-zdroj" autocomplete="off" placeholder="Kto (napr. Štefan Strašidelný)"><input id="zb-ns-naz" value="${esc(S.zb.ns.naz)}" list="zb-dl-tech" autocomplete="off" placeholder="Čo (napr. Kábel 20 m)"><input id="zb-ns-ks" value="${esc(S.zb.ns.ks)}" type="number" min="1" placeholder="ks"><select id="zb-ns-typ" aria-label="Druh"><option value="pozicane" ${S.zb.ns.typ!=="darovane"?"selected":""}>požičané</option><option value="darovane" ${S.zb.ns.typ==="darovane"?"selected":""}>darované</option></select><button type="button" class="btn pri sm" data-zbdnew>Pridať dodávku</button></div>`;
   return`${form}${named.length?`<div class="tw"><table class="zb-t zb-srct"><tr><th style="width:24px"></th><th style="width:220px">Kto</th><th>Čo dal a kam to ide</th></tr>${named.map((g,n)=>`<tr data-zbsrow="${n}" data-key="${esc(g.k)}"><td>${zbHandle("zdroj",n)}</td><td><input class="zb-sname b" id="zb-sn-zdroj-${n}" data-zbsname="zdroj|${esc(g.k)}" value="${esc(g.name)}" aria-label="Kto"><div class="meta">${g.sup.reduce((t,d)=>t+zbNum(d.ks),0)+g.loose.reduce((t,a)=>t+zbNum(a.r.ks||1),0)} ks</div><button type="button" class="lnk" data-zbdmore="${esc(g.name)}">+ ďalšia položka</button></td><td>${g.sup.map(supRow).join("")}${looseRow(g)}</td></tr>`).join("")}</table></div>`:`<div class="empty">Zatiaľ žiadne dodávky. Zapíšte, kto čo dal, a potom to pridelte k dielam.</div>`}`;
 }
 function zbSummary(L){
@@ -2066,7 +2072,7 @@ function zbSummary(L){
   const tRow=(t,n)=>{const all=t.okRows===t.rows,some=t.okRows>0&&!all;
     return`<tr class="${all?"ok":""}" data-zbsrow="${n}" data-key="${esc(t.k)}"><td><span class="zb-lead">${zbHandle("tech",n)}<input type="checkbox" data-zbsok="tech|${esc(t.k)}" ${all?"checked":""} ${some?'data-ind="1"':""} aria-label="Máme"></span></td><td><input class="zb-sname" id="zb-sn-tech-${n}" data-zbsname="tech|${esc(t.k)}" value="${esc(t.n)}" aria-label="Názov položky">${some?`<span class="meta">máme pri ${t.okRows} z ${t.rows} diel</span>`:""}</td><td class="n">${t.ks}</td><td>${[...t.d].join(", ")}</td></tr>`;};
   return box("tech","Súhrn techniky, káblov a príslušenstva",T.length,`${T.length?`<div class="tw"><table class="zb-t"><tr><th style="width:46px"></th><th>Položka</th><th class="n">Ks</th><th>Diela</th></tr>${T.map(tRow).join("")}</table></div>`:`<div class="empty">Zatiaľ nič.</div>`}`)
-   +box("zdroj","Kto čo požičal / dodal",new Set([...S.d.zabd.map(d=>zbKey(d.kto)),...L.flatMap(x=>(x.technika||[]).filter(r=>r.nazov&&!r.supplyId).map(r=>zbKey(r.zdroj)))].filter(Boolean)).size,zbSumSources())
+   +box("zdroj","Kto čo požičal / dodal",new Set([...S.d.zabd.map(d=>zbKey(d.kto)),...L.flatMap(x=>(x.technika||[]).filter(r=>r.nazov&&!r.supplyId&&zbLent(r)).map(r=>zbKey(r.zdroj)))].filter(Boolean)).size,zbSumSources())
    +box("ludia","Súhrn ľudí",np,`${zbSumPeople()}<h3 style="margin-top:16px">Rozpis po dňoch</h3>${dk.length?dk.map(d=>`<h4>${zbDay(d)}</h4><div class="tw"><table class="zb-t">${days[d].sort((a,b)=>(a.od||"").localeCompare(b.od||"")).map(t=>`<tr><td class="n" style="width:110px">${esc(t.od||"?")}–${esc(t.do||"?")}</td><td style="width:200px">${esc(t.kto)||'<span class="miss">doplniť</span>'}</td><td>${esc(t.rola)}</td><td class="n" style="width:60px">${esc(t.c)}</td></tr>`).join("")}</table></div>`).join(""):`<div class="empty">Keď ľuďom nastavíte dni a časy, zobrazí sa tu rozpis po dňoch.</div>`}`)
    +box("ulohy","Súhrn úloh",open,`${U.length?`<div class="tw"><table class="zb-t">${U.map((u,n)=>`<tr class="${u.done?"done":""}" data-zbsrow="${n}" data-key="${esc(u.id+"|"+zbKey(u.t))}"><td style="width:46px"><span class="zb-lead">${zbHandle("ulohy",n)}<input type="checkbox" data-zbsok="ul|${esc(u.id)}|${u.i}" ${u.done?"checked":""} aria-label="Hotovo"></span></td><td class="n" style="width:36px"><a href="#zb-${esc(u.id)}" data-zbjump="${esc(u.id)}">${esc(u.c)}</a></td><td><input class="zb-sname" id="zb-sn-ul-${n}" data-zbsname="ul|${esc(u.id)}|${u.i}" value="${esc(u.t)}" aria-label="Úloha"></td></tr>`).join("")}</table></div>`:`<div class="empty">Žiadne úlohy.</div>`}`);
 }
@@ -2083,30 +2089,42 @@ function zbPeopleView(){
 /* items entered at a work with a Zdroj become deliveries automatically, so they show like deliveries entered in the summary.
    Same supplier + same item = one delivery; its id is derived from the names so two people syncing at once write the same record. */
 function zbSupId(kto,naz){let h=2166136261;const t=zbKey(kto)+"|"+zbKey(naz);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return"a_"+(h>>>0).toString(36)+"_"+t.length;}
+const ZB_TYP=[["","druh…"],["pozicane","požičané"],["darovane","darované"],["kupene","kúpené"],["objednane","objednané"]];
+/* kind of a row; older rows had it written in the Zdroj field ("kúpené", "požičať z …") or none at all */
+const zbTypGuess=r=>{const z=String(r.zdroj||"");if(/k[uú]p/i.test(z))return"kupene";if(/objedn/i.test(z))return"objednane";if(/po[zž]i[cč]/i.test(z)||/daro/i.test(z))return/daro/i.test(z)?"darovane":"pozicane";if(r.supplyId||zbKey(z))return"pozicane";return"";};
+const zbTyp=r=>r.typ!==undefined?r.typ:zbTypGuess(r);
+const zbLent=r=>{const t=zbTyp(r);return t==="pozicane"||t==="darovane";};
 function zbSyncSupplies(){
   if(S.readOnly||S.loading||!db||S.zb.syncing)return;
   const byId=new Map(S.d.zabd.map(d=>[d.id,d])),byKey=new Map();
   S.d.zabd.forEach(d=>{const k=zbKey(d.kto)+"|"+zbKey(d.nazov);if(!byKey.has(k))byKey.set(k,d);});
-  const match=r=>{if(!r.nazov||!zbKey(r.zdroj))return null;const d=r.supplyId&&byId.get(r.supplyId);
+  const want=r=>!!(r.nazov&&zbKey(r.zdroj)&&zbLent(r));
+  const match=r=>{if(!want(r))return null;const d=r.supplyId&&byId.get(r.supplyId);
     if(d&&zbKey(d.kto)===zbKey(r.zdroj)&&zbKey(d.nazov)===zbKey(r.nazov))return null;   // correctly linked
     const k=zbKey(r.zdroj)+"|"+zbKey(r.nazov),ex=byKey.get(k);return{k,id:ex?ex.id:zbSupId(r.zdroj,r.nazov),ex};};
-  const plan={},works=[];
-  S.d.zab.forEach(x=>{let hit=false;(x.technika||[]).forEach(r=>{const m=match(r);if(!m)return;hit=true;
-    const p=plan[m.id]||(plan[m.id]={m,kto:String(r.zdroj).trim(),nazov:String(r.nazov).trim(),ks:0,ok:true});p.ks+=zbNum(r.ks||1);if(!r.ok)p.ok=false;});
-    if(hit)works.push(x.id);});
-  const stale=[];S.d.zab.forEach(x=>(x.technika||[]).forEach(r=>{if(r.supplyId&&!byId.has(r.supplyId)&&!(r.nazov&&zbKey(r.zdroj)))stale.push(x.id);}));
-  if(!works.length&&!stale.length)return;
+  const plan={},works=new Set(),used=new Set();
+  S.d.zab.forEach(x=>(x.technika||[]).forEach(r=>{
+    if(r.typ===undefined)works.add(x.id);                                   // store the kind once
+    const m=match(r);
+    if(m){works.add(x.id);used.add(m.id);const p=plan[m.id]||(plan[m.id]={m,kto:String(r.zdroj).trim(),nazov:String(r.nazov).trim(),ks:0,ok:true,typ:zbTyp(r)});p.ks+=zbNum(r.ks||1);if(!r.ok)p.ok=false;}
+    else if(r.supplyId&&(!want(r)||!byId.has(r.supplyId)))works.add(x.id); // unlink
+    else if(r.supplyId)used.add(r.supplyId);}));
+  const orphans=S.d.zabd.filter(d=>String(d.id).startsWith("a_")&&!used.has(d.id));
+  if(!works.size&&!orphans.length)return;
   S.zb.syncing=true;
   (async()=>{try{
     for(const id in plan){const p=plan[id];
-      if(p.m.ex){const used=S.d.zab.reduce((t,x)=>t+(x.technika||[]).filter(r=>r.supplyId===id).reduce((u,r)=>u+zbNum(r.ks||1),0),0)+p.ks;
-        if(used>zbNum(p.m.ex.ks))await upd("zabd",id,{ks:String(used)});}
-      else await write(async()=>{const t=Date.now();await db.collection(ENT.zabd.col).doc(id).set(Object.assign({kto:p.kto,nazov:p.nazov,ks:String(p.ks),ok:p.ok,createdAt:t,updatedAt:t},meId()?{createdBy:meId(),updatedBy:meId()}:{}));});
+      if(p.m.ex){const u=S.d.zab.reduce((t,x)=>t+(x.technika||[]).filter(r=>r.supplyId===id&&want(r)).reduce((v,r)=>v+zbNum(r.ks||1),0),0)+p.ks;
+        if(u>zbNum(p.m.ex.ks))await upd("zabd",id,{ks:String(u)});}
+      else await write(async()=>{const t=Date.now();await db.collection(ENT.zabd.col).doc(id).set(Object.assign({kto:p.kto,nazov:p.nazov,ks:String(p.ks),typ:p.typ,ok:p.ok,createdAt:t,updatedAt:t},meId()?{createdBy:meId(),updatedBy:meId()}:{}));});
     }
-    for(const wid of new Set([...works,...stale]))await zbSave(wid,y=>{let ch=false;const a=(y.technika||[]).map(r=>{const m=match(r);
-      if(m){ch=true;return Object.assign({},r,{supplyId:m.id});}
-      if(r.supplyId&&!byId.has(r.supplyId)&&!plan[r.supplyId]&&!(r.nazov&&zbKey(r.zdroj))){ch=true;const c=Object.assign({},r);delete c.supplyId;return c;}
-      return r;});return ch?{technika:a}:null;});
+    for(const wid of works)await zbSave(wid,y=>{let ch=false;const a=(y.technika||[]).map(r=>{let c=r;
+      if(r.typ===undefined){const t=zbTypGuess(r);c=Object.assign({},c,{typ:t});if(/^(k[uú]p(en[eé]|i[tť])|objedn(an[eé]|a[tť]))$/i.test(String(r.zdroj||"").trim()))c.zdroj="";ch=true;}
+      const m=match(c);
+      if(m){ch=true;return Object.assign({},c,{supplyId:m.id});}
+      if(c.supplyId&&(!want(c)||(!byId.has(c.supplyId)&&!plan[c.supplyId]))){ch=true;c=Object.assign({},c);delete c.supplyId;}
+      return c;});return ch?{technika:a}:null;});
+    for(const d of orphans)await del("zabd",d.id);
   }finally{S.zb.syncing=false;}})();
 }
 function zbMoveUnits(){
@@ -2173,7 +2191,7 @@ function zbBind(v){
   });
   v.querySelectorAll("[data-zbadd]").forEach(b=>b.onclick=()=>{
     const[id,k]=b.dataset.zbadd.split("|");let n=0;
-    const row=k==="technika"?{nazov:"",ks:"",zdroj:"",ok:false}:k==="personal"?{rola:"",kto:"",den:"2026-10-30",od:"17:00",do:"22:00",kedy:"",ok:false}:{text:"",hotovo:false};
+    const row=k==="technika"?{nazov:"",ks:"",typ:"",zdroj:"",ok:false}:k==="personal"?{rola:"",kto:"",den:"2026-10-30",od:"17:00",do:"22:00",kedy:"",ok:false}:{text:"",hotovo:false};
     zbSave(id,x=>{const arr=[...(x[k]||[]),row];n=arr.length-1;const p={[k]:arr};if((x.stav||"navrh")==="navrh")p.stav="rozpracovane";return p;})
       .then(()=>{const pf={technika:"t",personal:"p",ulohy:"u"}[k],sf={technika:"n",personal:"r",ulohy:"t"}[k];const el=document.getElementById(`zb-${id}-${pf}${n}-${sf}`);if(el)el.focus();});
   });
@@ -2231,14 +2249,14 @@ function zbBind(v){
   });
   const nsAdd=async()=>{const kto=($("#zb-ns-kto").value||"").trim(),naz=($("#zb-ns-naz").value||"").trim(),ks=($("#zb-ns-ks").value||"").trim();
     if(!kto||!naz){toast("Vyplňte, kto to dal a čo.");return;}
-    const id=await add("zabd",{kto,nazov:naz,ks,ok:false});if(id){S.zb.ns={kto,naz:"",ks:""};S.zb.sums.zdroj=true;render();const n=$("#zb-ns-naz");if(n)n.focus();}};
+    const typ=($("#zb-ns-typ")||{}).value||"pozicane";const id=await add("zabd",{kto,nazov:naz,ks,typ,ok:false});if(id){S.zb.ns={kto,naz:"",ks:"",typ};S.zb.sums.zdroj=true;render();const n=$("#zb-ns-naz");if(n)n.focus();}};
   v.querySelectorAll("[data-zbdnew]").forEach(b=>b.onclick=nsAdd);
-  [["#zb-ns-kto","kto"],["#zb-ns-naz","naz"],["#zb-ns-ks","ks"]].forEach(([q,f])=>{const el=v.querySelector(q);if(!el)return;el.oninput=()=>{S.zb.ns[f]=el.value;};el.onkeydown=e=>{if(e.key==="Enter")nsAdd();};});
+  [["#zb-ns-kto","kto"],["#zb-ns-naz","naz"],["#zb-ns-ks","ks"],["#zb-ns-typ","typ"]].forEach(([q,f])=>{const el=v.querySelector(q);if(!el)return;el.oninput=el.onchange=()=>{S.zb.ns[f]=el.value;};el.onkeydown=e=>{if(e.key==="Enter")nsAdd();};});
   v.querySelectorAll("[data-zbdmore]").forEach(b=>b.onclick=()=>{const k=$("#zb-ns-kto");if(!k)return;k.value=S.zb.ns.kto=b.dataset.zbdmore;k.scrollIntoView({block:"center"});$("#zb-ns-naz").focus();});
   v.querySelectorAll("[data-zbdopen]").forEach(b=>b.onclick=()=>{const id=b.dataset.zbdopen;S.zb.give[id]=!S.zb.give[id];render();const sel=document.getElementById("zb-dw-"+id);if(sel)sel.focus();});
   v.querySelectorAll("[data-zbdgive]").forEach(b=>b.onclick=()=>{const d=get("zabd",b.dataset.zbdgive);if(!d)return;
     const w=$("#zb-dw-"+d.id).value,q=($("#zb-dq-"+d.id).value||"").trim()||"1";if(!w){toast("Vyberte dielo.");return;}
-    const x=get("zab",w);zbSave(w,y=>{const p={technika:[...(y.technika||[]),{nazov:d.nazov||"",ks:q,zdroj:d.kto||"",ok:!!d.ok,supplyId:d.id}]};if((y.stav||"navrh")==="navrh")p.stav="rozpracovane";return p;});
+    const x=get("zab",w);zbSave(w,y=>{const p={technika:[...(y.technika||[]),{nazov:d.nazov||"",ks:q,typ:d.typ||"pozicane",zdroj:d.kto||"",ok:!!d.ok,supplyId:d.id}]};if((y.stav||"navrh")==="navrh")p.stav="rozpracovane";return p;});
     const used=S.d.zab.reduce((t,y)=>t+(y.technika||[]).filter(r=>r.supplyId===d.id).reduce((u,r)=>u+zbNum(r.ks||1),0),0)+zbNum(q);
     if(zbNum(d.ks)&&used>=zbNum(d.ks))delete S.zb.give[d.id];
     toast(`Pridelené k dielu č. ${x?x.ord:""}.`);});
