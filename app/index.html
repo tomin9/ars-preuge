@@ -2020,7 +2020,17 @@ function zbPeopleView(){
   ${P.length?`<div class="zb-people">${P.map(p=>`<div class="panel zb-person"><div class="spread"><h3>${esc(p.name)}</h3><span class="meta">${p.items.length} ${p.items.length===1?"miesto":p.items.length<5?"miesta":"miest"}</span></div><div class="tw"><table class="zb-t">${p.items.map(row).join("")}</table></div></div>`).join("")}</div>`
    :`<div class="panel"><div class="empty">Zatiaľ nikto nemá pridelené miesto. Ľudí pridáte pri dielach v časti Ľudia.</div></div>`}`;
 }
+/* one-time cleanup: watts and lengths used to have their own fields – move them into the item name */
+function zbMoveUnits(){
+  if(S.readOnly||S.loading||!db)return;
+  const has=(name,v,u)=>new RegExp("(^|\\D)"+String(v).replace(".","[.,]")+"\\s*"+u+"(\\b|$)","i").test(name||"");
+  const fix=r=>{let n=String(r.nazov||"").trim();const w=String(r.w??"").trim(),m=String(r.m??"").trim();
+    if(w&&!has(n,w,"W"))n+=` ${w} W`;if(m&&!has(n,m,"m"))n+=` ${m} m`;return Object.assign({},r,{nazov:n.trim(),w:"",m:""});};
+  S.d.zab.forEach(x=>{if((x.technika||[]).some(r=>String(r.w??"").trim()||String(r.m??"").trim()))
+    zbSave(x.id,y=>{if(!(y.technika||[]).some(r=>String(r.w??"").trim()||String(r.m??"").trim()))return null;return{technika:(y.technika||[]).map(r=>(String(r.w??"").trim()||String(r.m??"").trim())?fix(r):r)};});});
+}
 VIEWS.zabezpecenie=()=>{
+  if(!S.zb.unitsMoved&&!S.loading&&S.d.zab.length){S.zb.unitsMoved=true;setTimeout(zbMoveUnits,0);}
   S.zbP=zbPeople();
   const all=zbList(),n=all.length;
   const ok=all.filter(x=>x.stav==="potvrdene").length,w=all.filter(x=>x.stav==="rozpracovane").length;
