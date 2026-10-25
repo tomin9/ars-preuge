@@ -1909,7 +1909,7 @@ const zbWD=["Ne","Po","Ut","St","Št","Pi","So"];
 function zbDay(den){const d=new Date(den+"T12:00:00");return isNaN(d)?esc(den):`${zbWD[d.getDay()]} ${d.getDate()}. ${d.getMonth()+1}.`;}
 function zbShort(p){if(!p.den)return"nastaviť čas";const d=new Date(p.den+"T12:00:00");const ds=isNaN(d)?p.den:`${d.getDate()}.${d.getMonth()+1}.`;return`${ds} ${p.od||"?"}–${p.do||"?"}`;}
 /* patch may be a function (current record → patch) so it is computed from the newest data when the save runs */
-const zbKey=v=>String(v||"").trim().replace(/\s+/g," ").toLowerCase();
+const zbKey=v=>String(v||"").trim().replace(/\s+/g," ").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 /* most-used spelling of every value already entered in a field → suggestions */
 function zbVals(key,fld){const m={};S.d.zab.forEach(x=>(x[key]||[]).forEach(r=>{const v=String(r[fld]||"").trim().replace(/\s+/g," ");if(!v)return;const k=v.toLowerCase();m[k]=m[k]||{};m[k][v]=(m[k][v]||0)+1;}));
   return Object.values(m).map(c=>Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0]).sort((a,b)=>a.localeCompare(b,"sk"));}
@@ -1981,8 +1981,8 @@ function zbCard(x){
   </div></article>`;
 }
 /* custom order of summary rows, kept in settings so the whole team sees it */
-function zbOrd(kind,items,keyOf){const o=((S.settings.zbOrder||{})[kind])||[];const pos=new Map(o.map((k,n)=>[k,n]));
-  return items.map((it,n)=>({it,n,p:pos.has(keyOf(it))?pos.get(keyOf(it)):1e6+n})).sort((a,b)=>a.p-b.p).map(x=>x.it);}
+function zbOrd(kind,items,keyOf){const o=((S.settings.zbOrder||{})[kind])||[];const pos=new Map(o.map((k,n)=>[zbKey(k),n]));
+  return items.map((it,n)=>{const q=zbKey(keyOf(it));return{it,n,p:pos.has(q)?pos.get(q):1e6+n};}).sort((a,b)=>a.p-b.p).map(x=>x.it);}
 const zbHandle=(attr,n)=>`<button type="button" class="zb-h" id="zb-s-${attr.replace(/[^a-z]/g,"")}-${n}" data-zbsdrag="${attr}|${n}" aria-label="Presunúť riadok (šípky hore/dole)" title="Potiahni a presuň">⠿</button>`;
 function zbSumPeople(){
   const P=zbOrd("ludia",Object.values(S.zbP||zbPeople()).sort((a,b)=>a.name.localeCompare(b.name,"sk")),p=>zbKey(p.name));
@@ -1992,6 +1992,20 @@ function zbSumPeople(){
   const cnt=n=>`${n} ${n===1?"miesto":n<5?"miesta":"miest"}`;
   if(!P.length&&!free.length)return`<div class="empty">Zatiaľ nikto.</div>`;
   return`<div class="tw"><table class="zb-t"><tr><th style="width:24px"></th><th style="width:200px">Kto</th><th>Kde a kedy</th></tr>${P.map((p,n)=>`<tr data-zbsrow="${n}" data-key="${esc(zbKey(p.name))}"><td>${zbHandle("ludia",n)}</td><td><input class="zb-sname b" id="zb-sn-ludia-${n}" data-zbsname="ludia|${esc(zbKey(p.name))}" value="${esc(p.name)}" aria-label="Meno"><div class="meta">${cnt(p.items.length)}</div></td><td>${p.items.map(line).join("")}</td></tr>`).join("")}${free.length?`<tr><td></td><td><span class="miss">Neobsadené</span><div class="meta">${cnt(free.length)}</div></td><td>${free.map(line).join("")}</td></tr>`:""}</table></div>`;
+}
+/* technika grouped by who lends/supplies it (the Zdroj field) */
+function zbSumSources(){
+  const G={};
+  zbList().forEach(x=>(x.technika||[]).forEach(r=>{if(!r.nazov)return;const sk=zbKey(r.zdroj),ik=zbKey(r.nazov);
+    const g=G[sk]||(G[sk]={k:sk,name:String(r.zdroj||"").trim().replace(/\s+/g," "),items:{}});
+    const it=g.items[ik]||(g.items[ik]={k:ik,n:r.nazov.trim(),ks:0,rows:0,okRows:0,d:new Set()});
+    it.ks+=zbNum(r.ks||1);it.rows++;if(r.ok)it.okRows++;it.d.add(x.ord);}));
+  const named=zbOrd("zdroj",Object.values(G).filter(g=>g.k).sort((a,b)=>a.name.localeCompare(b.name,"sk")),g=>g.k),none=G[""];
+  if(!named.length&&!none)return`<div class="empty">Zatiaľ nič. Pri položkách techniky vyplňte pole Zdroj – kto ju dá alebo požičia.</div>`;
+  const items=g=>Object.values(g.items).sort((a,b)=>a.n.localeCompare(b.n,"sk")).map(it=>{const all=it.okRows===it.rows,some=it.okRows>0&&!all;
+    return`<div class="zb-pl ${all?"ok":""}"><input type="checkbox" data-zbsok="src|${esc(g.k)}|${esc(it.k)}" ${all?"checked":""} ${some?'data-ind="1"':""} aria-label="Máme"><span><b>${esc(it.n)}</b> – ${it.ks} ks</span><span class="meta">dielo ${[...it.d].join(", ")}</span></div>`;}).join("");
+  const cnt=g=>{const n=Object.values(g.items).reduce((s,it)=>s+it.ks,0);return`${n} ks`;};
+  return`<div class="tw"><table class="zb-t"><tr><th style="width:24px"></th><th style="width:220px">Kto</th><th>Čo</th></tr>${named.map((g,n)=>`<tr data-zbsrow="${n}" data-key="${esc(g.k)}"><td>${zbHandle("zdroj",n)}</td><td><input class="zb-sname b" id="zb-sn-zdroj-${n}" data-zbsname="zdroj|${esc(g.k)}" value="${esc(g.name)}" aria-label="Kto"><div class="meta">${cnt(g)}</div></td><td>${items(g)}</td></tr>`).join("")}${none?`<tr><td></td><td><span class="miss">Bez zdroja</span><div class="meta">${cnt(none)}</div></td><td>${items(none)}</td></tr>`:""}</table></div>`;
 }
 function zbSummary(L){
   const tech={},ul=[],days={};let tW=0,tM=0;
@@ -2008,6 +2022,7 @@ function zbSummary(L){
   const tRow=(t,n)=>{const all=t.okRows===t.rows,some=t.okRows>0&&!all;
     return`<tr class="${all?"ok":""}" data-zbsrow="${n}" data-key="${esc(t.k)}"><td><span class="zb-lead">${zbHandle("tech",n)}<input type="checkbox" data-zbsok="tech|${esc(t.k)}" ${all?"checked":""} ${some?'data-ind="1"':""} aria-label="Máme"></span></td><td><input class="zb-sname" id="zb-sn-tech-${n}" data-zbsname="tech|${esc(t.k)}" value="${esc(t.n)}" aria-label="Názov položky">${some?`<span class="meta">máme pri ${t.okRows} z ${t.rows} diel</span>`:""}</td><td class="n">${t.ks}</td><td>${[...t.d].join(", ")}</td></tr>`;};
   return box("tech","Súhrn techniky, káblov a príslušenstva",T.length,`${T.length?`<div class="tw"><table class="zb-t"><tr><th style="width:46px"></th><th>Položka</th><th class="n">Ks</th><th>Diela</th></tr>${T.map(tRow).join("")}</table></div>`:`<div class="empty">Zatiaľ nič.</div>`}`)
+   +box("zdroj","Kto čo požičal / dodal",new Set(L.flatMap(x=>(x.technika||[]).filter(r=>r.nazov).map(r=>zbKey(r.zdroj)).filter(Boolean))).size,zbSumSources())
    +box("ludia","Súhrn ľudí",np,`${zbSumPeople()}<h3 style="margin-top:16px">Rozpis po dňoch</h3>${dk.length?dk.map(d=>`<h4>${zbDay(d)}</h4><div class="tw"><table class="zb-t">${days[d].sort((a,b)=>(a.od||"").localeCompare(b.od||"")).map(t=>`<tr><td class="n" style="width:110px">${esc(t.od||"?")}–${esc(t.do||"?")}</td><td style="width:200px">${esc(t.kto)||'<span class="miss">doplniť</span>'}</td><td>${esc(t.rola)}</td><td class="n" style="width:60px">${esc(t.c)}</td></tr>`).join("")}</table></div>`).join(""):`<div class="empty">Keď ľuďom nastavíte dni a časy, zobrazí sa tu rozpis po dňoch.</div>`}`)
    +box("ulohy","Súhrn úloh",open,`${U.length?`<div class="tw"><table class="zb-t">${U.map((u,n)=>`<tr class="${u.done?"done":""}" data-zbsrow="${n}" data-key="${esc(u.id+"|"+zbKey(u.t))}"><td style="width:46px"><span class="zb-lead">${zbHandle("ulohy",n)}<input type="checkbox" data-zbsok="ul|${esc(u.id)}|${u.i}" ${u.done?"checked":""} aria-label="Hotovo"></span></td><td class="n" style="width:36px"><a href="#zb-${esc(u.id)}" data-zbjump="${esc(u.id)}">${esc(u.c)}</a></td><td><input class="zb-sname" id="zb-sn-ul-${n}" data-zbsname="ul|${esc(u.id)}|${u.i}" value="${esc(u.t)}" aria-label="Úloha"></td></tr>`).join("")}</table></div>`:`<div class="empty">Žiadne úlohy.</div>`}`);
 }
@@ -2108,7 +2123,7 @@ function zbBind(v){
     const commit=()=>{
       const p=el.dataset.zbsname.split("|"),nv=el.value.trim().replace(/\s+/g," ");
       if(p[0]==="ul"){zbSave(p[1],y=>{const a=(y.ulohy||[]).map(r=>Object.assign({},r));const r=a[+p[2]];if(!r||!nv||r.text===nv)return null;r.text=nv;return{ulohy:a};});return;}
-      const oldK=p[1],newK=zbKey(nv),arr=p[0]==="tech"?"technika":"personal",fld=p[0]==="tech"?"nazov":"kto",kind=p[0];
+      const oldK=p[1],newK=zbKey(nv),arr=p[0]==="ludia"?"personal":"technika",fld={tech:"nazov",zdroj:"zdroj",ludia:"kto"}[p[0]],kind=p[0];
       if(!nv){el.value=el.defaultValue;return;}
       if(el.value!==el.defaultValue||newK!==oldK){
         const exists=newK!==oldK&&S.d.zab.some(x=>(x[arr]||[]).some(r=>zbKey(r[fld])===newK));
@@ -2127,6 +2142,8 @@ function zbBind(v){
     c.onchange=()=>{const val=c.checked,p=c.dataset.zbsok.split("|");
       if(p[0]==="tech"){S.d.zab.forEach(x=>{if((x.technika||[]).some(r=>zbKey(r.nazov)===p[1]&&!!r.ok!==val))
         zbSave(x.id,y=>({technika:(y.technika||[]).map(r=>zbKey(r.nazov)===p[1]?Object.assign({},r,{ok:val}):r)}));});}
+      else if(p[0]==="src"){const m=r=>zbKey(r.zdroj)===p[1]&&zbKey(r.nazov)===p[2];S.d.zab.forEach(x=>{if((x.technika||[]).some(r=>r.nazov&&m(r)&&!!r.ok!==val))
+        zbSave(x.id,y=>({technika:(y.technika||[]).map(r=>r.nazov&&m(r)?Object.assign({},r,{ok:val}):r)}));});}
       else{const fld=p[0]==="ul"?["ulohy","hotovo"]:["personal","ok"];
         zbSave(p[1],y=>{const a=(y[fld[0]]||[]).map(r=>Object.assign({},r));if(!a[+p[2]])return null;a[+p[2]][fld[1]]=val;return{[fld[0]]:a};});}
     };
