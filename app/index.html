@@ -427,8 +427,11 @@ body.zb-dragging,body.zb-dragging *{cursor:grabbing!important;user-select:none!i
 .zb-t tr.bad td{color:var(--bad)}
 .zb-pl{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;padding:2px 0}.zb-pt{font-variant-numeric:tabular-nums;white-space:nowrap;flex:0 0 150px}
 .zb-sup{padding:6px 0;border-bottom:1px dashed var(--line)}.zb-sup:last-of-type{border-bottom:0}
-.zb-supl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
-.zb-supl .zb-sname{flex:1 1 180px;width:auto;margin:0}
+.zb-supl{display:flex;flex-wrap:nowrap;align-items:center;gap:6px 8px}
+.zb-supl>*{flex-shrink:0}.zb-supl>.zb-sname{flex-shrink:1}.zb-supl>.zb-chips{flex:1 0 auto}
+.zb-chip{white-space:nowrap}
+.zb-supl .zb-sname{flex:0 1 auto;width:auto;min-width:6ch;max-width:100%;margin:0;field-sizing:content}
+.zb-chips{flex:1 1 auto;display:flex;flex-wrap:wrap;gap:4px;min-width:0}
 .zb-dks{flex:0 0 52px;width:52px;font:inherit;text-align:right;background:var(--surface3);border:1px solid var(--line);border-radius:6px;padding:3px 6px}
 .zb-rest{font-size:12.5px;font-weight:600;white-space:nowrap;min-width:84px;text-align:center;border:0;border-radius:99px;padding:3px 10px;background:color-mix(in srgb,var(--ochre) 18%,transparent);color:var(--ochre)}
 button.zb-rest{cursor:pointer}button.zb-rest:hover{background:color-mix(in srgb,var(--ochre) 30%,transparent)}
@@ -467,6 +470,7 @@ button.lnk{border:0;background:transparent;color:var(--accent);cursor:pointer;fo
   .zb-srct td{display:block;border:0;padding:3px 4px}
   .zb-srct td:nth-child(3){grid-column:1/-1}
   .zb-alloc{margin-left:0}
+  .zb-supl{flex-wrap:wrap}
 }
 </style>
 </head>
@@ -2034,14 +2038,15 @@ function zbSumSources(){
   const named=zbOrd("zdroj",Object.values(G).filter(g=>g.k).sort((a,b)=>a.name.localeCompare(b.name,"sk")),g=>g.k);
   const opts=works.map(x=>`<option value="${esc(x.id)}">${esc(x.ord||"")} ${esc(x.title||"")}</option>`).join("");
   const supRow=d=>{const A=alloc[d.id]||[],used=A.reduce((t,a)=>t+zbNum(a.r.ks||1),0),tot=zbNum(d.ks),rest=tot-used;
+    const chips=A.map(a=>`<span class="zb-chip"><a href="#zb-${esc(a.x.id)}" data-zbjump="${esc(a.x.id)}" title="${esc(a.x.title||"")}">č. ${esc(a.x.ord||"")}</a> · ${esc(a.r.ks||1)} ks<button type="button" data-zbdun="${esc(a.x.id)}|${a.i}" aria-label="Zrušiť pridelenie">×</button></span>`).join("");
     return`<div class="zb-sup ${d.ok?"ok":""}">
       <div class="zb-supl"><input type="checkbox" data-zbsok="sup|${esc(d.id)}" ${d.ok?"checked":""} aria-label="Máme">
-        <input class="zb-sname b" id="zb-dn-${esc(d.id)}" data-zbsname="dnaz|${esc(d.id)}" value="${esc(d.nazov||"")}" list="zb-dl-tech" autocomplete="off" placeholder="čo" aria-label="Položka">
+        <input class="zb-sname b" id="zb-dn-${esc(d.id)}" data-zbsname="dnaz|${esc(d.id)}" value="${esc(d.nazov||"")}" size="${Math.max(4,String(d.nazov||"").length)}" list="zb-dl-tech" autocomplete="off" placeholder="čo" aria-label="Položka">
+        <span class="zb-chips">${chips}</span>
         <input type="number" class="zb-dks" id="zb-dk-${esc(d.id)}" data-zbsname="dks|${esc(d.id)}" value="${esc(d.ks??"")}" min="0" placeholder="ks" aria-label="Počet kusov"><span class="meta">ks</span>
         ${rest<0?`<button type="button" class="zb-rest bad" data-zbdopen="${esc(d.id)}">pridelené o ${-rest} ks viac</button>`:rest===0&&tot?`<span class="zb-rest done">pridelené</span>`:`<button type="button" class="zb-rest" data-zbdopen="${esc(d.id)}" aria-expanded="${!!S.zb.give[d.id]}">prideliť</button>`}
         <button type="button" class="zb-x" data-zbddel="${esc(d.id)}" aria-label="Odstrániť dodávku">×</button></div>
-      <div class="zb-alloc">${A.map(a=>`<span class="zb-chip"><a href="#zb-${esc(a.x.id)}" data-zbjump="${esc(a.x.id)}" title="${esc(a.x.title||"")}">č. ${esc(a.x.ord||"")}</a> · ${esc(a.r.ks||1)} ks<button type="button" data-zbdun="${esc(a.x.id)}|${a.i}" aria-label="Zrušiť pridelenie">×</button></span>`).join("")}
-        ${S.zb.give[d.id]?`<span class="zb-give"><select id="zb-dw-${esc(d.id)}" aria-label="Dielo"><option value="">prideliť k dielu…</option>${opts}</select><input type="number" id="zb-dq-${esc(d.id)}" min="1" value="${rest>0?rest:1}" aria-label="Kusov"><button type="button" class="btn sm pri" data-zbdgive="${esc(d.id)}">Prideliť</button></span>`:""}</div></div>`;};
+      ${S.zb.give[d.id]?`<div class="zb-alloc"><span class="zb-give"><select id="zb-dw-${esc(d.id)}" aria-label="Dielo"><option value="">prideliť k dielu…</option>${opts}</select><input type="number" id="zb-dq-${esc(d.id)}" min="1" value="${rest>0?rest:1}" aria-label="Kusov"><button type="button" class="btn sm pri" data-zbdgive="${esc(d.id)}">Prideliť</button></span></div>`:""}</div>`;};
   const looseRow=g=>g.loose.length?`<div class="zb-loose"><span class="meta">Zadané len pri dieloch:</span> ${g.loose.map(a=>`<span class="zb-chip">${esc(a.r.nazov)} · ${esc(a.r.ks||1)} ks · č. ${esc(a.x.ord||"")}<button type="button" class="lnk" data-zbdadopt="${esc(a.x.id)}|${a.i}" title="Zapísať ako dodávku">+ do dodávok</button></span>`).join("")}</div>`:"";
   const form=`<div class="zb-newsup"><input id="zb-ns-kto" value="${esc(S.zb.ns.kto)}" list="zb-dl-zdroj" autocomplete="off" placeholder="Kto (napr. Štefan Strašidelný)"><input id="zb-ns-naz" value="${esc(S.zb.ns.naz)}" list="zb-dl-tech" autocomplete="off" placeholder="Čo (napr. Kábel 20 m)"><input id="zb-ns-ks" value="${esc(S.zb.ns.ks)}" type="number" min="1" placeholder="ks"><button type="button" class="btn pri sm" data-zbdnew>Pridať dodávku</button></div>`;
   return`${form}${named.length?`<div class="tw"><table class="zb-t zb-srct"><tr><th style="width:24px"></th><th style="width:220px">Kto</th><th>Čo dal a kam to ide</th></tr>${named.map((g,n)=>`<tr data-zbsrow="${n}" data-key="${esc(g.k)}"><td>${zbHandle("zdroj",n)}</td><td><input class="zb-sname b" id="zb-sn-zdroj-${n}" data-zbsname="zdroj|${esc(g.k)}" value="${esc(g.name)}" aria-label="Kto"><div class="meta">${g.sup.reduce((t,d)=>t+zbNum(d.ks),0)+g.loose.reduce((t,a)=>t+zbNum(a.r.ks||1),0)} ks</div><button type="button" class="lnk" data-zbdmore="${esc(g.name)}">+ ďalšia položka</button></td><td>${g.sup.map(supRow).join("")}${looseRow(g)}</td></tr>`).join("")}</table></div>`:`<div class="empty">Zatiaľ žiadne dodávky. Zapíšte, kto čo dal, a potom to pridelte k dielam.</div>`}`;
