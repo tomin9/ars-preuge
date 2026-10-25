@@ -428,7 +428,7 @@ body.zb-dragging,body.zb-dragging *{cursor:grabbing!important;user-select:none!i
 .zb-pl{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;padding:2px 0}.zb-pt{font-variant-numeric:tabular-nums;white-space:nowrap;flex:0 0 150px}
 .zb-sup{padding:6px 0;border-bottom:1px dashed var(--line)}.zb-sup:last-of-type{border-bottom:0}
 .zb-supl{display:flex;flex-wrap:nowrap;align-items:center;gap:6px 8px}
-.zb-supl>*{flex-shrink:0}.zb-supl>.zb-sname{flex-shrink:1}.zb-supl>.zb-chips{flex:1 0 auto}
+.zb-supl>*{flex-shrink:0}.zb-supl>.zb-sname{flex-shrink:1;max-width:45%}.zb-supl>.zb-chips{flex:1 1 0;min-width:0}
 .zb-chip{white-space:nowrap}
 .zb-supl .zb-sname{flex:0 1 auto;width:auto;min-width:6ch;max-width:100%;margin:0;field-sizing:content}
 .zb-chips{flex:1 1 auto;display:flex;flex-wrap:wrap;gap:4px;min-width:0}
@@ -2080,6 +2080,35 @@ function zbPeopleView(){
    :`<div class="panel"><div class="empty">Zatiaľ nikto nemá pridelené miesto. Ľudí pridáte pri dielach v časti Ľudia.</div></div>`}`;
 }
 /* one-time cleanup: watts and lengths used to have their own fields – move them into the item name */
+/* items entered at a work with a Zdroj become deliveries automatically, so they show like deliveries entered in the summary.
+   Same supplier + same item = one delivery; its id is derived from the names so two people syncing at once write the same record. */
+function zbSupId(kto,naz){let h=2166136261;const t=zbKey(kto)+"|"+zbKey(naz);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return"a_"+(h>>>0).toString(36)+"_"+t.length;}
+function zbSyncSupplies(){
+  if(S.readOnly||S.loading||!db||S.zb.syncing)return;
+  const byId=new Map(S.d.zabd.map(d=>[d.id,d])),byKey=new Map();
+  S.d.zabd.forEach(d=>{const k=zbKey(d.kto)+"|"+zbKey(d.nazov);if(!byKey.has(k))byKey.set(k,d);});
+  const match=r=>{if(!r.nazov||!zbKey(r.zdroj))return null;const d=r.supplyId&&byId.get(r.supplyId);
+    if(d&&zbKey(d.kto)===zbKey(r.zdroj)&&zbKey(d.nazov)===zbKey(r.nazov))return null;   // correctly linked
+    const k=zbKey(r.zdroj)+"|"+zbKey(r.nazov),ex=byKey.get(k);return{k,id:ex?ex.id:zbSupId(r.zdroj,r.nazov),ex};};
+  const plan={},works=[];
+  S.d.zab.forEach(x=>{let hit=false;(x.technika||[]).forEach(r=>{const m=match(r);if(!m)return;hit=true;
+    const p=plan[m.id]||(plan[m.id]={m,kto:String(r.zdroj).trim(),nazov:String(r.nazov).trim(),ks:0,ok:true});p.ks+=zbNum(r.ks||1);if(!r.ok)p.ok=false;});
+    if(hit)works.push(x.id);});
+  const stale=[];S.d.zab.forEach(x=>(x.technika||[]).forEach(r=>{if(r.supplyId&&!byId.has(r.supplyId)&&!(r.nazov&&zbKey(r.zdroj)))stale.push(x.id);}));
+  if(!works.length&&!stale.length)return;
+  S.zb.syncing=true;
+  (async()=>{try{
+    for(const id in plan){const p=plan[id];
+      if(p.m.ex){const used=S.d.zab.reduce((t,x)=>t+(x.technika||[]).filter(r=>r.supplyId===id).reduce((u,r)=>u+zbNum(r.ks||1),0),0)+p.ks;
+        if(used>zbNum(p.m.ex.ks))await upd("zabd",id,{ks:String(used)});}
+      else await write(async()=>{const t=Date.now();await db.collection(ENT.zabd.col).doc(id).set(Object.assign({kto:p.kto,nazov:p.nazov,ks:String(p.ks),ok:p.ok,createdAt:t,updatedAt:t},meId()?{createdBy:meId(),updatedBy:meId()}:{}));});
+    }
+    for(const wid of new Set([...works,...stale]))await zbSave(wid,y=>{let ch=false;const a=(y.technika||[]).map(r=>{const m=match(r);
+      if(m){ch=true;return Object.assign({},r,{supplyId:m.id});}
+      if(r.supplyId&&!byId.has(r.supplyId)&&!plan[r.supplyId]&&!(r.nazov&&zbKey(r.zdroj))){ch=true;const c=Object.assign({},r);delete c.supplyId;return c;}
+      return r;});return ch?{technika:a}:null;});
+  }finally{S.zb.syncing=false;}})();
+}
 function zbMoveUnits(){
   if(S.readOnly||S.loading||!db)return;
   const has=(name,v,u)=>new RegExp("(^|\\D)"+String(v).replace(".","[.,]")+"\\s*"+u+"(\\b|$)","i").test(name||"");
@@ -2090,6 +2119,7 @@ function zbMoveUnits(){
 }
 VIEWS.zabezpecenie=()=>{
   if(!S.zb.unitsMoved&&!S.loading&&S.d.zab.length){S.zb.unitsMoved=true;setTimeout(zbMoveUnits,0);}
+  if(!S.loading&&S.d.zab.length)setTimeout(zbSyncSupplies,0);
   S.zbP=zbPeople();
   const all=zbList(),n=all.length;
   const ok=all.filter(x=>x.stav==="potvrdene").length,w=all.filter(x=>x.stav==="rozpracovane").length;
