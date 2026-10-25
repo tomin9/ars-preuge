@@ -386,7 +386,7 @@ table.prog td{padding:4px 6px}table.prog input,table.prog select{width:100%;bord
 .zb-plan input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
 .zb-rows{display:grid;gap:6px;min-width:0}
 .zb-row{display:grid;gap:6px;align-items:center;min-width:0}
-.zb-row.tech{grid-template-columns:46px minmax(0,3fr) 60px 68px 68px minmax(0,2fr) 30px}
+.zb-row.tech{grid-template-columns:46px minmax(0,3fr) 64px minmax(0,2fr) 30px}
 .zb-row.per{grid-template-columns:46px minmax(0,2fr) minmax(0,2fr) 172px minmax(0,2fr) 30px}
 .zb-row.ul{grid-template-columns:46px minmax(0,1fr) 30px}
 .zb-lead{display:flex;align-items:center;gap:4px}
@@ -432,9 +432,9 @@ body.zb-dragging,body.zb-dragging *{cursor:grabbing!important;user-select:none!i
   .zb-head{grid-template-columns:1fr}
   .zb-ph{width:100%;height:auto;aspect-ratio:4/3}
   .zb-row.hd{display:none}
-  .zb-row.tech{grid-template-columns:46px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 30px;grid-template-areas:"cb nm nm nm x" ". ks w m ." ". zd zd zd .";padding-bottom:6px;border-bottom:1px dashed var(--line)}
-  .zb-row.tech>:nth-child(1){grid-area:cb}.zb-row.tech>:nth-child(2){grid-area:nm}.zb-row.tech>:nth-child(3){grid-area:ks}.zb-row.tech>:nth-child(4){grid-area:w}
-  .zb-row.tech>:nth-child(5){grid-area:m}.zb-row.tech>:nth-child(6){grid-area:zd}.zb-row.tech>:nth-child(7){grid-area:x}
+  .zb-row.tech{grid-template-columns:46px 64px minmax(0,1fr) 30px;grid-template-areas:"cb nm nm x" ". ks zd .";padding-bottom:6px;border-bottom:1px dashed var(--line)}
+  .zb-row.tech>:nth-child(1){grid-area:cb}.zb-row.tech>:nth-child(2){grid-area:nm}.zb-row.tech>:nth-child(3){grid-area:ks}
+  .zb-row.tech>:nth-child(4){grid-area:zd}.zb-row.tech>:nth-child(5){grid-area:x}
   .zb-row.per{grid-template-columns:46px minmax(0,1fr) minmax(0,1fr) 30px;grid-template-areas:"cb ro kt x" ". wh wh ." ". pz pz ." ". ed ed ." ". al al .";padding-bottom:6px;border-bottom:1px dashed var(--line)}
   .zb-row.per>:nth-child(1){grid-area:cb}.zb-row.per>:nth-child(2){grid-area:ro}.zb-row.per>:nth-child(3){grid-area:kt}
   .zb-row.per>:nth-child(4){grid-area:wh}.zb-row.per>:nth-child(5){grid-area:pz}.zb-row.per>:nth-child(6){grid-area:x}.zb-row.per>.zb-whenedit{grid-area:ed}.zb-row.per>.zb-also{grid-area:al}
@@ -1928,13 +1928,11 @@ function zbSave(id,patch){return new Promise(r=>setTimeout(()=>{const x=get("zab
 
 function zbRows(x,key){
   const id=x.id,L=x[key]||[];
-  if(key==="technika")return(L.length?`<div class="zb-row tech hd"><span></span><span>Položka</span><span>Ks</span><span>W / ks</span><span>Dĺžka m</span><span>Zdroj (máme, požičať, kúpiť…)</span><span></span></div>`:"")+
+  if(key==="technika")return(L.length?`<div class="zb-row tech hd"><span></span><span>Položka</span><span>Ks</span><span>Zdroj (máme, požičať, kúpiť…)</span><span></span></div>`:"")+
     L.map((r,i)=>`<div class="zb-row tech ${r.ok?"ok":""}" data-zbrow="${i}">
       <span class="zb-lead"><button type="button" class="zb-h" id="zb-${id}-ht${i}" data-zbdrag="${id}|technika|${i}" aria-label="Presunúť riadok (šípky hore/dole)" title="Potiahni a presuň">⠿</button><input type="checkbox" id="zb-${id}-t${i}-ok" data-zb="${id}|technika|${i}|ok" ${r.ok?"checked":""} aria-label="Zabezpečené"></span>
       <input type="text" id="zb-${id}-t${i}-n" data-zb="${id}|technika|${i}|nazov" list="zb-dl-tech" autocomplete="off" value="${esc(r.nazov)}" placeholder="napr. LED reflektor">
       <input type="number" id="zb-${id}-t${i}-k" data-zb="${id}|technika|${i}|ks" value="${esc(r.ks)}" min="0" placeholder="ks">
-      <input type="number" id="zb-${id}-t${i}-w" data-zb="${id}|technika|${i}|w" value="${esc(r.w)}" min="0" placeholder="W">
-      <input type="number" id="zb-${id}-t${i}-m" data-zb="${id}|technika|${i}|m" value="${esc(r.m)}" min="0" placeholder="m">
       <input type="text" class="zdroj" id="zb-${id}-t${i}-z" data-zb="${id}|technika|${i}|zdroj" list="zb-dl-zdroj" autocomplete="off" value="${esc(r.zdroj)}" placeholder="zdroj">
       <button type="button" class="zb-x" data-zbdel="${id}|technika|${i}" aria-label="Odstrániť položku">×</button></div>`).join("");
   if(key==="personal")return(L.length?`<div class="zb-row per hd"><span></span><span>Rola</span><span>Kto</span><span>Kedy</span><span>Poznámka</span><span></span></div>`:"")+
@@ -2008,8 +2006,8 @@ function zbSummary(L){
   const box=(k,title,count,body)=>`<details class="panel zb-sum" data-zbsum="${k}" ${S.zb.sums[k]?"open":""}><summary><span>${title}${count?` <span class="meta">${count}</span>`:""}</span></summary><div class="zb-sbody">${body}</div></details>`;
   const np=Object.keys(S.zbP||{}).length;
   const tRow=(t,n)=>{const all=t.okRows===t.rows,some=t.okRows>0&&!all;
-    return`<tr class="${all?"ok":""}" data-zbsrow="${n}" data-key="${esc(t.k)}"><td><span class="zb-lead">${zbHandle("tech",n)}<input type="checkbox" data-zbsok="tech|${esc(t.k)}" ${all?"checked":""} ${some?'data-ind="1"':""} aria-label="Máme"></span></td><td><input class="zb-sname" id="zb-sn-tech-${n}" data-zbsname="tech|${esc(t.k)}" value="${esc(t.n)}" aria-label="Názov položky">${some?`<span class="meta">máme pri ${t.okRows} z ${t.rows} diel</span>`:""}</td><td class="n">${t.ks}</td><td class="n">${t.w?Math.round(t.w):"–"}</td><td class="n">${t.m?Math.round(t.m):"–"}</td><td>${[...t.d].join(", ")}</td></tr>`;};
-  return box("tech","Súhrn techniky, káblov a príslušenstva",T.length,`${T.length?`<div class="tw"><table class="zb-t"><tr><th style="width:46px"></th><th>Položka</th><th class="n">Ks</th><th class="n">W</th><th class="n">m</th><th>Diela</th></tr>${T.map(tRow).join("")}<tr><th></th><th>Spolu</th><th></th><th class="n">${Math.round(tW)} W</th><th class="n">${Math.round(tM)} m</th><th></th></tr></table></div>`:`<div class="empty">Zatiaľ nič.</div>`}`)
+    return`<tr class="${all?"ok":""}" data-zbsrow="${n}" data-key="${esc(t.k)}"><td><span class="zb-lead">${zbHandle("tech",n)}<input type="checkbox" data-zbsok="tech|${esc(t.k)}" ${all?"checked":""} ${some?'data-ind="1"':""} aria-label="Máme"></span></td><td><input class="zb-sname" id="zb-sn-tech-${n}" data-zbsname="tech|${esc(t.k)}" value="${esc(t.n)}" aria-label="Názov položky">${some?`<span class="meta">máme pri ${t.okRows} z ${t.rows} diel</span>`:""}</td><td class="n">${t.ks}</td><td>${[...t.d].join(", ")}</td></tr>`;};
+  return box("tech","Súhrn techniky, káblov a príslušenstva",T.length,`${T.length?`<div class="tw"><table class="zb-t"><tr><th style="width:46px"></th><th>Položka</th><th class="n">Ks</th><th>Diela</th></tr>${T.map(tRow).join("")}</table></div>`:`<div class="empty">Zatiaľ nič.</div>`}`)
    +box("ludia","Súhrn ľudí",np,`${zbSumPeople()}<h3 style="margin-top:16px">Rozpis po dňoch</h3>${dk.length?dk.map(d=>`<h4>${zbDay(d)}</h4><div class="tw"><table class="zb-t">${days[d].sort((a,b)=>(a.od||"").localeCompare(b.od||"")).map(t=>`<tr><td class="n" style="width:110px">${esc(t.od||"?")}–${esc(t.do||"?")}</td><td style="width:200px">${esc(t.kto)||'<span class="miss">doplniť</span>'}</td><td>${esc(t.rola)}</td><td class="n" style="width:60px">${esc(t.c)}</td></tr>`).join("")}</table></div>`).join(""):`<div class="empty">Keď ľuďom nastavíte dni a časy, zobrazí sa tu rozpis po dňoch.</div>`}`)
    +box("ulohy","Súhrn úloh",open,`${U.length?`<div class="tw"><table class="zb-t">${U.map((u,n)=>`<tr class="${u.done?"done":""}" data-zbsrow="${n}" data-key="${esc(u.id+"|"+zbKey(u.t))}"><td style="width:46px"><span class="zb-lead">${zbHandle("ulohy",n)}<input type="checkbox" data-zbsok="ul|${esc(u.id)}|${u.i}" ${u.done?"checked":""} aria-label="Hotovo"></span></td><td class="n" style="width:36px"><a href="#zb-${esc(u.id)}" data-zbjump="${esc(u.id)}">${esc(u.c)}</a></td><td><input class="zb-sname" id="zb-sn-ul-${n}" data-zbsname="ul|${esc(u.id)}|${u.i}" value="${esc(u.t)}" aria-label="Úloha"></td></tr>`).join("")}</table></div>`:`<div class="empty">Žiadne úlohy.</div>`}`);
 }
@@ -2076,7 +2074,7 @@ function zbBind(v){
   });
   v.querySelectorAll("[data-zbadd]").forEach(b=>b.onclick=()=>{
     const[id,k]=b.dataset.zbadd.split("|");let n=0;
-    const row=k==="technika"?{nazov:"",ks:"",w:"",m:"",zdroj:"",ok:false}:k==="personal"?{rola:"",kto:"",den:"2026-10-30",od:"17:00",do:"22:00",kedy:"",ok:false}:{text:"",hotovo:false};
+    const row=k==="technika"?{nazov:"",ks:"",zdroj:"",ok:false}:k==="personal"?{rola:"",kto:"",den:"2026-10-30",od:"17:00",do:"22:00",kedy:"",ok:false}:{text:"",hotovo:false};
     zbSave(id,x=>{const arr=[...(x[k]||[]),row];n=arr.length-1;const p={[k]:arr};if((x.stav||"navrh")==="navrh")p.stav="rozpracovane";return p;})
       .then(()=>{const pf={technika:"t",personal:"p",ulohy:"u"}[k],sf={technika:"n",personal:"r",ulohy:"t"}[k];const el=document.getElementById(`zb-${id}-${pf}${n}-${sf}`);if(el)el.focus();});
   });
