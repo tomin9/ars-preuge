@@ -543,7 +543,7 @@ const ENT={
     {k:"account",l:"Účet",t:"sel",o:"acct",req:1},{k:"docNo",l:"Doklad č.",t:"text"},{k:"contactId",l:"Komu / od koho",t:"rel",e:"contacts"},
     {k:"projectId",l:"Projekt",t:"rel",e:"projects"},{k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"cofinGrantId",l:"Spolufinancovanie",t:"rel",e:"grants"},{k:"lineId",l:"Rozpočtová položka",t:"rel",e:"lines"},
     {k:"eventId",l:"Podujatie",t:"rel",e:"events"},{k:"taskId",l:"Úloha",t:"rel",e:"tasks"},{k:"category",l:"Kategória",t:"sel",src:"cats"},{k:"state",l:"Stav",t:"sel",o:"lstate"},
-    {k:"paid",l:"Vyplatené",t:"check"},{k:"note",l:"Poznámka",t:"long"}]},
+    {k:"note",l:"Poznámka",t:"long"}]},
   lines:{col:"budgetLines",one:"Rozpočtová položka",many:"Rozpočtové položky",title:"name",fields:[
     {k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"total",l:"Celkové náklady",t:"money"},{k:"fromGrant",l:"Z dotácie",t:"money"},{k:"note",l:"Poznámka",t:"long"}]},
   contacts:{col:"contacts",one:"Kontakt",many:"Kontakty",title:"name",fields:[
@@ -974,6 +974,7 @@ function bindPart(root,e,r){
       if(k==="grantId"&&v&&!cur.projectId){const g=get("grants",v);if(g&&g.projectId)patch.projectId=g.projectId;}
       if(k==="lineId"&&v){const l=get("lines",v);if(l&&l.grantId&&!cur.grantId){patch.grantId=l.grantId;const g=get("grants",l.grantId);if(g&&g.projectId&&!cur.projectId)patch.projectId=g.projectId;}}
       if(k==="cofinGrantId")patch.cofin=false;
+      if(k==="date"&&e==="ledger")patch.paid=!!v;
       if(k==="status"&&e==="tasks")patch.doneAt=v==="hotove"?Date.now():null;
       upd(e,r.id,patch);
     });
