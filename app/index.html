@@ -1390,15 +1390,22 @@ VIEWS.projekt=()=>{
     const Y=pf.year,YL=c.L.filter(x=>inYear(x,Y)),inc=sum(YL.filter(x=>x.type==="prijem"),x=>x.amount),exp=sum(YL.filter(x=>x.type!=="prijem"),x=>x.amount);
     const yl=Y==="plan"?"plánované":Y||"spolu";
     const ytabs=opts.length?`<div class="ptabs" role="tablist">${yrs.map(y=>`<button role="tab" data-pfyear="${y}" aria-selected="${Y===y}">${y}</button>`).join("")}${nPl?`<button role="tab" data-pfyear="plan" aria-selected="${Y==="plan"}">Plánované</button>`:""}</div>`:"";
-    const mtabs=`<div class="tools"><div class="tabs">${[["dennik","Denník"],["kategorie","Kategórie"]].map(([k,l])=>`<button data-pftab="${k}" aria-pressed="${pf.tab===k}">${l}</button>`).join("")}</div></div>`;
+    const hasCat=c.L.some(x=>x.category),k2=hasCat?["kategorie","Kategórie"]:["partneri","Podľa partnerov"];if(pf.tab!=="dennik"&&pf.tab!==k2[0])pf.tab=k2[0];
+    const mtabs=`<div class="tools"><div class="tabs">${[["dennik","Denník"],k2].map(([k,l])=>`<button data-pftab="${k}" aria-pressed="${pf.tab===k}">${l}</button>`).join("")}</div></div>`;
     const strip=`${ytabs}<div class="strip"><div><b class="pos">${eur0(inc)}</b><span>príjmy ${yl}</span></div><div><b class="neg">${eur0(exp)}</b><span>výdavky ${yl}</span></div><div><b class="${inc-exp<0?"neg":""}">${eur0(inc-exp)}</b><span>výsledok ${yl}</span></div>${p.budget?`<div><b>${eur0(+p.budget-c.exp)}</b><span>zostáva z rozpočtu ${eur0(p.budget)}</span></div>`:""}</div>${mtabs}`;
     if(pf.tab==="kategorie"){
       const X=YL.filter(x=>x.type!=="prijem"),tot=sum(X,x=>x.amount),by={};X.forEach(x=>{const k=x.category||"Bez kategórie";by[k]=(by[k]||0)+(+x.amount||0);});
       const rows=Object.entries(by).sort((a,b)=>b[1]-a[1]);
       body=strip+`<div class="panel"><h2 style="margin-bottom:8px">Výdavky podľa kategórií</h2>${rows.length?`<div class="tw"><table><tbody>${rows.map(([k,v])=>`<tr><td class="t">${esc(k)}</td><td style="width:45%">${bar(v,tot)}</td><td class="num">${pct(v,tot)} %</td><td class="num">${eur(v)}</td></tr>`).join("")}</tbody><tfoot><tr><td>Spolu</td><td></td><td></td><td class="num">${eur(tot)}</td></tr></tfoot></table></div>`:`<div class="empty">Žiadne výdavky.</div>`}</div>`;
+    }else if(pf.tab==="partneri"){
+      const by={};YL.forEach(x=>{const k=x.contactId||"";const r=by[k]=by[k]||{id:k,inc:0,exp:0,n:0};if(x.type==="prijem")r.inc+=+x.amount||0;else r.exp+=+x.amount||0;r.n++;});
+      const rows=Object.values(by).sort((a,b)=>(b.inc+b.exp)-(a.inc+a.exp));
+      body=strip+`<div class="panel">${rows.length?table([["Partner / osoba",r=>r.id?ctLink(r.id):'<span class="muted">Bez kontaktu</span>',"t"],["Platieb",r=>`<span class="meta">${r.n}</span>`,"num"],["Príjmy",r=>r.inc?`<span class="pos">${eur(r.inc)}</span>`:"","num"],["Výdavky",r=>r.exp?`<span class="neg">${eur(r.exp)}</span>`:"","num"],
+        ["Saldo",r=>{const v=r.inc-r.exp;return`<span class="${v<0?"neg":""}">${eur(v)}</span>`;},"num"]],rows,r=>r.id?"contacts:"+esc(r.id):"")
+        :`<div class="empty">Žiadne platby.</div>`}</div>`;
     }else{
       const L=[...YL].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-      body=strip+`<div class="panel">${L.length?table([["Dátum",x=>`<span class="meta">${x.date?fdate(x.date):"plánované"}</span>`],["Popis",x=>`<span class="cut">${esc(x.desc||"—")}</span>`,"t"],["Kategória",x=>`<span class="meta">${esc(x.category||"")}</span>`],["Komu / od koho",x=>ctLink(x.contactId)],
+      body=strip+`<div class="panel">${L.length?table([["Dátum",x=>`<span class="meta">${x.date?fdate(x.date):"plánované"}</span>`],["Popis",x=>`<span class="cut">${esc(x.desc||"—")}</span>`,"t"],...(hasCat?[["Kategória",x=>`<span class="meta">${esc(x.category||"")}</span>`]]:[]),["Komu / od koho",x=>ctLink(x.contactId)],
         ["Grant",x=>`<span class="meta">${gName(get("grants",x.grantId))}</span>`],["Doklad",x=>`<span class="meta">${esc(x.docNo||"")}</span>`],["Suma",x=>`<span class="${x.type==="prijem"?"pos":""}">${x.type==="prijem"?"+":"−"}${eur(x.amount)}</span>`,"num"]],L,x=>"ledger:"+esc(x.id))
         :`<div class="empty">Zatiaľ žiadne platby.</div>`}</div>`;
     }
