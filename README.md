@@ -10,4 +10,4 @@ Tímová aplikácia OZ Ars Preuge: projekty, granty, podujatia, zabezpečenie, f
 
 ## Zabezpečenie
 
-Sekcia **Zabezpečenie** je technický plán podujatia po dielach: napájanie, technika a káble, ľudia s dňom a časom, otvorené úlohy a poznámky, so súhrnom za všetky diela. Dáta sú v kolekcii `zabezpecenie`; diela s fotkami sa nahrajú importom balíka v administrácii (*Ars Preuge → Import dát*), alebo sa pridávajú priamo v aplikácii tlačidlom *Pridať dielo*.
+Záložka **Zabezpečenie** v podujatí NOX:art (Podujatia → NOX:art → Zabezpečenie) je technický plán podujatia po dielach: napájanie, technika a káble, ľudia s dňom a časom, otvorené úlohy a poznámky, so súhrnom za všetky diela. Dáta sú v kolekcii `zabezpecenie`; diela s fotkami sa nahrajú importom balíka v administrácii (*Ars Preuge → Import dát*), alebo sa pridávajú priamo v aplikácii tlačidlom *Pridať dielo*.

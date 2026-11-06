@@ -752,7 +752,7 @@ function navBar(){
   <nav class="nb-path" aria-label="Kde som">${S.view!=="prehlad"?`<button data-go="prehlad">Prehľad</button><span>/</span>`:""}${r?`<button data-go="${sec}">${esc(secL)}</button><span>/</span><b>${esc(ttl(ent,r))}</b>`:`<b>${esc(secL||"Prehľad")}</b>`}</nav></div>`;
 }
 function openRec(e,id){
-  if(e==="zab")return go("zabezpecenie");
+  if(e==="zab")return zbOpenEvent();
   if(e==="projects")return go("projekt",id);
   if(e==="grants")return go("grant",id);
   if(e==="events")return go("podujatie",id);
@@ -788,7 +788,7 @@ const ICON={
   zabezpecenie:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/><path d="m9 12 2 2 4-4"/></svg>',
   menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
 };
-const NAV=[["prehlad","Prehľad"],["kalendar","Kalendár"],["ulohy","Úlohy"],"-",["projekty","Projekty"],["granty","Granty"],["podujatia","Podujatia"],["zabezpecenie","Zabezpečenie"],"-",["financie","Financie"],["kontakty","Kontakty"],["nastavenia","Nastavenia"]];
+const NAV=[["prehlad","Prehľad"],["kalendar","Kalendár"],["ulohy","Úlohy"],"-",["projekty","Projekty"],["granty","Granty"],["podujatia","Podujatia"],"-",["financie","Financie"],["kontakty","Kontakty"],["nastavenia","Nastavenia"]];
 const ACT={projekt:"projekty",grant:"granty",podujatie:"podujatia"};
 
 function render(){
@@ -1767,17 +1767,19 @@ function eventBudget(e){
    :`<div class="empty">${all.length?"V tejto časti nie sú žiadne položky.":"Zatiaľ žiadne položky z finančného denníka. Platbe vo finančnom denníku nastavte podujatie, kategóriu (časť programu) a grant – tu sa zobrazí automaticky."}</div>`}
   ${avail.length?`<select class="linksel" data-linkadd="events:${esc(e.id)}|ledger" style="margin-top:10px"><option value="">↗ Priradiť existujúcu platbu z denníka…</option>${avail.map(x=>`<option value="${esc(x.id)}">${esc(x.desc||"Platba")} · ${fdateS(x.date)||"plánované"} · ${eur(x.amount)}</option>`).join("")}</select>`:""}</div>`;
 }
-const EVTABS=[["rozpocet","Rozpočet"],["ulohy","Úlohy"],["granty","Granty"],["dramaturgia","Dramaturgia"],["marketing","Marketing"],["spoluprace","Spolupráce"],["dokumenty","Dokumenty"]];
+const EVTABS=[["rozpocet","Rozpočet"],["ulohy","Úlohy"],["granty","Granty"],["dramaturgia","Dramaturgia"],["marketing","Marketing"],["spoluprace","Spolupráce"],["dokumenty","Dokumenty"],["zabezpecenie","Zabezpečenie"]];
+const evTabsFor=e=>EVTABS.filter(t=>t[0]!=="zabezpecenie"||isNox(e));
 const MKT_DEF=["Vizuál / plagát","Udalosť na Facebooku","Instagram – príspevky a stories","Web a kalendáre podujatí","Tlačová správa","Newsletter","Rádio a médiá","Výlep plagátov","Foto a video dokumentácia"];
 const evMkt=e=>Array.isArray(e.mkt)?e.mkt:MKT_DEF.map(t=>({t,d:false}));
 function eventTabs(e){
   const id=esc(e.id),T=S.d.tasks.filter(t=>t.eventId===e.id),P=S.d.partnerships.filter(x=>x.eventId===e.id);
-  const tab=EVTABS.find(t=>t[0]===S.evtab)?S.evtab:"rozpocet";
+  const ET=evTabsFor(e),tab=ET.find(t=>t[0]===S.evtab)?S.evtab:"rozpocet";
   const cnt={ulohy:T.filter(t=>!isDone(t)).length,granty:related("events",e,"grants").length,dramaturgia:S.d.prog.filter(x=>x.eventId===e.id).length,
-    marketing:(()=>{const m=evMkt(e);return Array.isArray(e.mkt)?`${m.filter(x=>x.d).length}/${m.length}`:"";})(),spoluprace:P.length,dokumenty:(e.docs||[]).length};
-  const tbar=`<div class="ptabs" role="tablist" style="margin-top:6px">${EVTABS.map(([k,l])=>`<button role="tab" data-evtab="${k}" aria-selected="${tab===k}">${l}${cnt[k]?`<span>${cnt[k]}</span>`:""}</button>`).join("")}</div>`;
+    marketing:(()=>{const m=evMkt(e);return Array.isArray(e.mkt)?`${m.filter(x=>x.d).length}/${m.length}`:"";})(),spoluprace:P.length,dokumenty:(e.docs||[]).length,zabezpecenie:S.d.zab.length};
+  const tbar=`<div class="ptabs" role="tablist" style="margin-top:6px">${ET.map(([k,l])=>`<button role="tab" data-evtab="${k}" aria-selected="${tab===k}">${l}${cnt[k]?`<span>${cnt[k]}</span>`:""}</button>`).join("")}</div>`;
   let body="";
   if(tab==="rozpocet")body=eventBudget(e);
+  else if(tab==="zabezpecenie")body=zbPanel();
   else if(tab==="ulohy")body=`<div class="panel">${linkBlock("events",e,"tasks")}</div>`;
   else if(tab==="granty")body=`<div class="panel">${linkBlock("events",e,"grants")}</div>`;
   else if(tab==="dramaturgia"){
@@ -2167,7 +2169,11 @@ function zbMoveUnits(){
   S.d.zab.forEach(x=>{if((x.technika||[]).some(r=>String(r.w??"").trim()||String(r.m??"").trim()))
     zbSave(x.id,y=>{if(!(y.technika||[]).some(r=>String(r.w??"").trim()||String(r.m??"").trim()))return null;return{technika:(y.technika||[]).map(r=>(String(r.w??"").trim()||String(r.m??"").trim())?fix(r):r)};});});
 }
-VIEWS.zabezpecenie=()=>{
+const isNox=e=>!!e&&/nox/i.test(e.name||"");
+const noxEvent=()=>S.d.events.find(isNox);
+function zbOpenEvent(){const e=noxEvent();if(e){S.evtab="zabezpecenie";go("podujatie",e.id);}else{go("podujatia");toast("Podujatie NOX:art sa nenašlo.");}}
+VIEWS.zabezpecenie=()=>{const e=noxEvent();if(e){S.evtab="zabezpecenie";S.view="podujatie";S.id=e.id;return VIEWS.podujatie();}return`<div class="empty">Podujatie NOX:art sa nenašlo.<br><button class="btn" data-go="podujatia">Späť na podujatia</button></div>`;};
+function zbPanel(){
   if(!S.zb.unitsMoved&&!S.loading&&S.d.zab.length){S.zb.unitsMoved=true;setTimeout(zbMoveUnits,0);}
   if(!S.loading&&S.d.zab.length){setTimeout(zbSyncSupplies,0);setTimeout(zbMigratePeople,0);}
   S.zbP=zbPeople();
@@ -2176,7 +2182,7 @@ VIEWS.zabezpecenie=()=>{
   const f=S.zb.f;
   const L=all.filter(x=>f==="all"||(f==="ulohy"?(x.ulohy||[]).some(u=>u.text&&!u.hotovo):(x.stav||"navrh")===f));
   const fb=(k,l)=>`<button data-zbf="${k}" aria-pressed="${f===k}">${l}</button>`;
-  return`<div class="zb-top"><div class="head" style="margin:0"><div><h1>Zabezpečenie</h1><p class="sub">Technický plán po dielach – napájanie, technika, ľudia a úlohy</p></div></div>
+  return`<div class="zb-top"><div class="head" style="margin:0"><div><h2>Zabezpečenie</h2><p class="sub">Technický plán po dielach – napájanie, technika, ľudia a úlohy</p></div></div>
     ${n?`<div class="zb-prog"><div class="lbl"><span>${ok} potvrdených · ${w} rozpracovaných</span><span>z ${n}</span></div><div class="zb-bar"><i style="width:${pct(ok,n)}%;background:var(--good)"></i><i style="width:${pct(w,n)}%;background:var(--ochre)"></i></div></div>`:""}</div>
   ${n?`${zbLists()}<div class="tools"><div class="tabs"><button data-zbmode="diela" aria-pressed="${S.zb.mode!=="ludia"}">Po dielach</button><button data-zbmode="ludia" aria-pressed="${S.zb.mode==="ludia"}">Podľa ľudí</button></div>
     ${S.zb.mode!=="ludia"?`<div class="tabs">${fb("all","Všetky")}${fb("navrh","Neriešené")}${fb("rozpracovane","Rozpracované")}${fb("potvrdene","Potvrdené")}${fb("ulohy","S otvorenými úlohami")}</div><span style="flex:1"></span><button class="btn" data-zbnew>+ Pridať dielo</button>`:""}</div>
@@ -2204,7 +2210,7 @@ function zbDrag(h,from,sel,moveTo){
   };
 }
 function zbBind(v){
-  if(S.view!=="zabezpecenie")return;
+  if(!(S.view==="podujatie"&&S.evtab==="zabezpecenie"&&isNox(get("events",S.id))))return;
   v.querySelectorAll("[data-zbsum]").forEach(d=>d.addEventListener("toggle",()=>{S.zb.sums[d.dataset.zbsum]=d.open;}));
   v.querySelectorAll("[data-zbf]").forEach(b=>b.onclick=()=>{S.zb.f=b.dataset.zbf;render();});
   v.querySelectorAll("[data-zbmode]").forEach(b=>b.onclick=()=>{S.zb.mode=b.dataset.zbmode;render();});
