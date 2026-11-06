@@ -1390,8 +1390,8 @@ VIEWS.projekt=()=>{
     const Y=pf.year,YL=c.L.filter(x=>inYear(x,Y)),inc=sum(YL.filter(x=>x.type==="prijem"),x=>x.amount),exp=sum(YL.filter(x=>x.type!=="prijem"),x=>x.amount);
     const yl=Y==="plan"?"plánované":Y||"spolu";
     const ytabs=opts.length?`<div class="ptabs" role="tablist">${yrs.map(y=>`<button role="tab" data-pfyear="${y}" aria-selected="${Y===y}">${y}</button>`).join("")}${nPl?`<button role="tab" data-pfyear="plan" aria-selected="${Y==="plan"}">Plánované</button>`:""}</div>`:"";
-    const hasCat=c.L.some(x=>x.category),k2=hasCat?["kategorie","Kategórie"]:["partneri","Podľa partnerov"];if(pf.tab!=="dennik"&&pf.tab!==k2[0])pf.tab=k2[0];
-    const mtabs=`<div class="tools"><div class="tabs">${[["dennik","Denník"],k2].map(([k,l])=>`<button data-pftab="${k}" aria-pressed="${pf.tab===k}">${l}</button>`).join("")}</div></div>`;
+    const hasCat=c.L.some(x=>x.category);
+    const mtabs=`<div class="tools"><div class="tabs">${[["dennik","Denník"],["kategorie","Kategórie"],["partneri","Podľa partnerov"]].map(([k,l])=>`<button data-pftab="${k}" aria-pressed="${pf.tab===k}">${l}</button>`).join("")}</div></div>`;
     const strip=`${ytabs}<div class="strip"><div><b class="pos">${eur0(inc)}</b><span>príjmy ${yl}</span></div><div><b class="neg">${eur0(exp)}</b><span>výdavky ${yl}</span></div><div><b class="${inc-exp<0?"neg":""}">${eur0(inc-exp)}</b><span>výsledok ${yl}</span></div>${p.budget?`<div><b>${eur0(+p.budget-c.exp)}</b><span>zostáva z rozpočtu ${eur0(p.budget)}</span></div>`:""}</div>${mtabs}`;
     if(pf.tab==="kategorie"){
       const X=YL.filter(x=>x.type!=="prijem"),tot=sum(X,x=>x.amount),by={};X.forEach(x=>{const k=x.category||"Bez kategórie";by[k]=(by[k]||0)+(+x.amount||0);});
