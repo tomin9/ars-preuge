@@ -1383,11 +1383,25 @@ VIEWS.projekt=()=>{
       <button class="gnew" data-linknew="projects:${pid}|grants">+ Nový grant</button></div>${linkSel("projects",p,"grants")}`;
   }
   if(cur[0]==="financie"){
-    const L=[...c.L].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-    body=`<div class="strip"><div><b class="pos">${eur0(c.inc)}</b><span>príjmy</span></div><div><b class="neg">${eur0(c.exp)}</b><span>výdavky</span></div><div><b class="${c.inc-c.exp<0?"neg":""}">${eur0(c.inc-c.exp)}</b><span>výsledok</span></div>${p.budget?`<div><b>${eur0(+p.budget-c.exp)}</b><span>zostáva z rozpočtu ${eur0(p.budget)}</span></div>`:""}</div>
-      <div class="panel">${L.length?table([["Dátum",x=>`<span class="meta">${fdate(x.date)}</span>`],["Popis",x=>`<span class="cut">${esc(x.desc||"—")}</span>`,"t"],["Komu / od koho",x=>ctLink(x.contactId)],
+    const pf=S.pf2=S.pf2||{},yrs=[...new Set(c.L.map(x=>(x.date||"").slice(0,4)).filter(Boolean))].sort();
+    const nPl=c.L.filter(x=>!x.date).length,opts=[...yrs,...(nPl?["plan"]:[])];
+    if(pf.pid!==p.id){pf.pid=p.id;pf.year=yrs.length?yrs[yrs.length-1]:(nPl?"plan":"");pf.tab="dennik";}
+    if(pf.year&&!opts.includes(pf.year))pf.year=opts[opts.length-1]||"";
+    const Y=pf.year,YL=c.L.filter(x=>inYear(x,Y)),inc=sum(YL.filter(x=>x.type==="prijem"),x=>x.amount),exp=sum(YL.filter(x=>x.type!=="prijem"),x=>x.amount);
+    const yl=Y==="plan"?"plánované":Y||"spolu";
+    const ytabs=opts.length?`<div class="ptabs" role="tablist">${yrs.map(y=>`<button role="tab" data-pfyear="${y}" aria-selected="${Y===y}">${y}</button>`).join("")}${nPl?`<button role="tab" data-pfyear="plan" aria-selected="${Y==="plan"}">Plánované</button>`:""}</div>`:"";
+    const mtabs=`<div class="tools"><div class="tabs">${[["dennik","Denník"],["kategorie","Kategórie"]].map(([k,l])=>`<button data-pftab="${k}" aria-pressed="${pf.tab===k}">${l}</button>`).join("")}</div></div>`;
+    const strip=`${ytabs}<div class="strip"><div><b class="pos">${eur0(inc)}</b><span>príjmy ${yl}</span></div><div><b class="neg">${eur0(exp)}</b><span>výdavky ${yl}</span></div><div><b class="${inc-exp<0?"neg":""}">${eur0(inc-exp)}</b><span>výsledok ${yl}</span></div>${p.budget?`<div><b>${eur0(+p.budget-c.exp)}</b><span>zostáva z rozpočtu ${eur0(p.budget)}</span></div>`:""}</div>${mtabs}`;
+    if(pf.tab==="kategorie"){
+      const X=YL.filter(x=>x.type!=="prijem"),tot=sum(X,x=>x.amount),by={};X.forEach(x=>{const k=x.category||"Bez kategórie";by[k]=(by[k]||0)+(+x.amount||0);});
+      const rows=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+      body=strip+`<div class="panel"><h2 style="margin-bottom:8px">Výdavky podľa kategórií</h2>${rows.length?`<div class="tw"><table><tbody>${rows.map(([k,v])=>`<tr><td class="t">${esc(k)}</td><td style="width:45%">${bar(v,tot)}</td><td class="num">${pct(v,tot)} %</td><td class="num">${eur(v)}</td></tr>`).join("")}</tbody><tfoot><tr><td>Spolu</td><td></td><td></td><td class="num">${eur(tot)}</td></tr></tfoot></table></div>`:`<div class="empty">Žiadne výdavky.</div>`}</div>`;
+    }else{
+      const L=[...YL].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+      body=strip+`<div class="panel">${L.length?table([["Dátum",x=>`<span class="meta">${x.date?fdate(x.date):"plánované"}</span>`],["Popis",x=>`<span class="cut">${esc(x.desc||"—")}</span>`,"t"],["Kategória",x=>`<span class="meta">${esc(x.category||"")}</span>`],["Komu / od koho",x=>ctLink(x.contactId)],
         ["Grant",x=>`<span class="meta">${gName(get("grants",x.grantId))}</span>`],["Doklad",x=>`<span class="meta">${esc(x.docNo||"")}</span>`],["Suma",x=>`<span class="${x.type==="prijem"?"pos":""}">${x.type==="prijem"?"+":"−"}${eur(x.amount)}</span>`,"num"]],L,x=>"ledger:"+esc(x.id))
         :`<div class="empty">Zatiaľ žiadne platby.</div>`}</div>`;
+    }
   }
   if(cur[0]==="ludia"){
     body=`<div class="gal">${C.map(x=>`<div class="gcard" data-open="contacts:${esc(x.id)}" tabindex="0" role="link"><div class="gbody" style="padding-top:14px"><div class="spread" style="flex-wrap:nowrap;align-items:flex-start"><b>${esc(x.name||"Bez mena")}</b>${chip("crole",x.role)}</div>
@@ -2332,6 +2346,8 @@ function bindView(){
   v.querySelectorAll("[data-emode]").forEach(b=>b.onclick=()=>{S.ef.mode=b.dataset.emode;render();});
   v.querySelectorAll("[data-gtab]").forEach(b=>b.onclick=()=>{S.gf.tab=b.dataset.gtab;render();});
   v.querySelectorAll("[data-ptab]").forEach(b=>b.onclick=()=>{S.ptab=b.dataset.ptab;render();});
+  v.querySelectorAll("[data-pfyear]").forEach(b=>b.onclick=()=>{S.pf2.year=b.dataset.pfyear;render();});
+  v.querySelectorAll("[data-pftab]").forEach(b=>b.onclick=()=>{S.pf2.tab=b.dataset.pftab;render();});
   v.querySelectorAll("[data-pm]").forEach(b=>b.onclick=()=>{S.pm=b.dataset.pm;render();});
   v.querySelectorAll(".gcard").forEach(c=>c.onkeydown=ev=>{if(ev.key==="Enter")c.click();});
   v.querySelectorAll("[data-pf]").forEach(b=>b.onclick=()=>{S.pf=b.dataset.pf;render();});
