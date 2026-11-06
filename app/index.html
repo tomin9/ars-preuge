@@ -1400,8 +1400,7 @@ VIEWS.projekt=()=>{
     }else if(pf.tab==="partneri"){
       const by={};YL.forEach(x=>{const k=x.contactId||"";const r=by[k]=by[k]||{id:k,inc:0,exp:0,n:0};if(x.type==="prijem")r.inc+=+x.amount||0;else r.exp+=+x.amount||0;r.n++;});
       const rows=Object.values(by).sort((a,b)=>(b.inc+b.exp)-(a.inc+a.exp));
-      body=strip+`<div class="panel">${rows.length?table([["Partner / osoba",r=>r.id?ctLink(r.id):'<span class="muted">Bez kontaktu</span>',"t"],["Platieb",r=>`<span class="meta">${r.n}</span>`,"num"],["Príjmy",r=>r.inc?`<span class="pos">${eur(r.inc)}</span>`:"","num"],["Výdavky",r=>r.exp?`<span class="neg">${eur(r.exp)}</span>`:"","num"],
-        ["Saldo",r=>{const v=r.inc-r.exp;return`<span class="${v<0?"neg":""}">${eur(v)}</span>`;},"num"]],rows,r=>r.id?"contacts:"+esc(r.id):"")
+      body=strip+`<div class="panel">${rows.length?table([["Partner / osoba",r=>r.id?ctLink(r.id):'<span class="muted">Bez kontaktu</span>',"t"],["Platieb",r=>`<span class="meta">${r.n}</span>`,"num"],["Príjmy",r=>r.inc?`<span class="pos">${eur(r.inc)}</span>`:"","num"],["Výdavky",r=>r.exp?`<span class="neg">${eur(r.exp)}</span>`:"","num"]],rows,r=>r.id?"contacts:"+esc(r.id):"")
         :`<div class="empty">Žiadne platby.</div>`}</div>`;
     }else{
       const L=[...YL].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
