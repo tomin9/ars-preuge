@@ -1406,7 +1406,7 @@ VIEWS.projekt=()=>{
     }else{
       const L=[...YL].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
       body=strip+`<div class="panel">${L.length?table([["Dátum",x=>`<span class="meta">${x.date?fdate(x.date):"plánované"}</span>`],["Popis",x=>`<span class="cut">${esc(x.desc||"—")}</span>`,"t"],...(hasCat?[["Kategória",x=>`<span class="meta">${esc(x.category||"")}</span>`]]:[]),["Komu / od koho",x=>ctLink(x.contactId)],
-        ["Grant",x=>`<span class="meta">${gName(get("grants",x.grantId))}</span>`],["Doklad",x=>`<span class="meta">${esc(x.docNo||"")}</span>`],["Suma",x=>`<span class="${x.type==="prijem"?"pos":""}">${x.type==="prijem"?"+":"−"}${eur(x.amount)}</span>`,"num"]],L,x=>"ledger:"+esc(x.id))
+        ["Grant",x=>`<span class="meta">${gName(get("grants",x.grantId))}</span>`],["Doklad",x=>`<span class="meta">${esc(x.docNo||"")}</span>`],["Suma",x=>`<span class="${x.type==="prijem"?"pos":"neg"}">${x.type==="prijem"?"+":"−"}${eur(x.amount)}</span>`,"num"]],L,x=>"ledger:"+esc(x.id))
         :`<div class="empty">Zatiaľ žiadne platby.</div>`}</div>`;
     }
   }
