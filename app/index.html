@@ -541,9 +541,9 @@ const ENT={
   ledger:{col:"transactions",one:"Platba",many:"Peňažný denník",title:"desc",fields:[
     {k:"type",l:"Typ",t:"sel",o:"ltype",req:1},{k:"amount",l:"Suma",t:"money"},{k:"date",l:"Dátum",t:"date"},
     {k:"account",l:"Účet",t:"sel",o:"acct",req:1},{k:"docNo",l:"Doklad č.",t:"text"},{k:"contactId",l:"Komu / od koho",t:"rel",e:"contacts"},
-    {k:"projectId",l:"Projekt",t:"rel",e:"projects"},{k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"lineId",l:"Rozpočtová položka",t:"rel",e:"lines"},
+    {k:"projectId",l:"Projekt",t:"rel",e:"projects"},{k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"cofinGrantId",l:"Spolufinancovanie",t:"rel",e:"grants"},{k:"lineId",l:"Rozpočtová položka",t:"rel",e:"lines"},
     {k:"eventId",l:"Podujatie",t:"rel",e:"events"},{k:"taskId",l:"Úloha",t:"rel",e:"tasks"},{k:"category",l:"Kategória",t:"sel",src:"cats"},{k:"state",l:"Stav",t:"sel",o:"lstate"},
-    {k:"paid",l:"Vyplatené",t:"check"},{k:"cofin",l:"Zo spolufinancovania",t:"check"},{k:"note",l:"Poznámka",t:"long"}]},
+    {k:"paid",l:"Vyplatené",t:"check"},{k:"note",l:"Poznámka",t:"long"}]},
   lines:{col:"budgetLines",one:"Rozpočtová položka",many:"Rozpočtové položky",title:"name",fields:[
     {k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"total",l:"Celkové náklady",t:"money"},{k:"fromGrant",l:"Z dotácie",t:"money"},{k:"note",l:"Poznámka",t:"long"}]},
   contacts:{col:"contacts",one:"Kontakt",many:"Kontakty",title:"name",fields:[
@@ -700,14 +700,16 @@ function ledgerCalc(){
   });
   return{map,bank,cash,list};
 }
+/* grant, ktorý položku financuje ako spolufinancovanie (staré záznamy: začiarknuté „cofin“ = spolufinancovanie vlastného grantu) */
+const cofinG=x=>x.cofinGrantId||(x.cofin?x.grantId||"":"");
 function grantCalc(g){
-  const L=S.d.ledger.filter(x=>x.grantId===g.id);let sg=0,sc=0,rec=0;
-  L.forEach(x=>{const a=+x.amount||0;if(x.type==="prijem")rec+=a;else if(x.cofin)sc+=a;else sg+=a;});
+  const L=S.d.ledger.filter(x=>x.grantId===g.id||(x.type!=="prijem"&&cofinG(x)===g.id));let sg=0,sc=0,rec=0;
+  L.forEach(x=>{const a=+x.amount||0;if(x.type==="prijem"){if(x.grantId===g.id)rec+=a;}else if(cofinG(x)){if(cofinG(x)===g.id)sc+=a;}else sg+=a;});
   const appr=+g.approved||0;return{L,sg,sc,rec,appr,rest:appr-sg,cofinReq:+g.cofinReq||0};
 }
 function lineCalc(l){
   const L=S.d.ledger.filter(x=>x.lineId===l.id&&x.type!=="prijem");let sg=0,sc=0;
-  L.forEach(x=>{if(x.cofin)sc+=+x.amount||0;else sg+=+x.amount||0;});return{L,sg,sc,spent:sg+sc};
+  L.forEach(x=>{if(cofinG(x))sc+=+x.amount||0;else sg+=+x.amount||0;});return{L,sg,sc,spent:sg+sc};
 }
 function projCalc(p){
   const L=S.d.ledger.filter(x=>x.projectId===p.id);
@@ -939,7 +941,7 @@ function relOpts(f,r){
   return [...list].sort((a,b)=>ttl(f.e,a).localeCompare(ttl(f.e,b),"sk"));
 }
 function fInput(e,r,f){
-  const v=r[f.k],id=`f-${f.k}`;
+  const v=f.k==="cofinGrantId"?cofinG(r):r[f.k],id=`f-${f.k}`;
   switch(f.t){
     case"text":return`<input type="text" id="${id}" data-f="${f.k}" value="${esc(v)}" placeholder="${esc(f.ph||"—")}">`;
     case"email":case"tel":case"url":{
@@ -948,7 +950,7 @@ function fInput(e,r,f){
     case"long":return`<textarea id="${id}" data-f="${f.k}" placeholder="Napíšte…" style="border-color:var(--line)">${esc(v)}</textarea>`;
     case"money":case"num":return`<input type="number" step="${f.t==="money"?"0.01":"1"}" id="${id}" data-f="${f.k}" data-num="1" value="${v==null||v===""?"":esc(v)}" placeholder="—">`;
     case"date":return`<input type="date" id="${id}" data-f="${f.k}" value="${esc(v)}">`;
-    case"check":return`<label class="row" style="padding:5px 10px;gap:8px;cursor:pointer"><input type="checkbox" id="${id}" data-f="${f.k}" data-bool="1" ${v===true||(v==null&&f.k==="paid"&&e==="ledger")?"checked":""}><span class="small muted">${f.k==="cofin"?"Výdavok sa neráta do čerpania dotácie":""}</span></label>`;
+    case"check":return`<label class="row" style="padding:5px 10px;gap:8px;cursor:pointer"><input type="checkbox" id="${id}" data-f="${f.k}" data-bool="1" ${v===true||(v==null&&f.k==="paid"&&e==="ledger")?"checked":""}><span class="small muted"></span></label>`;
     case"sel":return`<select id="${id}" data-f="${f.k}">${f.req?"":`<option value="">—</option>`}${optsOf(f,r).map(([k,l])=>`<option value="${esc(k)}" ${v===k?"selected":""}>${esc(l)}</option>`).join("")}${v&&!optsOf(f,r).some(o=>o[0]===v)?`<option selected>${esc(v)}</option>`:""}</select>`;
     case"rel":{const cur=v?get(f.e,v):null;return`<div class="combo"><input type="hidden" id="${id}" data-f="${f.k}" value="${esc(v||"")}"><input type="text" class="combo-in" data-combo="${f.k}" value="${esc(cur?ttl(f.e,cur):"")}" placeholder="— hľadať…" autocomplete="off" spellcheck="false"><div class="combo-list" hidden></div></div>`;}
     case"multi":{const a=Array.isArray(v)?v:[];return`<div class="mchips" id="${id}">${optsOf(f).map(([k,l])=>`<button type="button" data-multi="${f.k}" data-v="${esc(k)}" aria-pressed="${a.includes(k)}">${esc(l)}</button>`).join("")}</div>`;}
@@ -971,6 +973,7 @@ function bindPart(root,e,r){
       const patch={[k]:v};
       if(k==="grantId"&&v&&!cur.projectId){const g=get("grants",v);if(g&&g.projectId)patch.projectId=g.projectId;}
       if(k==="lineId"&&v){const l=get("lines",v);if(l&&l.grantId&&!cur.grantId){patch.grantId=l.grantId;const g=get("grants",l.grantId);if(g&&g.projectId&&!cur.projectId)patch.projectId=g.projectId;}}
+      if(k==="cofinGrantId")patch.cofin=false;
       if(k==="status"&&e==="tasks")patch.doneAt=v==="hotove"?Date.now():null;
       upd(e,r.id,patch);
     });
@@ -1479,7 +1482,7 @@ VIEWS.grant=()=>{
       +(g.approved&&Math.abs(sum(Ln,l=>l.fromGrant)-c.appr)>0.009?`<p class="small warn" style="margin:10px 0 0">Súčet položiek z dotácie (${eur(sum(Ln,l=>l.fromGrant))}) nesedí so schválenou sumou (${eur(c.appr)}). Upravte rozpočet podľa zmluvy.</p>`:"")
       :`<div class="empty">Prepíšte sem rozpočtové položky zo žiadosti alebo zmluvy. Ku každému výdavku potom priradíte položku a vidíte, koľko z nej ostáva.</div>`}
     ${unassigned.length?`<p class="small warn" style="margin:10px 0 0">${unassigned.length} výdavkov (${eur(sum(unassigned,x=>x.amount))}) nemá priradenú rozpočtovú položku.</p>`:""}</div><div style="margin-top:20px"><div class="panel"><div class="spread"><h2>Výdavky a príjmy</h2><button class="btn sm" data-create="ledger" data-defs='${esc(JSON.stringify(def))}'>+ Platba</button></div>
-        ${c.L.length?`<ul class="items">${[...c.L].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(x=>`<li data-open="ledger:${esc(x.id)}"><span class="t">${esc(x.desc||"Platba")}<span class="meta"> ${x.lineId?"· "+esc(ttl("lines",get("lines",x.lineId))):""}${x.cofin?" · spolufin.":""}</span></span><span class="meta">${fdateS(x.date)||"plánované"}</span><span class="num ${x.type==="prijem"?"pos":"neg"}">${x.type==="prijem"?"+":"−"}${eur(x.amount)}</span></li>`).join("")}</ul>`:`<div class="empty">Zatiaľ žiadne platby.</div>`}</div></div>`;
+        ${c.L.length?`<ul class="items">${[...c.L].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(x=>`<li data-open="ledger:${esc(x.id)}"><span class="t">${esc(x.desc||"Platba")}<span class="meta"> ${x.lineId?"· "+esc(ttl("lines",get("lines",x.lineId))):""}${cofinG(x)?" · spolufin.":""}</span></span><span class="meta">${fdateS(x.date)||"plánované"}</span><span class="num ${x.type==="prijem"?"pos":"neg"}">${x.type==="prijem"?"+":"−"}${eur(x.amount)}</span></li>`).join("")}</ul>`:`<div class="empty">Zatiaľ žiadne platby.</div>`}</div></div>`;
   else body=`<div class="panel"><div class="spread"><h2>Podujatia</h2><button class="btn sm" data-create="events" data-defs='${esc(JSON.stringify(def))}'>+ Podujatie</button></div>
         ${E.length?`<ul class="items">${E.map(eventLi).join("")}</ul>`:`<div class="empty">Žiadne podujatia.</div>`}</div>`;
   return`  ${coverUrl(g)?`<div class="pcw"><img class="pcover" src="${esc(coverUrl(g))}" alt="" style="object-position:${esc(posOf(g))}"><button class="btn pcedit" data-peek="grants:${esc(g.id)}">Upraviť</button></div>`:""}<section class="hero" style="--pc:${esc(p?p.color:OCHRE)}"><div class="spread" style="align-items:flex-start"><div><h1>${esc(g.name||"Grant")}</h1><p class="sub">${provIcon(g)}${[provName(g),g.program].filter(Boolean).map(esc).join(" · ")}${p?` · projekt <button class="btn ghost sm" data-go="projekt" data-id="${esc(p.id)}">${esc(p.name)}</button>`:""}</p></div>
@@ -1944,14 +1947,14 @@ async function exportCsv(kind,id){
       ["Rozpočtová položka","P. č.","Dátum","Doklad č.","Popis","Dodávateľ","Z dotácie","Spolufinancovanie","Vyplatené"]];
     const Ln=S.d.lines.filter(l=>l.grantId===g.id);
     const groups=[...Ln.map(l=>({name:l.name||"Položka",L:c.L.filter(x=>x.lineId===l.id&&x.type!=="prijem"),l})),{name:"Bez priradenej položky",L:c.L.filter(x=>!x.lineId&&x.type!=="prijem")}];
-    groups.forEach(gr=>{if(!gr.L.length&&!gr.l)return;gr.L.sort((a,b)=>(a.date||"").localeCompare(b.date||"")).forEach(x=>rows.push([gr.name,(lc.map[x.id]||{}).seq,fdate(x.date),x.docNo,x.desc,ttl("contacts",get("contacts",x.contactId)),x.cofin?"":n(x.amount),x.cofin?n(x.amount):"",x.paid===false?"nie":"áno"]));
-      rows.push([gr.name+" – spolu","","","","","",n(sum(gr.L.filter(x=>!x.cofin),x=>x.amount)),n(sum(gr.L.filter(x=>x.cofin),x=>x.amount)),gr.l&&gr.l.fromGrant?"rozpočet z dotácie "+n(gr.l.fromGrant):""]);});
+    groups.forEach(gr=>{if(!gr.L.length&&!gr.l)return;gr.L.sort((a,b)=>(a.date||"").localeCompare(b.date||"")).forEach(x=>rows.push([gr.name,(lc.map[x.id]||{}).seq,fdate(x.date),x.docNo,x.desc,ttl("contacts",get("contacts",x.contactId)),cofinG(x)?"":n(x.amount),cofinG(x)?n(x.amount):"",x.paid===false?"nie":"áno"]));
+      rows.push([gr.name+" – spolu","","","","","",n(sum(gr.L.filter(x=>!cofinG(x)),x=>x.amount)),n(sum(gr.L.filter(x=>cofinG(x)),x=>x.amount)),gr.l&&gr.l.fromGrant?"rozpočet z dotácie "+n(gr.l.fromGrant):""]);});
     rows.push([],["SPOLU","","","","","",n(c.sg),n(c.sc),""]);
     name=`vyuctovanie-${(g.name||"grant").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").slice(0,40)}.csv`;
   }else{
     const list=[...ledgerFiltered()].sort((a,b)=>(a.date||"").localeCompare(b.date||"")||(a.createdAt||0)-(b.createdAt||0));
     rows=[["P. č.","Dátum","Typ","Účet","Popis","Komu / od koho","Doklad č.","Projekt","Grant","Rozpočtová položka","Kategória","Príjem","Výdavok","Zost. banka","Zost. pokladňa","Vyplatené","Spolufinancovanie"]];
-    list.forEach(x=>{const m=lc.map[x.id]||{};rows.push([m.seq,fdate(x.date),optL("ltype",x.type),optL("acct",x.account||"banka"),x.desc,ttl("contacts",get("contacts",x.contactId)),x.docNo,ttl("projects",get("projects",x.projectId)),ttl("grants",get("grants",x.grantId)),ttl("lines",get("lines",x.lineId)),x.category,x.type==="prijem"?n(x.amount):"",x.type!=="prijem"?n(x.amount):"",n(m.bank),n(m.cash),x.paid===false?"nie":"áno",x.cofin?"áno":""]);});
+    list.forEach(x=>{const m=lc.map[x.id]||{};rows.push([m.seq,fdate(x.date),optL("ltype",x.type),optL("acct",x.account||"banka"),x.desc,ttl("contacts",get("contacts",x.contactId)),x.docNo,ttl("projects",get("projects",x.projectId)),ttl("grants",get("grants",x.grantId)),ttl("lines",get("lines",x.lineId)),x.category,x.type==="prijem"?n(x.amount):"",x.type!=="prijem"?n(x.amount):"",n(m.bank),n(m.cash),x.paid===false?"nie":"áno",ttl("grants",get("grants",cofinG(x)))]);});
     name=`penazny-dennik-${S.ff.year||"vsetko"}-${today()}.csv`;
   }
   const csv="\ufeff"+rows.map(r=>r.map(q).join(";")).join("\r\n");
