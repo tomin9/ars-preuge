@@ -523,7 +523,7 @@ const OPT={
   crole:[["tim","Člen tímu",BLUE],["umelec","Umelec",PINK],["partner","Partner",GREEN],["dodavatel","Dodávateľ",ORANGE],["medium","Médium",OCHRE],["institucia","Inštitúcia",GRAY],["firma","Firma",PURPLE],["externy","Externý",TEAL],["dobrovolnik","Dobrovoľník",GREEN]],
   csrc:[["email","E-mail",BLUE],["osobne","Osobne",GREEN],["telefon","Telefonicky",OCHRE],["facebook","Facebook",BLUE],["instagram","Instagram",PINK],["ine","Iné",GRAY]],
   pstav:[["oslovit","Osloviť",GRAY],["osloveny","Oslovení",OCHRE],["potvrdeny","Potvrdení",GREEN],["odmietnuty","Odmietnutí",RED]],
-  ctype:[["osoba","Osoba",BLUE],["firma","Firma",PURPLE],["organizacia","Organizácia",RED]],
+  ctype:[["osoba","Osoba",BLUE],["firma","Firma",PURPLE],["organizacia","Organizácia",RED],["media","Média",ORANGE]],
   pkind:[["dielo","Umelecké dielo",BLUE],["sprievodny","Sprievodný program",PURPLE]],
   psec:[["Objekty a svetelné inštalácie","Objekty a svetelné inštalácie",BLUE],["Nové sgrafitá","Nové sgrafitá",GREEN],["Galéria ulice","Galéria ulice",OCHRE],["Živé sgrafitá","Živé sgrafitá",RED],["Sprievodný program","Sprievodný program",PURPLE]],
   pday:[["oba","Piatok aj sobota",GRAY],["piatok","Piatok",BLUE],["sobota","Sobota",PURPLE]],
@@ -1177,7 +1177,8 @@ async function linkNew(e,id,t){
 const PICOL=["#3B5BD9","#2B8A5F","#C08A12","#C2372E","#8A3B9E","#D2691E","#0F8A80","#C2457A","#4A5568"];
 const CSVG={osoba:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9.2"/><circle cx="12" cy="10" r="3.2"/><path d="M6.3 18.4c1.2-2.3 3.2-3.5 5.7-3.5s4.5 1.2 5.7 3.5"/></svg>',
   firma:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3.5" y="7.5" width="17" height="12" rx="2"/><path d="M9 7.5V5.8c0-.7.6-1.3 1.3-1.3h3.4c.7 0 1.3.6 1.3 1.3v1.7M3.5 12.5h17"/></svg>',
-  organizacia:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 9.5 12 4l9 5.5M5 10v8M9.7 10v8M14.3 10v8M19 10v8M3 20.5h18"/></svg>'};
+  organizacia:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 9.5 12 4l9 5.5M5 10v8M9.7 10v8M14.3 10v8M19 10v8M3 20.5h18"/></svg>',
+  media:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 4.5h11a1.5 1.5 0 0 1 1.5 1.5v13H6.5A2.5 2.5 0 0 1 4 16.5V6A1.5 1.5 0 0 1 5.5 4.5"/><path d="M17.5 9H20v8.5a2 2 0 0 1-2.5 2M8 8.5h6M8 12h6M8 15.5h3.5"/></svg>'};
 function cIcon(c,big){if(!c)return"";const cls=big?"cico big":"cico";
   if(c.icon)return`<img class="${cls} img" src="${esc(c.icon.startsWith("data:")?c.icon:ARSP_BLOB+c.icon)}" alt="">`;
   const t=CSVG[c.ctype]?c.ctype:(c.ctype?"organizacia":"osoba");return`<span class="${cls} t-${t}" aria-hidden="true">${CSVG[t]}</span>`;}
@@ -2045,7 +2046,7 @@ VIEWS.financie=()=>{
 };
 
 /* ----- Kontakty ----- */
-const CTABS=[["osoby","Osoby",c=>c.ctype==="osoba"],["firmy","Firmy",c=>c.ctype==="firma"],["organizacie","Organizácie",c=>c.ctype==="organizacia"],["dobrovolnici","Dobrovoľníci",c=>c.role==="dobrovolnik"],["vsetci","Všetci",c=>true]];
+const CTABS=[["osoby","Osoby",c=>c.ctype==="osoba"],["firmy","Firmy",c=>c.ctype==="firma"],["organizacie","Organizácie",c=>c.ctype==="organizacia"],["media","Média",c=>c.ctype==="media"],["dobrovolnici","Dobrovoľníci",c=>c.role==="dobrovolnik"],["vsetci","Všetci",c=>true]];
 function orgOf(c){const o=get("contacts",c.orgId);return o?`<button class="btn ghost sm" style="padding:2px 6px" data-peek="contacts:${esc(o.id)}">${cIcon(o)}${esc(o.name)}</button>`:esc(c.org||"");}
 VIEWS.kontakty=()=>{
   const f=S.cf,q=(f.q||"").toLowerCase(),tab=CTABS.find(t=>t[0]===f.tab)||CTABS[0];
@@ -2053,7 +2054,7 @@ VIEWS.kontakty=()=>{
   S._clist=list;
   const isOrg=["firmy","organizacie","spoluprace"].includes(tab[0]);
   const people=c=>S.d.contacts.filter(x=>x.orgId===c.id).length;
-  const defs=esc(JSON.stringify({osoby:{ctype:"osoba"},firmy:{ctype:"firma"},organizacie:{ctype:"organizacia"},dobrovolnici:{ctype:"osoba",role:"dobrovolnik"},spoluprace:{ctype:"organizacia",role:"partner"},vsetci:{}}[tab[0]]));
+  const defs=esc(JSON.stringify({osoby:{ctype:"osoba"},firmy:{ctype:"firma"},organizacie:{ctype:"organizacia"},media:{ctype:"media"},dobrovolnici:{ctype:"osoba",role:"dobrovolnik"},spoluprace:{ctype:"organizacia",role:"partner"},vsetci:{}}[tab[0]]));
   const cols=[["Meno",c=>`<span class="cut">${cIcon(c)}${esc(c.name||"Bez mena")}</span>${c.position?`<div class="meta">${esc(c.position)}</div>`:""}`,"t"]];
   cols.push(["E-mail",c=>c.email?`<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:""],["Telefón",c=>c.phone?`<a href="tel:${esc(String(c.phone).replace(/\s/g,""))}">${esc(c.phone)}</a>`:""]);
   if(isOrg)cols.push(["Ľudia",c=>{const n=people(c);return n?`<span class="meta">${n}</span>`:"";}]);else cols.push(["Organizácia / firma",c=>orgOf(c)]);
