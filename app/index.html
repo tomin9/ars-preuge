@@ -1192,6 +1192,7 @@ function gName(g){return g?provIcon(g)+esc(g.name||"Grant"):"";}
 function linkLi(e,r,t,x){
   let m;
   if(t==="tasks")m=`<button class="check ${isDone(x)?"on":""}" data-done="${esc(x.id)}" aria-label="Hotové"></button><span class="t">${esc(x.title||"Bez názvu")}</span>${x.assignee?`<span class="meta">${who(x.assignee)}</span>`:""}<span class="meta">${dueHtml(x.due,isDone(x))}</span>`;
+  else if(t==="ledger"&&e==="contacts")m=`<span class="meta" style="flex:none;width:78px">${fdateS(x.date)||"plánované"}</span><span class="num ${x.type==="prijem"?"pos":"neg"}" style="flex:none;width:96px;text-align:right">${x.type==="prijem"?"+":"−"}${eur(x.amount)}</span><span class="t" style="padding-left:6px">${esc(x.desc||"Platba")}</span>`;
   else if(t==="ledger")m=`<span class="t">${esc(x.desc||"Platba")}</span><span class="meta">${fdateS(x.date)||"plánované"}</span><span class="num ${x.type==="prijem"?"pos":"neg"}">${x.type==="prijem"?"+":"−"}${eur(x.amount)}</span>`;
   else if(t==="events")m=`<span class="meta" style="min-width:52px">${fdateS(x.date)}</span><span class="t">${esc(x.name||"Podujatie")}</span>${chip("estat",x.status)}`;
   else if(t==="grants")m=`<span class="t">${gName(x)}</span>${x.approved?`<span class="meta">${eur0(x.approved)}</span>`:""}${chip("gstat",x.status)}`;
