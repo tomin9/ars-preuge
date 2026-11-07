@@ -990,13 +990,12 @@ function relOpts(f,r){
   return [...list].sort((a,b)=>ttl(f.e,a).localeCompare(ttl(f.e,b),"sk"));
 }
 document.addEventListener("copy",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.iban){const sel=String(t.value).substring(t.selectionStart,t.selectionEnd);if(sel){e.clipboardData.setData("text/plain",sel.replace(/\s+/g,""));e.preventDefault();}}});
-document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-ibancopy]");if(!b)return;const i=document.getElementById(b.dataset.ibancopy),v=i?i.value.replace(/\s+/g,""):"";if(!v){toast("IBAN je prázdny.");return;}try{navigator.clipboard.writeText(v).then(()=>toast("IBAN skopírovaný."),()=>toast("Kopírovanie sa nepodarilo."));}catch(_){toast("Kopírovanie sa nepodarilo.");}});
 function fmtIban(v){return String(v||"").replace(/\s+/g,"").toUpperCase().replace(/(.{4})(?=.)/g,"$1 ");}
 function fInput(e,r,f){
   const v=f.k==="cofinGrantId"?cofinG(r):r[f.k],id=`f-${f.k}`;
   switch(f.t){
     case"text":{const inp=`<input type="text" id="${id}" data-f="${f.k}" ${f.k==="iban"?'data-iban="1" ':""}value="${esc(f.k==="iban"?fmtIban(v):v)}" placeholder="${esc(f.ph||"—")}">`;
-      return f.k==="iban"?`<div class="urlrow">${inp}<button type="button" class="btn ghost sm" data-ibancopy="${id}" title="Skopírovať IBAN bez medzier">Kopírovať</button></div>`:inp;}
+      return inp;}
     case"email":case"tel":case"url":{
       const href=v?(f.t==="email"?"mailto:"+v:f.t==="tel"?"tel:"+String(v).replace(/\s/g,""):(/^https?:\/\//.test(v)?v:"https://"+v)):"";
       return`<div class="urlrow"><input type="${f.t}" id="${id}" data-f="${f.k}" value="${esc(v)}" placeholder="—">${v?`<a class="btn ghost sm" href="${esc(href)}" target="_blank" rel="noopener">Otvoriť</a>`:""}</div>`;}
@@ -1206,7 +1205,7 @@ function linkBlock(e,r,t){
   const avail=S.d[t].filter(x=>x.id!==r.id&&!ids.has(x.id)&&!(e==="contacts"&&t==="contacts"&&x.ctype&&x.ctype!=="osoba")).sort((a,b)=>t==="ledger"?(b.date||"").localeCompare(a.date||""):ttl(t,a).localeCompare(ttl(t,b),"sk")).slice(0,300);
   return`<h3 style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="lkh">${LKI[t]||""}${LINK_L[t]}${extra}</span><span class="row" style="gap:6px"><span class="meta">${L.length||""}</span><button class="btn ghost sm" data-linknew="${e}:${esc(r.id)}|${t}">+ Nový</button></span></h3>
   ${L.length?`<ul class="items lk">${L.map(x=>linkLi(e,r,t,x)).join("")}</ul>`:""}
-  ${avail.length?`<select data-linkadd="${e}:${esc(r.id)}|${t}" aria-label="Prepojiť existujúci záznam" style="width:100%;margin-top:6px;color:var(--muted)"><option value="">Prepojiť existujúce…</option>${avail.map(x=>`<option value="${esc(x.id)}">${esc(ttl(t,x))}${t==="ledger"?` · ${fdateS(x.date)||"plánované"} · ${eur(x.amount)}`:""}</option>`).join("")}</select>`:""}`;
+  ${avail.length&&e!=="contacts"?`<select data-linkadd="${e}:${esc(r.id)}|${t}" aria-label="Prepojiť existujúci záznam" style="width:100%;margin-top:6px;color:var(--muted)"><option value="">Prepojiť existujúce…</option>${avail.map(x=>`<option value="${esc(x.id)}">${esc(ttl(t,x))}${t==="ledger"?` · ${fdateS(x.date)||"plánované"} · ${eur(x.amount)}`:""}</option>`).join("")}</select>`:""}`;
 }
 function linksHtml(e,r){
   return MAIN.filter(t=>t!==e&&!linkFields(e,t).some(f=>f.t==="rel")).map(t=>`<div class="sec">${linkBlock(e,r,t)}</div>`).join("");
@@ -1251,7 +1250,7 @@ function dExtra(e,r){
     h+=miniList("Výdavky na položku","ledger",c.L,ledgerLi,{lineId:r.id,grantId:r.grantId||"",projectId:(get("grants",r.grantId)||{}).projectId||""});}
   if(e!=="comments"&&(e!=="contacts"||(DW&&DW.edit)||S.d.comments.some(c=>c.parent===e+":"+r.id)))h+=commentsHtml(e,r);
   const meta=[r.createdAt?`Vytvorené ${rel(r.createdAt)}${r.createdBy?" · "+esc(personName(r.createdBy)):""}`:"",r.updatedAt&&r.updatedAt!==r.createdAt?`upravené ${rel(r.updatedAt)}${r.updatedBy?" · "+esc(personName(r.updatedBy)):""}`:""].filter(Boolean).join(", ");
-  return h+(meta?`<p class="meta" style="margin-top:20px;white-space:normal">${meta}</p>`:"");
+  return h+(meta&&e!=="contacts"&&e!=="ledger"?`<p class="meta" style="margin-top:20px;white-space:normal">${meta}</p>`:"");
 }
 
 /* people picker: stores user id, or "~Name" for people outside the org */
