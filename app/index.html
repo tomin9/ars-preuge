@@ -566,7 +566,7 @@ const ENT={
     {k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"total",l:"Celkové náklady",t:"money"},{k:"fromGrant",l:"Z dotácie",t:"money"},{k:"note",l:"Poznámka",t:"long"}]},
   contacts:{col:"contacts",one:"Kontakt",many:"Kontakty",title:"name",fields:[
     {k:"ctype",l:"Typ",t:"sel",o:"ctype"},{k:"tags",l:"Rola",t:"tags"},{k:"source",l:"Oslovil nás cez",t:"sel",o:"csrc"},{k:"orgIds",l:"Organizácie",t:"orgs",only:"osoba"},{k:"position",l:"Funkcia",t:"text"},
-    {k:"email",l:"E-mail",t:"email"},{k:"phone",l:"Telefón",t:"tel"},{k:"legalName",l:"Oficiálny názov",t:"text",only:"!osoba"},{k:"address",l:"Sídlo",t:"text"},{k:"birthDate",l:"Narodený",t:"date",only:"osoba"},{k:"idNo",l:"Číslo OP",t:"text",only:"osoba"},{k:"birthNo",l:"Rodné číslo",t:"text",ph:"napr. 925808/8367",only:"osoba"},{k:"iban",l:"IBAN",t:"text",ph:"SK00 0000 0000 0000 0000 0000"},{k:"ico",l:"IČO",t:"text"},{k:"dic",l:"DIČ",t:"text"},{k:"icdph",l:"IČ DPH",t:"text"},
+    {k:"email",l:"E-mail",t:"email"},{k:"phone",l:"Telefón",t:"tel"},{k:"legalName",l:"Názov",t:"text",only:"!osoba"},{k:"address",l:"Sídlo",t:"text"},{k:"birthDate",l:"Narodený",t:"date",only:"osoba"},{k:"idNo",l:"Číslo OP",t:"text",only:"osoba"},{k:"birthNo",l:"Rodné číslo",t:"text",ph:"napr. 925808/8367",only:"osoba"},{k:"iban",l:"IBAN",t:"text",ph:"SK00 0000 0000 0000 0000 0000"},{k:"ico",l:"IČO",t:"text"},{k:"dic",l:"DIČ",t:"text"},{k:"icdph",l:"IČ DPH",t:"text"},
     {k:"projectIds",l:"Projekty",t:"mrel",e:"projects"},{k:"grantIds",l:"Granty",t:"mrel",e:"grants"},{k:"eventIds",l:"Podujatia",t:"mrel",e:"events"},{k:"note",l:"Poznámka",t:"long"}]},
   partnerships:{col:"partnerships",one:"Spolupráca",many:"Spolupráce",title:"state",fields:[]},
   prog:{col:"programItems",one:"Prvok programu",many:"Program",title:"title",fields:[
@@ -945,7 +945,7 @@ function dHead(e,r){
     const isP=(r.ctype||"osoba")==="osoba";let nm;
     if(isP){const w=String(r.name||"").trim().split(/\s+/).filter(Boolean),last=w.length>1?w.pop():"",first=w.join(" ");
       nm=`<input id="dw-title" class="ttl np" data-np="1" value="${esc(first)}" placeholder="Meno" aria-label="Meno"><input class="ttl np" data-np="2" value="${esc(last)}" placeholder="Priezvisko" aria-label="Priezvisko">`;}
-    else nm=`<textarea id="dw-title" class="ttl" rows="2" data-f="${k}" placeholder="Názov" aria-label="Názov" style="resize:none;height:auto">${esc(r[k])}</textarea>`;
+    else nm=`<textarea id="dw-title" class="ttl" rows="1" data-f="${k}" placeholder="Názov" aria-label="Názov" style="resize:none;height:auto">${esc(r[k])}</textarea>`;
     const orgN=orgList(r).map(i=>get("contacts",i)).filter(Boolean).map(o=>`<button type="button" class="orgl" data-open="contacts:${esc(o.id)}">${esc(o.name||"Bez mena")}</button>`).join(", "),line=orgN||(r.org?esc(r.org):"");
     const ICM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>',ICP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>';
     const ed=DW&&DW.edit,cin=(k,t,ph,href)=>(ed||r[k])?`<div class="cirow"><span class="cii" aria-hidden="true">${k==="email"?ICM:ICP}</span><input type="${t}" id="f-${k}" data-f="${k}" value="${esc(r[k])}" placeholder="${ph}" aria-label="${ph}">${r[k]?`<a class="cio" href="${esc(href)}" title="Otvoriť" aria-label="Otvoriť">↗</a>`:""}</div>`:"";
@@ -1049,6 +1049,7 @@ function bindPart(root,e,r){
     if(inp.id==="dw-title")inp.addEventListener("keydown",ev=>{if(ev.key==="Enter")inp.blur();});
   });
   renderPdfThumbs(root);
+  {const ta=root.querySelector("textarea#dw-title");if(ta){const fit=()=>{ta.style.height="auto";ta.style.height=ta.scrollHeight+"px";};fit();ta.addEventListener("input",fit);}}
   {const np=[...root.querySelectorAll("[data-np]")];if(np.length===2){const go=()=>{const nv=np.map(x=>x.value.trim()).filter(Boolean).join(" "),cur=get(e,r.id);if(!cur||(cur.name||"")===nv)return;upd(e,r.id,{name:nv});};np.forEach(x=>{x.addEventListener("change",go);x.addEventListener("keydown",ev=>{if(ev.key==="Enter")x.blur();});});}}
   root.querySelectorAll("[data-money]").forEach(inp=>{inp.addEventListener("focus",()=>{const n=parseFloat(String(inp.value).replace(/[^\d,.\-]/g,"").replace(",","."));inp.value=isFinite(n)?String(n).replace(".",","):"";inp.select();});inp.addEventListener("blur",()=>{const n=parseFloat(String(inp.value).replace(/[^\d,.\-]/g,"").replace(",","."));inp.value=isFinite(n)?eur(Math.round(n*100)/100):"";});});
   root.querySelectorAll("[data-seg]").forEach(b=>b.onclick=()=>{const[k,v]=b.dataset.seg.split("|"),cur=get(e,r.id);if(!cur||cur[k]===v)return;upd(e,r.id,{[k]:v});});
