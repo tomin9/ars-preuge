@@ -206,13 +206,13 @@ textarea{width:100%;min-height:80px;resize:vertical;line-height:1.45}
 .mchips button{all:unset;cursor:pointer;font-size:12.5px;padding:1px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
 .mchips button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent);font-weight:600}
 .sec{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
-.dtop-ic{position:absolute;top:14px;right:18px;z-index:3;display:flex;gap:4px;padding:0;border:0;background:none}.dtop-ic .icb{all:unset;cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--muted)}.dtop-ic .icb:hover{background:var(--surface3);color:var(--ink)}.dtop-ic .icb.danger:hover{color:#E5484D}.drawer:has(.dtop-ic) .ttl{padding-right:84px}
+.dtop-ic{position:absolute;top:14px;right:18px;z-index:3;display:flex;gap:4px;padding:0;border:0;background:none}.dtop-ic .icb{all:unset;cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--muted)}.dtop-ic .icb:hover{background:var(--surface3);color:var(--ink)}.dtop-ic .icb.danger:hover{color:#E5484D}.drawer:has(.dtop-ic) #dw-head>.ttl{padding-right:84px!important}.drawer:has(.dtop-ic) .cmain .ttl{padding-right:122px!important}.dtop-ic .icb.on{background:var(--accent-soft);color:var(--accent)}
 .dcard{border:1px solid var(--line);border-radius:12px;padding:14px 16px 16px;margin-bottom:14px;background:var(--surface)}
 .dcard>h3{display:flex;align-items:center;gap:9px;margin:0 0 12px;font-size:15px}.dcard>h3 svg{width:18px;height:18px;flex:none;color:var(--muted)}
 .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.dgrid.g2{grid-template-columns:1fr 1fr}.dgrid .wide{grid-column:1/-1}
 .dfld>label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}.dfld input:not([type=checkbox]),.dfld select,.dfld textarea{width:100%}
 .seg{display:flex;width:100%}.seg button{flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px}.dgrid.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.dgrid{align-items:end}
-.dcard.plain{border:0;background:none;padding:0 2px 6px;margin-bottom:18px}.drawer:has(.dtop-ic) .ttl{margin:6px 0 20px!important}
+.dcard.plain{border:0;background:none;padding:0 2px 6px;margin-bottom:18px}.drawer:has(.dtop-ic) #dw-head>.ttl{margin:6px 0 20px!important}
 .dcard .ldocs{display:block}.dr2{padding:12px 0;border-top:1px solid var(--line)}.dr2:first-child{border-top:0;padding-top:0}.dr2-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}.dr2-h b{margin-right:auto;font-size:14px;display:flex;align-items:center;gap:8px}.dr2-h b svg{width:18px;height:18px;flex:none;color:var(--muted)}
 .dr2-t{display:flex;flex-wrap:wrap;gap:10px}.dr2-t:empty{display:none}.dth{position:relative;width:96px}.dth>a{display:block;width:96px;height:124px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface2);color:var(--muted);text-decoration:none;position:relative}
 .dth>a img,.dth>a canvas{width:100%;height:100%;object-fit:cover;object-position:top;display:block}.dth .dfi{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.04em}.dth .dfi svg{width:26px;height:26px}
@@ -816,6 +816,7 @@ function render(){
   if(S.loading){v.innerHTML=`<div class="empty">Načítavam dáta tímu…</div>`;return;}
   const notice=!S.live?`<div class="notice">Táto verzia neukladá dáta – po zatvorení sa stratia. Otvorte publikovanú aplikáciu prihlásený do claude.ai, aby ste pracovali so zdieľanými dátami tímu.</div>`
     :(S.readOnly?`<div class="notice">Máte prístup len na čítanie. Ak potrebujete upravovať, požiadajte správcu o úroveň Prispievateľ.</div>`:"");
+  if(!S.ctFix&&!S.readOnly&&S.live){S.ctFix=true;const miss=S.d.contacts.filter(c=>!c.ctype);if(miss.length)setTimeout(()=>miss.forEach(c=>upd("contacts",c.id,{ctype:"osoba"})),0);}
   const f=VIEWS[S.view]||VIEWS.prehlad;
   v.innerHTML=navBar()+notice+f();
   if(fid){const el=document.getElementById(fid);if(el){if(fval!==null&&el.value!==fval)el.value=fval;el.focus();if(sel&&el.setSelectionRange)try{el.setSelectionRange(sel[0],sel[1]);}catch(_){}}}
@@ -895,10 +896,10 @@ function openDrawer(e,id,isNew){
   DW={e,id,isNew:!!isNew,edit:!!isNew};closeSide();
   const host=$("#drawer");
   host.innerHTML=`<div class="dscrim" data-dclose></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="${esc(ENT[e].one)}">
-    <div class="dtop${e==="ledger"?" dtop-ic":""}">${e==="ledger"?"":`<span class="kind">${esc(ENT[e].one)}</span>`}
+    <div class="dtop${e==="ledger"||e==="contacts"?" dtop-ic":""}">${e==="ledger"||e==="contacts"?"":`<span class="kind">${esc(ENT[e].one)}</span>`}
       ${e==="projects"||e==="grants"||e==="events"?`<button class="btn ghost sm" data-dpage>Otvoriť stránku</button>`:""}
-      ${e==="contacts"?`<button class="btn ghost sm${isNew?" on":""}" data-dedit title="Upraviť – zobraziť všetky polia" aria-label="Upraviť"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> Upraviť</button>`:""}
-      ${e==="ledger"?`<button class="icb danger" data-ddel title="Zmazať" aria-label="Zmazať"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button><button class="icb" data-dclose title="Zavrieť" aria-label="Zavrieť"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`:`<button class="btn ghost sm danger" data-ddel>Zmazať</button><button class="btn ghost sm" data-dclose aria-label="Zavrieť">Zavrieť</button>`}</div>
+      ${e==="contacts"?`<button class="icb${isNew?" on":""}" data-dedit title="Upraviť – zobraziť všetky polia" aria-label="Upraviť"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>`:""}
+      ${e==="ledger"||e==="contacts"?`<button class="icb danger" data-ddel title="Zmazať" aria-label="Zmazať"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button><button class="icb" data-dclose title="Zavrieť" aria-label="Zavrieť"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`:`<button class="btn ghost sm danger" data-ddel>Zmazať</button><button class="btn ghost sm" data-dclose aria-label="Zavrieť">Zavrieť</button>`}</div>
     <div class="dbody"><div id="dw-head"></div><div id="dw-props"></div><div id="dw-extra"></div></div></aside>`;
   host.hidden=false;
   host.querySelectorAll("[data-dclose]").forEach(b=>b.onclick=closeDrawer);
