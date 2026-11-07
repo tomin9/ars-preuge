@@ -562,7 +562,7 @@ const ENT={
   lines:{col:"budgetLines",one:"Rozpočtová položka",many:"Rozpočtové položky",title:"name",fields:[
     {k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"total",l:"Celkové náklady",t:"money"},{k:"fromGrant",l:"Z dotácie",t:"money"},{k:"note",l:"Poznámka",t:"long"}]},
   contacts:{col:"contacts",one:"Kontakt",many:"Kontakty",title:"name",fields:[
-    {k:"ctype",l:"Typ",t:"sel",o:"ctype"},{k:"source",l:"Oslovil nás cez",t:"sel",o:"csrc"},{k:"orgId",l:"Organizácia / firma",t:"rel",e:"contacts"},{k:"position",l:"Funkcia",t:"text"},
+    {k:"ctype",l:"Typ",t:"sel",o:"ctype"},{k:"volunteer",l:"Dobrovoľník",t:"check",only:"osoba"},{k:"source",l:"Oslovil nás cez",t:"sel",o:"csrc"},{k:"orgId",l:"Organizácia / firma",t:"rel",e:"contacts"},{k:"position",l:"Funkcia",t:"text"},
     {k:"email",l:"E-mail",t:"email"},{k:"phone",l:"Telefón",t:"tel"},{k:"address",l:"Sídlo",t:"text"},{k:"birthDate",l:"Dátum narodenia",t:"date",only:"osoba"},{k:"idNo",l:"Číslo OP",t:"text",only:"osoba"},{k:"birthNo",l:"Rodné číslo",t:"text",ph:"napr. 925808/8367",only:"osoba"},{k:"iban",l:"IBAN",t:"text",ph:"SK00 0000 0000 0000 0000 0000"},{k:"ico",l:"IČO",t:"text"},
     {k:"projectIds",l:"Projekty",t:"mrel",e:"projects"},{k:"grantIds",l:"Granty",t:"mrel",e:"grants"},{k:"eventIds",l:"Podujatia",t:"mrel",e:"events"},{k:"note",l:"Poznámka",t:"long"}]},
   partnerships:{col:"partnerships",one:"Spolupráca",many:"Spolupráce",title:"state",fields:[]},
@@ -816,7 +816,7 @@ function render(){
   if(S.loading){v.innerHTML=`<div class="empty">Načítavam dáta tímu…</div>`;return;}
   const notice=!S.live?`<div class="notice">Táto verzia neukladá dáta – po zatvorení sa stratia. Otvorte publikovanú aplikáciu prihlásený do claude.ai, aby ste pracovali so zdieľanými dátami tímu.</div>`
     :(S.readOnly?`<div class="notice">Máte prístup len na čítanie. Ak potrebujete upravovať, požiadajte správcu o úroveň Prispievateľ.</div>`:"");
-  if(!S.ctFix&&!S.readOnly&&S.live){S.ctFix=true;const miss=S.d.contacts.filter(c=>!c.ctype);if(miss.length)setTimeout(()=>miss.forEach(c=>upd("contacts",c.id,{ctype:"osoba"})),0);}
+  if(!S.ctFix&&!S.readOnly&&S.live){S.ctFix=true;const miss=S.d.contacts.filter(c=>!c.ctype),vol=S.d.contacts.filter(c=>c.role==="dobrovolnik"&&c.volunteer==null);if(miss.length||vol.length)setTimeout(()=>{miss.forEach(c=>upd("contacts",c.id,{ctype:"osoba"}));vol.forEach(c=>upd("contacts",c.id,{volunteer:true}));},0);}
   const f=VIEWS[S.view]||VIEWS.prehlad;
   v.innerHTML=navBar()+notice+f();
   if(fid){const el=document.getElementById(fid);if(el){if(fval!==null&&el.value!==fval)el.value=fval;el.focus();if(sel&&el.setSelectionRange)try{el.setSelectionRange(sel[0],sel[1]);}catch(_){}}}
@@ -2097,9 +2097,10 @@ VIEWS.financie=()=>{
 /* ----- Kontakty ----- */
 const CTABS=[["osoby","Osoby",c=>c.ctype==="osoba"],["firmy","Firmy",c=>c.ctype==="firma"],["organizacie","Organizácie",c=>c.ctype==="organizacia"],["media","Média",c=>c.ctype==="media"]];
 function orgOf(c){const o=get("contacts",c.orgId);return o?`<button class="btn ghost sm" style="padding:2px 6px" data-peek="contacts:${esc(o.id)}">${cIcon(o)}${esc(o.name)}</button>`:esc(c.org||"");}
+const isVol=c=>c.volunteer===true||(c.volunteer==null&&c.role==="dobrovolnik");
 VIEWS.kontakty=()=>{
   const f=S.cf,q=(f.q||"").toLowerCase(),tab=CTABS.find(t=>t[0]===f.tab)||CTABS[0];
-  let list=S.d.contacts.filter(tab[2]).filter(c=>(!q||[c.name,c.org,orgOf(c),c.email,c.phone,c.note,c.position].join(" ").toLowerCase().includes(q))&&(tab[0]!=="spoluprace"||(!f.ev&&!f.state)||S.d.partnerships.some(p=>p.contactId===c.id&&(!f.ev||p.eventId===f.ev)&&(!f.state||p.state===f.state)))).sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk"));
+  let list=S.d.contacts.filter(tab[2]).filter(c=>(!f.vol||isVol(c))&&(!q||[c.name,c.org,orgOf(c),c.email,c.phone,c.note,c.position].join(" ").toLowerCase().includes(q))&&(tab[0]!=="spoluprace"||(!f.ev&&!f.state)||S.d.partnerships.some(p=>p.contactId===c.id&&(!f.ev||p.eventId===f.ev)&&(!f.state||p.state===f.state)))).sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk"));
   S._clist=list;
   const isOrg=["firmy","organizacie","spoluprace"].includes(tab[0]);
   const people=c=>S.d.contacts.filter(x=>x.orgId===c.id).length;
@@ -2110,7 +2111,7 @@ VIEWS.kontakty=()=>{
   if(tab[0]==="dobrovolnici")cols.push(["Oslovil nás cez",c=>c.source?`<span class="chip"><i style="background:${optC("csrc",c.source)}"></i>${esc(optL("csrc",c.source))}</span>`:""]);
   if(tab[0]==="spoluprace")cols.push(["Spolupráce",c=>S.d.partnerships.filter(p=>p.contactId===c.id&&(!f.ev||p.eventId===f.ev)).map(p=>{const ev=get("events",p.eventId);return ev?`<span class="chip" style="margin:1px 4px 1px 0"><i style="background:${optC("pstav",p.state)}"></i>${esc(ev.name)} · ${esc(optL("pstav",p.state))}</span>`:"";}).join("")]);
   return`<div class="head"><h1>Kontakty</h1><button class="btn pri" data-create="contacts" data-defs='${defs}'>Nový kontakt</button></div>
-  <div class="ctbar"><div class="ptabs" role="tablist" style="margin:0">${CTABS.map(([k,l,fn])=>`<button role="tab" data-ctab="${k}" aria-selected="${tab[0]===k}">${l}<span>${S.d.contacts.filter(fn).length||""}</span></button>`).join("")}</div><div class="ctools"><input type="search" id="cf-q" placeholder="Hľadať meno, organizáciu, e-mail" value="${esc(f.q||"")}" style="min-width:260px">
+  <div class="ctbar"><div class="ptabs" role="tablist" style="margin:0">${CTABS.map(([k,l,fn])=>`<button role="tab" data-ctab="${k}" aria-selected="${tab[0]===k}">${l}<span>${S.d.contacts.filter(fn).length||""}</span></button>`).join("")}</div><div class="ctools"><button class="btn sm${f.vol?" pri":""}" data-cvol aria-pressed="${!!f.vol}" title="Zobraziť len dobrovoľníkov">Dobrovoľníci (${S.d.contacts.filter(isVol).length})</button><input type="search" id="cf-q" placeholder="Hľadať meno, organizáciu, e-mail" value="${esc(f.q||"")}" style="min-width:260px">
     ${tab[0]==="spoluprace"?`<select id="cf-ev" aria-label="Podujatie"><option value="">Všetky podujatia</option>${S.d.events.filter(ev=>S.d.partnerships.some(p=>p.eventId===ev.id)).map(ev=>`<option value="${esc(ev.id)}" ${f.ev===ev.id?"selected":""}>${esc(ev.name)}</option>`).join("")}</select><select id="cf-state" aria-label="Stav"><option value="">Všetky stavy</option>${OPT.pstav.map(o=>`<option value="${o[0]}" ${f.state===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>`:""}
     <button class="btn sm" id="cf-copy">Kopírovať e-maily (${list.filter(c=>c.email).length})</button></div></div>
   <div class="panel">${list.length?table(cols,list,c=>"contacts:"+esc(c.id)):`<div class="empty">${S.d.contacts.length?"V tejto skupine nikto nie je.":"Zatiaľ žiadne kontakty."}</div>`}</div>`;
@@ -2625,6 +2626,7 @@ function bindView(){
   ["year","acct","type","project","grant"].forEach(k=>on("#ff-"+k,"change",e=>{S.ff[k]=e.target.value;render();}));
   on("#ff-q","input",e=>{S.ff.q=e.target.value;render();});
   on("#cf-q","input",e=>{S.cf.q=e.target.value;render();});
+  v.querySelectorAll("[data-cvol]").forEach(b=>b.onclick=()=>{S.cf.vol=!S.cf.vol;render();});
   v.querySelectorAll("[data-ctab]").forEach(b=>b.onclick=()=>{S.cf.tab=b.dataset.ctab;render();});
   on("#cf-state","change",e=>{S.cf.state=e.target.value;render();});
   on("#cf-ev","change",e=>{S.cf.ev=e.target.value;render();});
