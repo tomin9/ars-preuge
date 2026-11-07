@@ -2107,7 +2107,7 @@ document.addEventListener("click",async ev=>{const se=ev.target.closest&&ev.targ
   inp.addEventListener("blur",()=>setTimeout(()=>{if(!done)close();},150));
   list.addEventListener("mousedown",m=>{const o=m.target.closest(".tnopt");if(!o)return;m.preventDefault();pick(hits[+o.dataset.i]);});
   draw();inp.focus();},true);
-const teamCols=()=>{const w=($("#view")||document.body).clientWidth;return w>=900?3:w>=560?2:1;};
+const teamCols=()=>{const w=($("#view")||document.body).clientWidth;return w>=560?2:1;};
 {let rt=null;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{if(S.view==="podujatie"&&S.evtab==="spoluprace"&&S._tn&&S._tn!==teamCols())render();},150);});}
 function teamTab(e){
   const P=teamPeople(e).sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk")),have=new Set(P.map(c=>c.id));
