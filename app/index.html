@@ -520,7 +520,7 @@ const OPT={
   ltype:[["vydavok","Výdavok",RED],["prijem","Príjem",GREEN]],
   acct:[["banka","Banka",BLUE],["hotovost","Hotovosť",PINK]],
   lstate:[["kryte","Kryté",GREEN],["nevybavene","Nevybavené",RED],["barter","Barter",ORANGE]],
-  crole:[["tim","Člen tímu",BLUE],["umelec","Umelec",PINK],["partner","Partner",GREEN],["dodavatel","Dodávateľ",ORANGE],["medium","Médium",OCHRE],["institucia","Inštitúcia",GRAY],["firma","Firma",PURPLE],["externy","Externý",TEAL],["dobrovolnik","Dobrovoľník",GREEN]],
+  crole:[["tim","Člen tímu",BLUE],["umelec","Umelec",PINK],["partner","Partner",GREEN],["dodavatel","Dodávateľ",ORANGE],["medium","Médium",OCHRE],["institucia","Inštitúcia",GRAY],["firma","Firma",PURPLE],["externy","Externý",TEAL],["dobrovolnik","Dobrovoľník",GREEN],["sponzor","Sponzor",PURPLE],["mediapartner","Mediálny partner",OCHRE]],
   csrc:[["email","E-mail",BLUE],["osobne","Osobne",GREEN],["telefon","Telefonicky",OCHRE],["facebook","Facebook",BLUE],["instagram","Instagram",PINK],["ine","Iné",GRAY]],
   pstav:[["oslovit","Osloviť",GRAY],["osloveny","Oslovení",OCHRE],["potvrdeny","Potvrdení",GREEN],["odmietnuty","Odmietnutí",RED]],
   ctype:[["osoba","Osoba",BLUE],["firma","Firma",PURPLE],["organizacia","Organizácia",RED],["media","Média",ORANGE]],
@@ -562,7 +562,7 @@ const ENT={
   lines:{col:"budgetLines",one:"Rozpočtová položka",many:"Rozpočtové položky",title:"name",fields:[
     {k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"total",l:"Celkové náklady",t:"money"},{k:"fromGrant",l:"Z dotácie",t:"money"},{k:"note",l:"Poznámka",t:"long"}]},
   contacts:{col:"contacts",one:"Kontakt",many:"Kontakty",title:"name",fields:[
-    {k:"ctype",l:"Typ",t:"sel",o:"ctype"},{k:"role",l:"Rola",t:"sel",o:"crole"},{k:"source",l:"Oslovil nás cez",t:"sel",o:"csrc"},{k:"orgId",l:"Organizácia / firma",t:"rel",e:"contacts"},{k:"position",l:"Funkcia",t:"text"},
+    {k:"ctype",l:"Typ",t:"sel",o:"ctype"},{k:"volunteer",l:"Dobrovoľník",t:"check",only:"osoba"},{k:"source",l:"Oslovil nás cez",t:"sel",o:"csrc"},{k:"orgId",l:"Organizácia / firma",t:"rel",e:"contacts"},{k:"position",l:"Funkcia",t:"text"},
     {k:"email",l:"E-mail",t:"email"},{k:"phone",l:"Telefón",t:"tel"},{k:"address",l:"Sídlo",t:"text"},{k:"birthDate",l:"Dátum narodenia",t:"date",only:"osoba"},{k:"idNo",l:"Číslo OP",t:"text",only:"osoba"},{k:"birthNo",l:"Rodné číslo",t:"text",ph:"napr. 925808/8367",only:"osoba"},{k:"iban",l:"IBAN",t:"text",ph:"SK00 0000 0000 0000 0000 0000"},{k:"ico",l:"IČO",t:"text"},
     {k:"projectIds",l:"Projekty",t:"mrel",e:"projects"},{k:"grantIds",l:"Granty",t:"mrel",e:"grants"},{k:"eventIds",l:"Podujatia",t:"mrel",e:"events"},{k:"note",l:"Poznámka",t:"long"}]},
   partnerships:{col:"partnerships",one:"Spolupráca",many:"Spolupráce",title:"state",fields:[]},
@@ -816,7 +816,7 @@ function render(){
   if(S.loading){v.innerHTML=`<div class="empty">Načítavam dáta tímu…</div>`;return;}
   const notice=!S.live?`<div class="notice">Táto verzia neukladá dáta – po zatvorení sa stratia. Otvorte publikovanú aplikáciu prihlásený do claude.ai, aby ste pracovali so zdieľanými dátami tímu.</div>`
     :(S.readOnly?`<div class="notice">Máte prístup len na čítanie. Ak potrebujete upravovať, požiadajte správcu o úroveň Prispievateľ.</div>`:"");
-  if(!S.ctFix&&!S.readOnly&&S.live){S.ctFix=true;const miss=S.d.contacts.filter(c=>!c.ctype);if(miss.length)setTimeout(()=>miss.forEach(c=>upd("contacts",c.id,{ctype:"osoba"})),0);}
+  if(!S.ctFix&&!S.readOnly&&S.live){S.ctFix=true;const miss=S.d.contacts.filter(c=>!c.ctype),vol=S.d.contacts.filter(c=>c.role==="dobrovolnik"&&c.volunteer==null);if(miss.length||vol.length)setTimeout(()=>{miss.forEach(c=>upd("contacts",c.id,{ctype:"osoba"}));vol.forEach(c=>upd("contacts",c.id,{volunteer:true}));},0);}
   const f=VIEWS[S.view]||VIEWS.prehlad;
   v.innerHTML=navBar()+notice+f();
   if(fid){const el=document.getElementById(fid);if(el){if(fval!==null&&el.value!==fval)el.value=fval;el.focus();if(sel&&el.setSelectionRange)try{el.setSelectionRange(sel[0],sel[1]);}catch(_){}}}
@@ -856,7 +856,7 @@ document.addEventListener("click",e=>{
   if((el=q("[data-linknew]"))){e.stopPropagation();const[a,t1]=el.dataset.linknew.split("|");const[e1,i1]=a.split(":");linkNew(e1,i1,t1);return;}
   if(q("[data-back]")){goBack();return;}
   if((el=q("[data-go]"))){e.preventDefault();go(el.dataset.go,el.dataset.id);return;}
-  if((el=q("[data-open]"))){if(q("a"))return;const[k,id]=el.dataset.open.split(":");openRec(k,id);return;}
+  if((el=q("[data-open]"))){if(q("a,select"))return;const[k,id]=el.dataset.open.split(":");openRec(k,id);return;}
   if((el=q("[data-peek]"))){const[k,id]=el.dataset.peek.split(":");openDrawer(k,id);return;}
   if((el=q("[data-create]"))){let defs={};try{defs=JSON.parse(el.dataset.defs||"{}");}catch(_){}closeNewMenu();create(el.dataset.create,defs);return;}
   if(q("[data-new]")){e.stopPropagation();newMenu(q("[data-new]"));return;}
@@ -946,7 +946,7 @@ function dHead(e,r){
     const org=get("contacts",r.orgId),line=[r.position,org?org.name:r.org].filter(Boolean).join(", ");
     const ICM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>',ICP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>';
     const ed=DW&&DW.edit,cin=(k,t,ph,href)=>(ed||r[k])?`<div class="cirow"><span class="cii" aria-hidden="true">${k==="email"?ICM:ICP}</span><input type="${t}" id="f-${k}" data-f="${k}" value="${esc(r[k])}" placeholder="${ph}" aria-label="${ph}">${r[k]?`<a class="cio" href="${esc(href)}" title="Otvoriť" aria-label="Otvoriť">↗</a>`:""}</div>`:"";
-    const info=[r.role?`<div>${chip("crole",r.role)}</div>`:"",line?`<div>${esc(line)}</div>`:"",cin("email","email","E-mail","mailto:"+(r.email||"")),cin("phone","tel","Telefón","tel:"+String(r.phone||"").replace(/\s/g,""))].filter(Boolean).join("");
+    const info=[line?`<div>${esc(line)}</div>`:"",cin("email","email","E-mail","mailto:"+(r.email||"")),cin("phone","tel","Telefón","tel:"+String(r.phone||"").replace(/\s/g,""))].filter(Boolean).join("");
     return`<div class="cthead2"><div class="cphoto">${ph}</div><div class="cmain">${nm}<div class="cinfo">${info}</div></div></div>${r.icon&&can?`<button class="btn ghost sm" data-icodel style="margin:-2px 0 8px">Obnoviť predvolenú ikonu</button>`:""}`;}
   return top+ttlIn;
 }
@@ -1144,6 +1144,9 @@ const LKI={ledger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
   projects:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H10l2 2.5h7.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>',
   contacts:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>'};
 const lkCard=(e,r,t)=>`<section class="dcard lkc">${linkBlock(e,r,t)}</section>`;
+const ROLES_BY_TYPE={osoba:["tim","umelec","dobrovolnik","externy"],firma:["sponzor","partner"],organizacia:["partner","institucia","sponzor"],media:["medium","mediapartner"]};
+const roleOpts=c=>(ROLES_BY_TYPE[(c&&c.ctype)||"osoba"]||[]).map(k=>[k,optL("crole",k)]);
+const evRole=(ev,cid)=>((ev&&ev.roles)||{})[cid]||"";
 const LINK_L={projects:"Projekty",grants:"Granty",events:"Podujatia",tasks:"Úlohy",ledger:"Platby",contacts:"Ľudia a kontakty"};
 function linkFields(s,t){return(ENT[s].fields||[]).filter(f=>(f.t==="rel"||f.t==="mrel")&&f.e===t);}
 function refIds(x,s,t){const o=[];linkFields(s,t).forEach(f=>{const v=x[f.k];if(Array.isArray(v))o.push(...v);else if(v)o.push(v);});return o;}
@@ -1194,10 +1197,12 @@ function linkLi(e,r,t,x){
   if(t==="tasks")m=`<button class="check ${isDone(x)?"on":""}" data-done="${esc(x.id)}" aria-label="Hotové"></button><span class="t">${esc(x.title||"Bez názvu")}</span>${x.assignee?`<span class="meta">${who(x.assignee)}</span>`:""}<span class="meta">${dueHtml(x.due,isDone(x))}</span>`;
   else if(t==="ledger"&&e==="contacts")m=`<span class="meta" style="flex:none;width:78px">${fdateS(x.date)||"plánované"}</span><span class="num ${x.type==="prijem"?"pos":"neg"}" style="flex:none;width:96px;text-align:right">${x.type==="prijem"?"+":"−"}${eur(x.amount)}</span><span class="t" style="padding-left:6px">${esc(x.desc||"Platba")}</span>`;
   else if(t==="ledger")m=`<span class="t">${esc(x.desc||"Platba")}</span><span class="meta">${fdateS(x.date)||"plánované"}</span><span class="num ${x.type==="prijem"?"pos":"neg"}">${x.type==="prijem"?"+":"−"}${eur(x.amount)}</span>`;
+  else if(t==="contacts"&&e==="events"){const cur=evRole(r,x.id);m=`<span class="t">${cIcon(x)}${esc(x.name||"Bez mena")}</span><select class="rolesel" data-evrole="${esc(r.id)}|${esc(x.id)}" aria-label="Rola na podujatí" style="padding:3px 6px;font-size:13px;max-width:46%"><option value="">— rola —</option>${roleOpts(x).map(([k,l])=>`<option value="${k}" ${cur===k?"selected":""}>${esc(l)}</option>`).join("")}${cur&&!roleOpts(x).some(o=>o[0]===cur)?`<option value="${esc(cur)}" selected>${esc(optL("crole",cur))}</option>`:""}</select>`;}
+  else if(t==="events"&&e==="contacts")m=`<span class="meta" style="min-width:52px">${fdateS(x.date)}</span><span class="t">${esc(x.name||"Podujatie")}</span>${evRole(x,r.id)?chip("crole",evRole(x,r.id)):""}`;
   else if(t==="events")m=`<span class="meta" style="min-width:52px">${fdateS(x.date)}</span><span class="t">${esc(x.name||"Podujatie")}</span>${chip("estat",x.status)}`;
   else if(t==="grants")m=`<span class="t">${gName(x)}</span>${x.approved?`<span class="meta">${eur0(x.approved)}</span>`:""}${chip("gstat",x.status)}`;
   else if(t==="projects")m=`<i class="dot" style="background:${esc(x.color||GRAY)}"></i><span class="t">${esc(x.name||"Projekt")}</span>`;
-  else m=`<span class="t">${cIcon(x)}${esc(x.name||"Bez mena")}</span>${chip("crole",x.role)}${x.org?`<span class="meta">${esc(x.org)}</span>`:""}`;
+  else m=`<span class="t">${cIcon(x)}${esc(x.name||"Bez mena")}</span>${x.org?`<span class="meta">${esc(x.org)}</span>`:""}`;
   return`<li data-open="${t}:${esc(x.id)}">${m}<button class="x" data-unlink="${e}:${esc(r.id)}|${t}:${esc(x.id)}" aria-label="Zrušiť prepojenie" title="Zrušiť prepojenie">×</button></li>`;
 }
 function linkBlock(e,r,t){
@@ -1213,7 +1218,8 @@ function linkBlock(e,r,t){
 function linksHtml(e,r){
   return MAIN.filter(t=>t!==e&&!linkFields(e,t).some(f=>f.t==="rel")).map(t=>`<div class="sec">${linkBlock(e,r,t)}</div>`).join("");
 }
-document.addEventListener("change",ev=>{const s=ev.target.closest&&ev.target.closest("[data-linkadd]");if(!s||!s.value)return;const[a,t1]=s.dataset.linkadd.split("|");const[e1,i1]=a.split(":");const v=s.value;s.value="";s.blur();link(e1,i1,t1,v,true);});
+document.addEventListener("change",ev=>{const rs=ev.target.closest&&ev.target.closest("[data-evrole]");if(rs){const[eid,cid]=rs.dataset.evrole.split("|"),e0=get("events",eid);if(e0)upd("events",eid,{roles:Object.assign({},e0.roles||{},{[cid]:rs.value})});return;}
+  const s=ev.target.closest&&ev.target.closest("[data-linkadd]");if(!s||!s.value)return;const[a,t1]=s.dataset.linkadd.split("|");const[e1,i1]=a.split(":");const v=s.value;s.value="";s.blur();link(e1,i1,t1,v,true);});
 const PORD={oslovit:0,osloveny:1,potvrdeny:2,odmietnuty:3};
 function pstateSel(p){return`<select data-pstate="${esc(p.id)}" aria-label="Stav spolupráce" style="padding:3px 6px;font-size:13px">${OPT.pstav.map(o=>`<option value="${o[0]}" ${p.state===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>`;}
 function partnersBlock(ev){
@@ -1484,7 +1490,7 @@ VIEWS.projekt=()=>{
     }
   }
   if(cur[0]==="ludia"){
-    body=`<div class="gal">${C.map(x=>`<div class="gcard" data-open="contacts:${esc(x.id)}" tabindex="0" role="link"><div class="gbody" style="padding-top:14px"><div class="spread" style="flex-wrap:nowrap;align-items:flex-start"><b>${esc(x.name||"Bez mena")}</b>${chip("crole",x.role)}</div>
+    body=`<div class="gal">${C.map(x=>`<div class="gcard" data-open="contacts:${esc(x.id)}" tabindex="0" role="link"><div class="gbody" style="padding-top:14px"><div class="spread" style="flex-wrap:nowrap;align-items:flex-start"><b>${esc(x.name||"Bez mena")}</b></div>
       ${x.position||x.org?`<div class="gl">${esc([x.position,x.org].filter(Boolean).join(", "))}</div>`:""}${x.email?`<div class="gl"><a href="mailto:${esc(x.email)}">${esc(x.email)}</a></div>`:""}${x.phone?`<div class="gl">${esc(x.phone)}</div>`:""}</div></div>`).join("")}
       <button class="gnew" data-linknew="projects:${pid}|contacts">+ Nový kontakt</button></div>${linkSel("projects",p,"contacts")}`;
   }
@@ -2091,9 +2097,10 @@ VIEWS.financie=()=>{
 /* ----- Kontakty ----- */
 const CTABS=[["osoby","Osoby",c=>c.ctype==="osoba"],["firmy","Firmy",c=>c.ctype==="firma"],["organizacie","Organizácie",c=>c.ctype==="organizacia"],["media","Média",c=>c.ctype==="media"]];
 function orgOf(c){const o=get("contacts",c.orgId);return o?`<button class="btn ghost sm" style="padding:2px 6px" data-peek="contacts:${esc(o.id)}">${cIcon(o)}${esc(o.name)}</button>`:esc(c.org||"");}
+const isVol=c=>c.volunteer===true||(c.volunteer==null&&c.role==="dobrovolnik");
 VIEWS.kontakty=()=>{
   const f=S.cf,q=(f.q||"").toLowerCase(),tab=CTABS.find(t=>t[0]===f.tab)||CTABS[0];
-  let list=S.d.contacts.filter(tab[2]).filter(c=>(!q||[c.name,c.org,orgOf(c),c.email,c.phone,c.note,c.position].join(" ").toLowerCase().includes(q))&&(tab[0]!=="spoluprace"||(!f.ev&&!f.state)||S.d.partnerships.some(p=>p.contactId===c.id&&(!f.ev||p.eventId===f.ev)&&(!f.state||p.state===f.state)))).sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk"));
+  let list=S.d.contacts.filter(tab[2]).filter(c=>(!f.vol||isVol(c))&&(!q||[c.name,c.org,orgOf(c),c.email,c.phone,c.note,c.position].join(" ").toLowerCase().includes(q))&&(tab[0]!=="spoluprace"||(!f.ev&&!f.state)||S.d.partnerships.some(p=>p.contactId===c.id&&(!f.ev||p.eventId===f.ev)&&(!f.state||p.state===f.state)))).sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk"));
   S._clist=list;
   const isOrg=["firmy","organizacie","spoluprace"].includes(tab[0]);
   const people=c=>S.d.contacts.filter(x=>x.orgId===c.id).length;
@@ -2104,7 +2111,7 @@ VIEWS.kontakty=()=>{
   if(tab[0]==="dobrovolnici")cols.push(["Oslovil nás cez",c=>c.source?`<span class="chip"><i style="background:${optC("csrc",c.source)}"></i>${esc(optL("csrc",c.source))}</span>`:""]);
   if(tab[0]==="spoluprace")cols.push(["Spolupráce",c=>S.d.partnerships.filter(p=>p.contactId===c.id&&(!f.ev||p.eventId===f.ev)).map(p=>{const ev=get("events",p.eventId);return ev?`<span class="chip" style="margin:1px 4px 1px 0"><i style="background:${optC("pstav",p.state)}"></i>${esc(ev.name)} · ${esc(optL("pstav",p.state))}</span>`:"";}).join("")]);
   return`<div class="head"><h1>Kontakty</h1><button class="btn pri" data-create="contacts" data-defs='${defs}'>Nový kontakt</button></div>
-  <div class="ctbar"><div class="ptabs" role="tablist" style="margin:0">${CTABS.map(([k,l,fn])=>`<button role="tab" data-ctab="${k}" aria-selected="${tab[0]===k}">${l}<span>${S.d.contacts.filter(fn).length||""}</span></button>`).join("")}</div><div class="ctools"><input type="search" id="cf-q" placeholder="Hľadať meno, organizáciu, e-mail" value="${esc(f.q||"")}" style="min-width:260px">
+  <div class="ctbar"><div class="ptabs" role="tablist" style="margin:0">${CTABS.map(([k,l,fn])=>`<button role="tab" data-ctab="${k}" aria-selected="${tab[0]===k}">${l}<span>${S.d.contacts.filter(fn).length||""}</span></button>`).join("")}</div><div class="ctools"><button class="btn sm${f.vol?" pri":""}" data-cvol aria-pressed="${!!f.vol}" title="Zobraziť len dobrovoľníkov">Dobrovoľníci (${S.d.contacts.filter(isVol).length})</button><input type="search" id="cf-q" placeholder="Hľadať meno, organizáciu, e-mail" value="${esc(f.q||"")}" style="min-width:260px">
     ${tab[0]==="spoluprace"?`<select id="cf-ev" aria-label="Podujatie"><option value="">Všetky podujatia</option>${S.d.events.filter(ev=>S.d.partnerships.some(p=>p.eventId===ev.id)).map(ev=>`<option value="${esc(ev.id)}" ${f.ev===ev.id?"selected":""}>${esc(ev.name)}</option>`).join("")}</select><select id="cf-state" aria-label="Stav"><option value="">Všetky stavy</option>${OPT.pstav.map(o=>`<option value="${o[0]}" ${f.state===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>`:""}
     <button class="btn sm" id="cf-copy">Kopírovať e-maily (${list.filter(c=>c.email).length})</button></div></div>
   <div class="panel">${list.length?table(cols,list,c=>"contacts:"+esc(c.id)):`<div class="empty">${S.d.contacts.length?"V tejto skupine nikto nie je.":"Zatiaľ žiadne kontakty."}</div>`}</div>`;
@@ -2619,6 +2626,7 @@ function bindView(){
   ["year","acct","type","project","grant"].forEach(k=>on("#ff-"+k,"change",e=>{S.ff[k]=e.target.value;render();}));
   on("#ff-q","input",e=>{S.ff.q=e.target.value;render();});
   on("#cf-q","input",e=>{S.cf.q=e.target.value;render();});
+  v.querySelectorAll("[data-cvol]").forEach(b=>b.onclick=()=>{S.cf.vol=!S.cf.vol;render();});
   v.querySelectorAll("[data-ctab]").forEach(b=>b.onclick=()=>{S.cf.tab=b.dataset.ctab;render();});
   on("#cf-state","change",e=>{S.cf.state=e.target.value;render();});
   on("#cf-ev","change",e=>{S.cf.ev=e.target.value;render();});
