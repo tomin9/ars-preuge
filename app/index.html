@@ -1266,9 +1266,9 @@ function dExtra(e,r){
   let h="";
   if(e==="tasks")h+=checklistHtml(e,r,"Podúlohy");
   if(e==="contacts"){const ed=DW&&DW.edit;
-    h+=lkCard(e,r,"ledger");
     if(r.ctype&&r.ctype!=="osoba"){const P=S.d.contacts.filter(x=>x.id!==r.id&&orgList(x).includes(r.id)).sort((x,y)=>(x.name||"").localeCompare(y.name||"","sk"));
-      h+=`<section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${LKI.contacts}Kontakty</span></h3>${P.length?`<ul class="items lk">${P.map(x=>`<li class="cpl" data-open="contacts:${esc(x.id)}"><span class="t">${cIcon(x)}${esc(x.name||"Bez mena")}</span></li>`).join("")}</ul>`:""}</section>`;}
+      h+=`<section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${LKI.contacts}Kontakty</span></h3>${P.length?`<ul class="items lk">${P.map(x=>`<li class="cpl" data-open="contacts:${esc(x.id)}"><span class="t">${esc(x.name||"Bez mena")}</span></li>`).join("")}</ul>`:""}</section>`;}
+    h+=lkCard(e,r,"ledger");
     if(ed&&!S.readOnly)h+=mergeBlock(r);}
   if(e==="ledger")h+=`<section class="dcard"><div class="ldocs">${LDOCS.map(([k,l])=>docRow("ledger",r,k,l)).join("")}</div></section>
     <section class="dcard note"><textarea aria-label="Poznámka" id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`;
