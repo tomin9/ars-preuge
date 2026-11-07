@@ -496,6 +496,12 @@ button.lnk{border:0;background:transparent;color:var(--accent);cursor:pointer;fo
   .zb-alloc{margin-left:0}
   .zb-supl{flex-wrap:wrap}
 }
+.txm{display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);gap:28px;align-items:start}.txlist{display:flex;flex-direction:column;gap:6px}.txlh{font-weight:600;color:var(--muted);padding:6px 12px 8px;font-size:14px}.txlh .cnt{background:var(--line);border-radius:6px;padding:1px 8px;margin-left:6px;font-size:13px}
+.txi{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid transparent;border-radius:12px;cursor:pointer;color:var(--muted)}.txi:hover{background:var(--surface)}.txi .txt{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}.txi b{font-size:16px;font-weight:500;color:var(--ink)}.txi small{font-size:13px;color:var(--muted)}.txi.on{background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}.txi.on b,.txi.on svg{color:var(--accent)}.txi:focus-visible{outline:2px solid var(--accent)}.txadd{margin-top:8px}.txadd b{color:var(--muted);font-weight:400}.txdot{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block}
+.txmain{padding:0;overflow:hidden}.txhead{display:flex;align-items:flex-start;gap:12px;padding:22px 26px 18px;border-bottom:1px solid var(--line)}.txhead .kick{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}input[type=text].txtitle{all:unset;display:block;width:100%;font-size:28px;font-weight:600;color:var(--ink);margin-top:6px}input[type=text].txtitle:focus{outline:none;box-shadow:0 1px 0 var(--accent)}
+.txbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 26px;border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)}.txst{display:flex;align-items:center;gap:8px}.txst select{all:unset;cursor:pointer;color:var(--muted)}input[type=text].txdesc{all:unset;text-align:right;color:var(--muted);flex:1;min-width:0}input[type=text].txdesc:focus{box-shadow:0 1px 0 var(--accent)}
+textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;border:0;border-radius:0;background:transparent;padding:26px;font-size:17px;line-height:1.7;resize:vertical;outline:none}.txfoot{padding:14px 26px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+@media(max-width:860px){.txm{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -2137,19 +2143,33 @@ function teamTab(e){
   return`<div class="tcols" style="--nc:${NC}">${Array.from({length:NC},(_,n)=>`<div class="tcol">${SECS.filter((_,i)=>i%NC===n).map(card).join("")}</div>`).join("")}</div>${oth}<div style="margin-top:14px"><button class="btn sm ghost" data-secadd="${esc(e.id)}">+ Pridať sekciu</button></div>`;
 }
 /* ===== Texty podujatia ===== */
-const TXT_DEF=["Anotácia","Text na sociálne siete","Tlačová správa"];
-const evTexts=e=>Array.isArray(e.texts)?e.texts:TXT_DEF.map((t,i)=>({id:"t"+i,title:t,body:""}));
-const TXI={copy:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>'};
+const TXT_DEF=[["Anotácia","Krátke predstavenie podujatia"],["Sociálne siete","Texty na zdieľanie"],["Tlačová správa","Podklady pre médiá"]];
+const evTexts=e=>Array.isArray(e.texts)?e.texts:TXT_DEF.map(([t,d],i)=>({id:"t"+i,title:t,desc:d,body:""}));
+const TXI={copy:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',
+ ic:['<path d="M4 7h16M4 12h10M4 17h16"/>','<path d="M5 5h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>','<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/>']};
+const TXST=[["nezacate","Nezačaté",GRAY],["rozpracovane","Rozpracované",ORANGE],["hotove","Hotové",GREEN]];
+const txSt=t=>t.st||(String(t.body||"").trim()?"rozpracovane":"nezacate");
+const txStat=b=>{const w=String(b||"").trim().split(/\s+/).filter(Boolean).length;return`${w} slov&nbsp;&nbsp;&nbsp;&nbsp;${String(b||"").length} znakov`;};
 function textyTab(e){
-  const T=evTexts(e),id=esc(e.id);
-  setTimeout(()=>document.querySelectorAll("textarea.txbody").forEach(t=>{t.style.height="auto";t.style.height=Math.max(96,t.scrollHeight)+"px";}),0);
-  return`<div class="txcols">${T.map(t=>`<div class="panel txcard"><h3 style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px"><input type="text" class="secname" value="${esc(t.title)}" data-txt="${id}|${esc(t.id)}|title" aria-label="Názov textu" maxlength="60"><span style="display:flex;gap:2px"><button type="button" class="tplus" data-txcopy="${id}|${esc(t.id)}" title="Kopírovať text" aria-label="Kopírovať text">${TXI.copy}</button><button type="button" class="tplus tdel" data-txdel="${id}|${esc(t.id)}" title="Odstrániť text" aria-label="Odstrániť text">${TI.del}</button></span></h3><textarea class="txbody" data-txt="${id}|${esc(t.id)}|body" rows="4" placeholder="Napíšte text…" style="width:100%">${esc(t.body)}</textarea></div>`).join("")}</div><div style="margin-top:14px"><button class="btn sm ghost" data-txadd="${id}">+ Pridať text</button></div>`;
+  const T=evTexts(e),id=esc(e.id);S._txsel=S._txsel||{};
+  let sel=T.find(t=>t.id===S._txsel[e.id])||T[0];
+  const list=T.map((t,i)=>{const st=TXST.find(x=>x[0]===txSt(t))||TXST[0],on=sel&&t.id===sel.id;
+    return`<button type="button" class="txi${on?" on":""}" data-txsel="${id}|${esc(t.id)}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${TXI.ic[i%3]}</svg><span class="txt"><b>${esc(t.title)}</b><small>${esc(t.desc||"")}</small></span><i class="txdot" style="background:${st[2]}" title="${st[1]}"></i></button>`;}).join("");
+  let main='<div class="panel txmain" style="display:flex;align-items:center;justify-content:center;color:var(--muted);min-height:200px">Zatiaľ žiadne texty.</div>';
+  if(sel){const t=sel,st=txSt(t),sc=(TXST.find(x=>x[0]===st)||TXST[0])[2],k=`${id}|${esc(t.id)}`;
+    main=`<div class="panel txmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Texty / ${esc(e.name||"Podujatie")}</div><input type="text" class="txtitle" value="${esc(t.title)}" data-txt="${k}|title" aria-label="Názov textu" maxlength="60"></div>
+      <div class="row" style="flex:none;gap:8px"><button type="button" class="btn" data-txcopy="${k}">${TXI.copy} Kopírovať</button><button type="button" class="tplus tdel" data-txdel="${k}" title="Odstrániť text" aria-label="Odstrániť text">${TI.del}</button></div></div>
+      <div class="txbar"><label class="txst"><i class="txdot" style="background:${sc}"></i><select data-txt="${k}|st" aria-label="Stav textu">${TXST.map(([v,l])=>`<option value="${v}"${v===st?" selected":""}>${l}</option>`).join("")}</select></label><input type="text" class="txdesc" value="${esc(t.desc||"")}" data-txt="${k}|desc" placeholder="Krátky popis…" maxlength="80" aria-label="Popis textu"></div>
+      <textarea class="txbody" data-txt="${k}|body" placeholder="Napíšte text…">${esc(t.body||"")}</textarea>
+      <div class="txfoot" id="txstat">${txStat(t.body)}</div></div>`;}
+  return`<div class="txm"><div class="txlist"><div class="txlh">Texty podujatia <span class="cnt">${T.length}</span></div>${list}<button type="button" class="txi txadd" data-txadd="${id}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať text</b></span></button></div>${main}</div>`;
 }
-document.addEventListener("input",ev=>{const t=ev.target;if(t&&t.classList&&t.classList.contains("txbody")){t.style.height="auto";t.style.height=Math.max(96,t.scrollHeight)+"px";}});
+document.addEventListener("input",ev=>{const t=ev.target;if(t&&t.classList&&t.classList.contains("txbody")){const st=document.getElementById("txstat");if(st)st.innerHTML=txStat(t.value);}});
 document.addEventListener("change",ev=>{const x=ev.target.closest&&ev.target.closest("[data-txt]");if(!x)return;const[eid,tid,f]=x.dataset.txt.split("|"),e0=get("events",eid);if(!e0)return;const v=x.value;
   upd("events",eid,{texts:evTexts(e0).map(t=>t.id===tid?Object.assign({},t,{[f]:f==="title"?(v.trim()||t.title):v}):t)});});
 document.addEventListener("click",async ev=>{
-  const ad=ev.target.closest&&ev.target.closest("[data-txadd]");if(ad){const e0=get("events",ad.dataset.txadd);if(!e0)return;const nid="t"+Date.now().toString(36);await upd("events",e0.id,{texts:[...evTexts(e0),{id:nid,title:"Nový text",body:""}]});setTimeout(()=>{const i=document.querySelector(`[data-txt$="|${nid}|title"]`);if(i){i.focus();i.select();}},60);return;}
+  const sl=ev.target.closest&&ev.target.closest("[data-txsel]");if(sl){const[eid,tid]=sl.dataset.txsel.split("|");S._txsel=S._txsel||{};S._txsel[eid]=tid;render();return;}
+  const ad=ev.target.closest&&ev.target.closest("[data-txadd]");if(ad){const e0=get("events",ad.dataset.txadd);if(!e0)return;const nid="t"+Date.now().toString(36);S._txsel=S._txsel||{};S._txsel[e0.id]=nid;await upd("events",e0.id,{texts:[...evTexts(e0),{id:nid,title:"Nový text",desc:"",body:""}]});setTimeout(()=>{const i=document.querySelector(`[data-txt$="|${nid}|title"]`);if(i){i.focus();i.select();}},60);return;}
   const dl=ev.target.closest&&ev.target.closest("[data-txdel]");if(dl){const[eid,tid]=dl.dataset.txdel.split("|"),e0=get("events",eid);if(!e0)return;const t=evTexts(e0).find(x=>x.id===tid);if(!t)return;if(t.body.trim()&&!await ask(`Odstrániť text „${t.title}“?`,"Odstrániť"))return;await upd("events",eid,{texts:evTexts(e0).filter(x=>x.id!==tid)});return;}
   const cp=ev.target.closest&&ev.target.closest("[data-txcopy]");if(cp){const[eid,tid]=cp.dataset.txcopy.split("|"),e0=get("events",eid),t=e0&&evTexts(e0).find(x=>x.id===tid);if(!t)return;try{await navigator.clipboard.writeText(t.body);toast("Text skopírovaný.");}catch(_){toast("Kopírovanie sa nepodarilo.");}return;}
 });
