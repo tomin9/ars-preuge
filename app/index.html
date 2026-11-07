@@ -73,7 +73,7 @@ h3{font-size:15px;margin:0;font-weight:700}
 .navbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;margin:-28px -32px 18px;padding:10px 32px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .nb-back{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;color:var(--muted);background:transparent}
 .nb-back:hover{background:var(--surface3);color:var(--ink)}.nb-back[disabled]{opacity:.4;cursor:default}
-.nb-path{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);min-width:0;overflow:hidden;white-space:nowrap}
+.ptabs.ntabs{gap:2px}.ptabs.ntabs button{font-size:14px;font-weight:400;color:var(--muted);padding:6px 12px;background:none}.ptabs.ntabs button:hover{color:var(--ink);background:none}.ptabs.ntabs button[aria-selected="true"]{background:none;color:var(--ink);font-weight:600}.nb-path{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);min-width:0;overflow:hidden;white-space:nowrap}
 .nb-path button{all:unset;cursor:pointer}.nb-path button:hover{color:var(--ink)}.nb-path b{font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis}
 @media (max-width:760px){.navbar{margin:-18px -14px 14px;padding:8px 14px}}
 .crumb{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);margin-bottom:10px}
@@ -2198,7 +2198,7 @@ function eventTabs(e){
   const ET=evTabsFor(e),tab=ET.find(t=>t[0]===S.evtab)?S.evtab:"texty";
   const cnt={ulohy:T.filter(t=>!isDone(t)).length,granty:related("events",e,"grants").length,dramaturgia:S.d.prog.filter(x=>x.eventId===e.id).length,
     marketing:(()=>{const m=evMkt(e);return Array.isArray(e.mkt)?`${m.filter(x=>x.d).length}/${m.length}`:"";})(),spoluprace:0,dokumenty:(e.docs||[]).length,zabezpecenie:S.d.zab.length};
-  const tbar=`<div class="ptabs" role="tablist" style="margin-top:6px">${ET.map(([k,l])=>`<button role="tab" data-evtab="${k}" aria-selected="${tab===k}">${l}${cnt[k]?`<span>${cnt[k]}</span>`:""}</button>`).join("")}</div>`;
+  const tbar=`<div class="ptabs ntabs" role="tablist" style="margin-top:6px">${ET.map(([k,l])=>`<button role="tab" data-evtab="${k}" aria-selected="${tab===k}">${l}${cnt[k]?`<span>${cnt[k]}</span>`:""}</button>`).join("")}</div>`;
   let body="";
   if(tab==="texty")body=textyTab(e);
   else if(tab==="rozpocet")body=eventBudget(e);
