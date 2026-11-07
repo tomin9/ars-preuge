@@ -2096,12 +2096,13 @@ document.addEventListener("click",async ev=>{const se=ev.target.closest&&ev.targ
   const[eid,key]=b.dataset.teamplus.split("|"),e0=get("events",eid),panel=b.closest(".panel");if(!e0||!panel)return;
   const ex=panel.querySelector(".teamnew input");if(ex){ex.focus();return;}
   let ul=panel.querySelector("ul.items");if(!ul){ul=document.createElement("ul");ul.className="items lk";panel.querySelector("h3").after(ul);}
-  const pool=teamPool(e0,key),li=document.createElement("li");li.className="teamnew";li.innerHTML=`<input type="text" class="tnin" placeholder="Začnite písať meno…" autocomplete="off" spellcheck="false" aria-label="Hľadať kontakt"><div class="tnlist" hidden></div>`;ul.appendChild(li);
+  const pool=teamPool(e0,key),li=document.createElement("li");li.className="teamnew";li.innerHTML=`<input type="text" class="tnin" placeholder="Meno alebo rola…" autocomplete="off" spellcheck="false" aria-label="Hľadať kontakt"><div class="tnlist" hidden></div>`;ul.appendChild(li);
   const inp=li.querySelector("input"),list=li.querySelector(".tnlist");let hits=[],act=0,done=false;
-  const draw=()=>{const q=nrm(inp.value.trim());hits=q?pool.filter(c=>nrm(c.name).includes(q)).slice(0,8):[];act=Math.min(act,Math.max(0,hits.length-1));
-    list.hidden=!hits.length;list.innerHTML=hits.map((c,i)=>`<div class="tnopt${i===act?" on":""}" data-i="${i}">${cIcon(c)}<span>${esc(c.name||"Bez mena")}</span>${c.ctype&&c.ctype!=="osoba"?`<small>${esc(optL("ctype",c.ctype))}</small>`:""}</div>`).join("");};
+  const rolesAll=(()=>{const m=new Map();Object.keys(TAGDEF).forEach(t=>tagVocab(t).forEach(x=>{if(!m.has(x[0]))m.set(x[0],x);}));return[...m.values()];})();
+  const draw=()=>{const q=nrm(inp.value.trim());const rh=q?rolesAll.filter(r=>nrm(r[1]).includes(q)).map(r=>({role:r,list:pool.filter(c=>tagList(c).includes(r[0]))})).filter(x=>x.list.length):[];hits=[...rh,...(q?pool.filter(c=>nrm(c.name).includes(q)).slice(0,8):[])];act=Math.min(act,Math.max(0,hits.length-1));
+    list.hidden=!hits.length;list.innerHTML=hits.map((c,i)=>c.role?`<div class="tnopt${i===act?" on":""}" data-i="${i}"><span class="tg sm" style="--tc:${c.role[2]}">${esc(c.role[1])}</span><span>Pridať všetkých s touto rolou</span><small>${c.list.length}</small></div>`:`<div class="tnopt${i===act?" on":""}" data-i="${i}">${cIcon(c)}<span>${esc(c.name||"Bez mena")}</span>${c.ctype&&c.ctype!=="osoba"?`<small>${esc(optL("ctype",c.ctype))}</small>`:""}</div>`).join("");};
   const close=()=>{done=true;li.remove();};
-  const pick=c=>{if(done||!c)return;done=true;li.remove();teamAddContact(eid,key,c.id);};
+  const pick=c=>{if(done||!c)return;done=true;li.remove();if(c.role){(async()=>{for(const x of c.list)await teamAddContact(eid,key,x.id);toast(`Pridaných ${c.list.length} ${c.list.length===1?"kontakt":c.list.length<5?"kontakty":"kontaktov"} s rolou ${c.role[1]}.`);})();}else teamAddContact(eid,key,c.id);};
   inp.addEventListener("input",()=>{act=0;draw();});
   inp.addEventListener("keydown",k=>{if(k.key==="ArrowDown"){k.preventDefault();act=Math.min(hits.length-1,act+1);draw();}else if(k.key==="ArrowUp"){k.preventDefault();act=Math.max(0,act-1);draw();}else if(k.key==="Enter"){k.preventDefault();pick(hits[act]);}else if(k.key==="Escape"){k.preventDefault();k.stopPropagation();close();}});
   inp.addEventListener("blur",()=>setTimeout(()=>{if(!done)close();},150));
