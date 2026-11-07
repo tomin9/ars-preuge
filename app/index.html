@@ -1205,7 +1205,7 @@ function linkBlock(e,r,t){
   const avail=S.d[t].filter(x=>x.id!==r.id&&!ids.has(x.id)&&!(e==="contacts"&&t==="contacts"&&x.ctype&&x.ctype!=="osoba")).sort((a,b)=>t==="ledger"?(b.date||"").localeCompare(a.date||""):ttl(t,a).localeCompare(ttl(t,b),"sk")).slice(0,300);
   return`<h3 style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="lkh">${LKI[t]||""}${LINK_L[t]}${extra}</span><span class="row" style="gap:6px"><span class="meta">${L.length||""}</span><button class="btn ghost sm" data-linknew="${e}:${esc(r.id)}|${t}">+ Nový</button></span></h3>
   ${L.length?`<ul class="items lk">${L.map(x=>linkLi(e,r,t,x)).join("")}</ul>`:""}
-  ${avail.length?`<select data-linkadd="${e}:${esc(r.id)}|${t}" aria-label="Prepojiť existujúci záznam" style="width:100%;margin-top:6px;color:var(--muted)"><option value="">Prepojiť existujúce…</option>${avail.map(x=>`<option value="${esc(x.id)}">${esc(ttl(t,x))}${t==="ledger"?` · ${fdateS(x.date)||"plánované"} · ${eur(x.amount)}`:""}</option>`).join("")}</select>`:""}`;
+  ${avail.length&&e!=="contacts"?`<select data-linkadd="${e}:${esc(r.id)}|${t}" aria-label="Prepojiť existujúci záznam" style="width:100%;margin-top:6px;color:var(--muted)"><option value="">Prepojiť existujúce…</option>${avail.map(x=>`<option value="${esc(x.id)}">${esc(ttl(t,x))}${t==="ledger"?` · ${fdateS(x.date)||"plánované"} · ${eur(x.amount)}`:""}</option>`).join("")}</select>`:""}`;
 }
 function linksHtml(e,r){
   return MAIN.filter(t=>t!==e&&!linkFields(e,t).some(f=>f.t==="rel")).map(t=>`<div class="sec">${linkBlock(e,r,t)}</div>`).join("");
@@ -1250,7 +1250,7 @@ function dExtra(e,r){
     h+=miniList("Výdavky na položku","ledger",c.L,ledgerLi,{lineId:r.id,grantId:r.grantId||"",projectId:(get("grants",r.grantId)||{}).projectId||""});}
   if(e!=="comments"&&(e!=="contacts"||(DW&&DW.edit)||S.d.comments.some(c=>c.parent===e+":"+r.id)))h+=commentsHtml(e,r);
   const meta=[r.createdAt?`Vytvorené ${rel(r.createdAt)}${r.createdBy?" · "+esc(personName(r.createdBy)):""}`:"",r.updatedAt&&r.updatedAt!==r.createdAt?`upravené ${rel(r.updatedAt)}${r.updatedBy?" · "+esc(personName(r.updatedBy)):""}`:""].filter(Boolean).join(", ");
-  return h+(meta?`<p class="meta" style="margin-top:20px;white-space:normal">${meta}</p>`:"");
+  return h+(meta&&e!=="contacts"&&e!=="ledger"?`<p class="meta" style="margin-top:20px;white-space:normal">${meta}</p>`:"");
 }
 
 /* people picker: stores user id, or "~Name" for people outside the org */
