@@ -157,7 +157,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0}
 .hero{position:relative;padding:20px 24px 20px 30px;border-radius:12px;background:var(--surface);border:1px solid var(--line);margin-bottom:20px;overflow:hidden}
 .hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--pc,var(--accent))}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 24px;margin-top:16px}
-.facts span{display:block;font-size:12px;color:var(--muted)}
+.facts.evf{grid-template-columns:minmax(200px,max-content) minmax(120px,max-content);gap:14px 56px}.facts span{display:block;font-size:12px;color:var(--muted)}
 .facts b{font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
 .desc{white-space:pre-wrap;margin:14px 0 0;max-width:75ch}
 /* timeline of deadlines */
@@ -1927,9 +1927,8 @@ VIEWS.podujatie=()=>{
   return`  ${coverUrl(e)?`<div class="pcw"><img class="pcover" src="${esc(coverUrl(e))}" alt="" style="object-position:${esc(posOf(e))}"><button class="btn pcedit" data-peek="events:${id}">Upraviť</button></div>`:""}
   <section class="hero" style="--pc:${esc(col)}"><div class="spread" style="align-items:flex-start"><div><h1>${esc(e.name||"Podujatie")}</h1>${p?`<p class="sub">projekt <button class="btn ghost sm" data-go="projekt" data-id="${esc(p.id)}">${esc(p.name)}</button></p>`:""}</div>
     <div class="row">${chip("estat",e.status)}${coverUrl(e)?"":`<button class="btn" data-peek="events:${id}">Upraviť</button>`}</div></div>
-    <div class="facts"><div><span>Dátum</span><b>${when||"—"}</b>${rel?`<span>${rel}</span>`:""}</div><div><span>Čas</span><b>${esc(e.time||"—")}</b></div>
-      <div><span>Miesto</span><b>${esc(e.place||"—")}</b></div><div><span>Návštevnosť</span><b>${e.visitors?Number(e.visitors).toLocaleString("sk-SK"):"—"}</b></div>
-      <div><span>Výdavky</span><b class="neg">${eur(exp)}</b></div><div><span>Príjmy</span><b class="pos">${eur(inc)}</b></div></div>
+    <div class="facts evf"><div><span>Dátum</span><b>${when||"—"}</b>${rel?`<span>${rel}</span>`:""}</div><div><span>Čas</span><b>${esc(e.time||"—")}</b></div>
+      <div class="evmiesto"><span>Miesto</span><b>${esc(e.place||"—")}</b></div></div>
     ${url||folderId(e.driveFolder)?`<div class="row" style="margin-top:14px">${url?`<a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">Odkaz na podujatie</a>`:""}${folderId(e.driveFolder)?`<a class="btn sm" href="https://drive.google.com/drive/folders/${esc(folderId(e.driveFolder))}" target="_blank" rel="noopener">Priečinok na Disku</a>`:""}</div>`:""}
     ${e.note?`<p class="desc">${esc(e.note)}</p>`:""}</section>
   ${eventTabs(e)}`;
