@@ -2046,7 +2046,7 @@ VIEWS.financie=()=>{
 };
 
 /* ----- Kontakty ----- */
-const CTABS=[["osoby","Osoby",c=>c.ctype==="osoba"],["firmy","Firmy",c=>c.ctype==="firma"],["organizacie","Organizácie",c=>c.ctype==="organizacia"],["media","Média",c=>c.ctype==="media"],["dobrovolnici","Dobrovoľníci",c=>c.role==="dobrovolnik"],["vsetci","Všetci",c=>true]];
+const CTABS=[["osoby","Osoby",c=>c.ctype==="osoba"],["firmy","Firmy",c=>c.ctype==="firma"],["organizacie","Organizácie",c=>c.ctype==="organizacia"],["media","Média",c=>c.ctype==="media"]];
 function orgOf(c){const o=get("contacts",c.orgId);return o?`<button class="btn ghost sm" style="padding:2px 6px" data-peek="contacts:${esc(o.id)}">${cIcon(o)}${esc(o.name)}</button>`:esc(c.org||"");}
 VIEWS.kontakty=()=>{
   const f=S.cf,q=(f.q||"").toLowerCase(),tab=CTABS.find(t=>t[0]===f.tab)||CTABS[0];
