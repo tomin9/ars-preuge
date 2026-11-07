@@ -974,7 +974,7 @@ function dProps(e,r){
   const filled=f=>{const v=r[f.k];return!(v==null||v===""||(Array.isArray(v)&&!v.length));};
   const hideEmpty=e==="contacts"&&DW&&!DW.edit;
   const lab=f=>e==="contacts"&&f.k==="address"?((r.ctype||"osoba")==="osoba"?"Bydlisko":"Sídlo"):f.l;
-  const fl=ENT[e].fields.filter(f=>f.t!=="mrel"&&f.t!=="image"&&(!f.only||e!=="contacts"||(r.ctype||"osoba")===f.only)&&(!hideEmpty||filled(f))&&!(e==="contacts"&&(f.k==="email"||f.k==="phone"||f.k==="note"||f.k==="position"||(hideEmpty&&(f.k==="orgIds"||f.k==="position")))));
+  const fl=ENT[e].fields.filter(f=>f.t!=="mrel"&&f.t!=="image"&&(!f.only||e!=="contacts"||(r.ctype||"osoba")===f.only)&&(!hideEmpty||filled(f))&&!(e==="contacts"&&(f.k==="email"||f.k==="phone"||f.k==="note"||f.k==="position"||f.k==="source"||(hideEmpty&&(f.k==="orgIds"||f.k==="position")))));
   let ct="";
   const TAGK=["volunteer","source","orgIds"];
   const mk=f=>{
