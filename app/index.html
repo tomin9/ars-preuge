@@ -566,7 +566,7 @@ const ENT={
     {k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"total",l:"Celkové náklady",t:"money"},{k:"fromGrant",l:"Z dotácie",t:"money"},{k:"note",l:"Poznámka",t:"long"}]},
   contacts:{col:"contacts",one:"Kontakt",many:"Kontakty",title:"name",fields:[
     {k:"ctype",l:"Typ",t:"sel",o:"ctype"},{k:"tags",l:"Rola",t:"tags"},{k:"source",l:"Oslovil nás cez",t:"sel",o:"csrc"},{k:"orgIds",l:"Organizácie",t:"orgs",only:"osoba"},{k:"position",l:"Funkcia",t:"text"},
-    {k:"email",l:"E-mail",t:"email"},{k:"phone",l:"Telefón",t:"tel"},{k:"address",l:"Sídlo",t:"text"},{k:"birthDate",l:"Narodený",t:"date",only:"osoba"},{k:"idNo",l:"Číslo OP",t:"text",only:"osoba"},{k:"birthNo",l:"Rodné číslo",t:"text",ph:"napr. 925808/8367",only:"osoba"},{k:"iban",l:"IBAN",t:"text",ph:"SK00 0000 0000 0000 0000 0000"},{k:"ico",l:"IČO",t:"text"},{k:"dic",l:"DIČ",t:"text"},{k:"icdph",l:"IČ DPH",t:"text"},
+    {k:"email",l:"E-mail",t:"email"},{k:"phone",l:"Telefón",t:"tel"},{k:"legalName",l:"Oficiálny názov",t:"text",only:"!osoba"},{k:"address",l:"Sídlo",t:"text"},{k:"birthDate",l:"Narodený",t:"date",only:"osoba"},{k:"idNo",l:"Číslo OP",t:"text",only:"osoba"},{k:"birthNo",l:"Rodné číslo",t:"text",ph:"napr. 925808/8367",only:"osoba"},{k:"iban",l:"IBAN",t:"text",ph:"SK00 0000 0000 0000 0000 0000"},{k:"ico",l:"IČO",t:"text"},{k:"dic",l:"DIČ",t:"text"},{k:"icdph",l:"IČ DPH",t:"text"},
     {k:"projectIds",l:"Projekty",t:"mrel",e:"projects"},{k:"grantIds",l:"Granty",t:"mrel",e:"grants"},{k:"eventIds",l:"Podujatia",t:"mrel",e:"events"},{k:"note",l:"Poznámka",t:"long"}]},
   partnerships:{col:"partnerships",one:"Spolupráca",many:"Spolupráce",title:"state",fields:[]},
   prog:{col:"programItems",one:"Prvok programu",many:"Program",title:"title",fields:[
@@ -976,7 +976,7 @@ function dProps(e,r){
   const filled=f=>{const v=r[f.k];return!(v==null||v===""||(Array.isArray(v)&&!v.length));};
   const hideEmpty=e==="contacts"&&DW&&!DW.edit;
   const lab=f=>e==="contacts"&&f.k==="address"?((r.ctype||"osoba")==="osoba"?"Bydlisko":"Sídlo"):f.l;
-  const fl=ENT[e].fields.filter(f=>f.t!=="mrel"&&f.t!=="image"&&(!f.only||e!=="contacts"||(r.ctype||"osoba")===f.only)&&(!hideEmpty||filled(f))&&!(e==="contacts"&&(f.k==="email"||f.k==="phone"||f.k==="note"||f.k==="position"||f.k==="source"||(["ico","dic","icdph"].includes(f.k)&&(r.ctype||"osoba")==="osoba")||(hideEmpty&&(f.k==="orgIds"||f.k==="position")))));
+  const fl=ENT[e].fields.filter(f=>f.t!=="mrel"&&f.t!=="image"&&(!f.only||e!=="contacts"||(f.only==="!osoba"?(r.ctype||"osoba")!=="osoba":(r.ctype||"osoba")===f.only))&&(!hideEmpty||filled(f))&&!(e==="contacts"&&(f.k==="email"||f.k==="phone"||f.k==="note"||f.k==="position"||f.k==="source"||(["ico","dic","icdph"].includes(f.k)&&(r.ctype||"osoba")==="osoba")||(hideEmpty&&(f.k==="orgIds"||f.k==="position")))));
   let ct="";
   const TAGK=["tags","orgIds"];
   const mk=f=>{
@@ -1645,7 +1645,7 @@ function ctParty(kind,c,o){
   const row=(l,v)=>v?`${l}${esc(v)}<br>`:"";
   const lab=kind==="oz"?"Zhotoviteľ:":"Autor:",short=kind==="oz"?"zhotoviteľ":"autor";
   return`<table class="st"><tr><td class="l">Objednávateľ:</td><td>Názov: ${esc(ORG.name)}<br>So sídlom: ${esc(ORG.seat)}<br>Zastúpená: ${esc(CT_REP)}<br>IČO: ${esc(ORG.ico)}<br>DIČ: ${esc(ORG.dic)}<br>(ďalej ako „objednávateľ“)</td></tr></table><p>a</p>
-  <table class="st"><tr><td class="l">${lab}</td><td>${row("Názov / meno a priezvisko: ",c.name)}${row((c.ctype&&c.ctype!=="osoba")?"Sídlo: ":"Bydlisko: ",c.address)}${o.ids?row("Číslo OP: ",c.idNo)+row("Rodné č.: ",c.birthNo):""}${row("IBAN: ",fmtIban(c.iban))}(ďalej ako „${short}“)</td></tr></table>`;
+  <table class="st"><tr><td class="l">${lab}</td><td>${row("Názov / meno a priezvisko: ",c.legalName||c.name)}${row((c.ctype&&c.ctype!=="osoba")?"Sídlo: ":"Bydlisko: ",c.address)}${o.ids?row("Číslo OP: ",c.idNo)+row("Rodné č.: ",c.birthNo):""}${row("IBAN: ",fmtIban(c.iban))}(ďalej ako „${short}“)</td></tr></table>`;
 }
 function ctSign(o,short){return`<p style="margin-top:30pt">V ${esc(o.place)} dňa ${esc(fdate(o.signDate))}</p><table class="sg"><tr><td>______________________<br>objednávateľ</td><td>______________________<br>${short}</td></tr></table>`;}
 function ctDoc(kind,c,o){
