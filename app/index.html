@@ -990,13 +990,12 @@ function relOpts(f,r){
   return [...list].sort((a,b)=>ttl(f.e,a).localeCompare(ttl(f.e,b),"sk"));
 }
 document.addEventListener("copy",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.iban){const sel=String(t.value).substring(t.selectionStart,t.selectionEnd);if(sel){e.clipboardData.setData("text/plain",sel.replace(/\s+/g,""));e.preventDefault();}}});
-document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-ibancopy]");if(!b)return;const i=document.getElementById(b.dataset.ibancopy),v=i?i.value.replace(/\s+/g,""):"";if(!v){toast("IBAN je prázdny.");return;}try{navigator.clipboard.writeText(v).then(()=>toast("IBAN skopírovaný."),()=>toast("Kopírovanie sa nepodarilo."));}catch(_){toast("Kopírovanie sa nepodarilo.");}});
 function fmtIban(v){return String(v||"").replace(/\s+/g,"").toUpperCase().replace(/(.{4})(?=.)/g,"$1 ");}
 function fInput(e,r,f){
   const v=f.k==="cofinGrantId"?cofinG(r):r[f.k],id=`f-${f.k}`;
   switch(f.t){
     case"text":{const inp=`<input type="text" id="${id}" data-f="${f.k}" ${f.k==="iban"?'data-iban="1" ':""}value="${esc(f.k==="iban"?fmtIban(v):v)}" placeholder="${esc(f.ph||"—")}">`;
-      return f.k==="iban"?`<div class="urlrow">${inp}<button type="button" class="btn ghost sm" data-ibancopy="${id}" title="Skopírovať IBAN bez medzier">Kopírovať</button></div>`:inp;}
+      return inp;}
     case"email":case"tel":case"url":{
       const href=v?(f.t==="email"?"mailto:"+v:f.t==="tel"?"tel:"+String(v).replace(/\s/g,""):(/^https?:\/\//.test(v)?v:"https://"+v)):"";
       return`<div class="urlrow"><input type="${f.t}" id="${id}" data-f="${f.k}" value="${esc(v)}" placeholder="—">${v?`<a class="btn ghost sm" href="${esc(href)}" target="_blank" rel="noopener">Otvoriť</a>`:""}</div>`;}
