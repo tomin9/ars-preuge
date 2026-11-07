@@ -769,7 +769,7 @@ function navBar(){
   const ent={projekt:"projects",grant:"grants",podujatie:"events"}[S.view];const r=ent&&get(ent,S.id);
   const can=(S.hist||[]).length||S.view!=="prehlad";
   return`<div class="navbar"><button class="nb-back" data-back ${can?"":"disabled"} aria-label="Späť" title="Späť (Alt+←)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>Späť</button>
-  <nav class="nb-path" aria-label="Kde som">${S.view!=="prehlad"?`<button data-go="prehlad">Prehľad</button><span>/</span>`:""}${r?`<button data-go="${sec}">${esc(secL)}</button><span>/</span><b>${esc(ttl(ent,r))}</b>`:`<b>${esc(secL||"Prehľad")}</b>`}</nav></div>`;
+  <nav class="nb-path" aria-label="Kde som">${r?`<button data-go="${sec}">${esc(secL)}</button><span>/</span><b>${esc(ttl(ent,r))}</b>`:`<b>${esc(secL||"Prehľad")}</b>`}</nav></div>`;
 }
 function openRec(e,id){
   if(e==="zab")return zbOpenEvent();
