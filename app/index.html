@@ -2157,7 +2157,7 @@ VIEWS.financie=()=>{
   if(Y&&Y!=="plan"){const last=lc.list.filter(x=>x.date&&x.date.slice(0,4)<=Y).pop();if(last){bb=lc.map[last.id].bank;bc=lc.map[last.id].cash;}else{bb=+S.settings.openBank||0;bc=+S.settings.openCash||0;}if(Y!==String(new Date().getFullYear()))balLbl=` k 31. 12. ${Y}`;}
   const nPlan=S.d.ledger.filter(x=>!x.date).length;
   const ytabs=`<div class="ptabs" role="tablist">${[...years].reverse().map(y=>`<button role="tab" data-fyear="${y}" aria-selected="${Y===y}">${y}</button>`).join("")}${nPlan?`<button role="tab" data-fyear="plan" aria-selected="${Y==="plan"}">Plánované</button>`:""}</div>`;
-  const head=`<div class="head"><div><h1>Financie</h1><p class="sub">Peňažný denník ${esc(ORG.name)} s priebežným zostatkom banky a pokladne</p></div>
+  const head=`<div class="head"><div><h1>Financie</h1><p class="sub">Peňažný denník Ars Preuge</p></div>
     <div class="row">${dl?`<button class="btn" data-export="ledger">Export CSV</button>`:""}<button class="btn pri" data-create="ledger">Zapísať platbu</button></div></div>
   ${ytabs}<div class="strip"><div><b class="${bb<0?"neg":""}">${eur(bb)}</b><span>zostatok banka${balLbl}</span></div><div><b class="${bc<0?"neg":""}">${eur(bc)}</b><span>zostatok pokladňa${balLbl}</span></div>`;
   const yr=Y&&Y!=="plan"?Y:(Y==="plan"?"plánované":"spolu");const YL=S.d.ledger.filter(x=>inYear(x,Y));
