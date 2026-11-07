@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.45.1
+ * Version: 1.46.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.45.1');
+define('ARSP_VER', '1.46.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -305,6 +305,42 @@ add_action('rest_api_init', function () {
             $list = array();
             foreach (get_users($args) as $u) $list[] = arsp_profile($u);
             return $list;
+        },
+    ));
+
+    /* Zdieľaný album z Google Fotiek: server si prečíta verejnú stránku albumu a vráti adresy fotiek (neoficiálne, výsledok sa na 6 hodín uloží) */
+    register_rest_route('arsp/v1', '/photos', array(
+        'methods' => 'GET', 'permission_callback' => $perm,
+        'callback' => function (WP_REST_Request $r) {
+            $url = esc_url_raw(trim((string) $r->get_param('url')));
+            $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+            if (!in_array($host, array('photos.app.goo.gl', 'photos.google.com', 'goo.gl'), true)) {
+                return new WP_Error('bad_url', 'Podporované sú len odkazy na zdieľané albumy Google Fotiek.', array('status' => 400));
+            }
+            $key = 'arsp_ph_' . md5($url);
+            if (!$r->get_param('refresh')) { $c = get_transient($key); if ($c) return $c; }
+            $res = wp_safe_remote_get($url, array(
+                'timeout' => 20, 'redirection' => 6,
+                'headers' => array(
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+                    'Accept-Language' => 'sk,en;q=0.8',
+                    'Cookie' => 'CONSENT=YES+cb; SOCS=CAI',
+                ),
+            ));
+            if (is_wp_error($res) || (int) wp_remote_retrieve_response_code($res) >= 400) {
+                return new WP_Error('fetch_failed', 'Album sa nepodarilo načítať z Google Fotiek.', array('status' => 502));
+            }
+            $body = (string) wp_remote_retrieve_body($res);
+            $body = str_replace(array('\\u003d', '\\u0026', '\\/'), array('=', '&', '/'), $body);
+            $ids = array();
+            if (preg_match_all('#https://lh3\.googleusercontent\.com/pw/([A-Za-z0-9_\-]{20,})#', $body, $m)) {
+                foreach ($m[1] as $id) { if (!isset($ids[$id])) $ids[$id] = true; if (count($ids) >= 500) break; }
+            }
+            $title = '';
+            if (preg_match('#<meta[^>]+property="og:title"[^>]+content="([^"]*)"#i', $body, $t)) $title = html_entity_decode($t[1], ENT_QUOTES, 'UTF-8');
+            $out = array('title' => $title, 'photos' => array_keys($ids), 'url' => $url);
+            if ($out['photos']) set_transient($key, $out, 6 * HOUR_IN_SECONDS);
+            return $out;
         },
     ));
 
