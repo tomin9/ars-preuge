@@ -1144,7 +1144,7 @@ const LKI={ledger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
   projects:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H10l2 2.5h7.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>',
   contacts:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>'};
 const lkCard=(e,r,t)=>`<section class="dcard lkc">${linkBlock(e,r,t)}</section>`;
-const ROLES_BY_TYPE={osoba:["tim","umelec","dobrovolnik","externy"],firma:["dodavatel","partner","sponzor"],organizacia:["partner","institucia","sponzor"],media:["medium","mediapartner"]};
+const ROLES_BY_TYPE={osoba:["tim","umelec","dobrovolnik","externy"],firma:["sponzor","partner"],organizacia:["partner","institucia","sponzor"],media:["medium","mediapartner"]};
 const roleOpts=c=>(ROLES_BY_TYPE[(c&&c.ctype)||"osoba"]||[]).map(k=>[k,optL("crole",k)]);
 const evRole=(ev,cid)=>((ev&&ev.roles)||{})[cid]||"";
 const LINK_L={projects:"Projekty",grants:"Granty",events:"Podujatia",tasks:"Úlohy",ledger:"Platby",contacts:"Ľudia a kontakty"};
