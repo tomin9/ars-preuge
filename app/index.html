@@ -987,7 +987,7 @@ function dProps(e,r){
   if(e==="contacts"){
     const tg=fl.filter(f=>TAGK.includes(f.k)).map(mk).join(""),dt=fl.filter(f=>!TAGK.includes(f.k)).map(mk).join("");
     const card=(ico,t,h,cls)=>h?`<section class="dcard${cls?" "+cls:""}"><h3>${DI[ico]}${t}</h3><div class="props cprops" style="margin:0">${h}</div></section>`:"";
-    return`<div class="props" style="margin-bottom:12px">${ct}</div>${card("tag","Štítky",tg,"tagcard")}${card("main","Údaje",dt)}`;
+    return`${DW&&DW.edit?`<div class="props" style="margin-bottom:12px">${ct}</div>`:""}${card("tag","Štítky",tg,"tagcard")}${card("main","Údaje",dt)}`;
   }
   return `<div class="props">${rows}</div>`;
 }
