@@ -1203,7 +1203,7 @@ function linkLi(e,r,t,x){
 function linkBlock(e,r,t){
   let L=related(e,r,t);
   if(t==="ledger")L.sort((a,b)=>(b.date||"").localeCompare(a.date||""));else if(t==="tasks")L.sort((a,b)=>isDone(a)-isDone(b)||byDue(a,b));else if(t==="events")L.sort((a,b)=>(a.date||"").localeCompare(b.date||""));
-  const extra=t==="ledger"&&L.length?` <span class="meta">výdavky ${eur(sum(L.filter(x=>x.type!=="prijem"),x=>x.amount))}</span>`:"";
+  const extra=t==="ledger"&&L.length&&e!=="contacts"?` <span class="meta">výdavky ${eur(sum(L.filter(x=>x.type!=="prijem"),x=>x.amount))}</span>`:"";
   const ids=new Set(L.map(x=>x.id));
   const avail=S.d[t].filter(x=>x.id!==r.id&&!ids.has(x.id)&&!(e==="contacts"&&t==="contacts"&&x.ctype&&x.ctype!=="osoba")).sort((a,b)=>t==="ledger"?(b.date||"").localeCompare(a.date||""):ttl(t,a).localeCompare(ttl(t,b),"sk")).slice(0,300);
   return`<h3 style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="lkh">${LKI[t]||""}${LINK_L[t]}${extra}</span><span class="row" style="gap:6px"><span class="meta">${L.length||""}</span><button class="btn ghost sm" data-linknew="${e}:${esc(r.id)}|${t}">+ Nový</button></span></h3>
