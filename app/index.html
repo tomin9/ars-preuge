@@ -974,12 +974,18 @@ function dProps(e,r){
   const lab=f=>e==="contacts"&&f.k==="address"?((r.ctype||"osoba")==="osoba"?"Bydlisko":"Sídlo"):f.l;
   const fl=ENT[e].fields.filter(f=>f.t!=="mrel"&&f.t!=="image"&&(!f.only||e!=="contacts"||(r.ctype||"osoba")===f.only)&&(!hideEmpty||filled(f))&&!(e==="contacts"&&(f.k==="email"||f.k==="phone"||(hideEmpty&&(f.k==="orgId"||f.k==="position")))));
   let ct="";
-  const rows=fl.map(f=>{
+  const TAGK=["volunteer","source","orgId","position"];
+  const mk=f=>{
     const full=f.t==="long";
     if(e==="contacts"&&f.k==="ctype"){ct=`<div class="pv full ctt">${fInput(e,r,f)}</div>`;return"";}
     return full?`<label class="full" for="f-${f.k}">${esc(lab(f))}</label><div class="pv full">${fInput(e,r,f)}</div>`
-      :`<label for="f-${f.k}">${esc(lab(f))}</label><div class="pv">${fInput(e,r,f)}</div>`;}).join("");
-  if(e==="contacts")return`<div class="props" style="margin-bottom:12px">${ct}</div>${rows?`<section class="dcard"><div class="props cprops" style="margin:0">${rows}</div></section>`:""}`;
+      :`<label for="f-${f.k}">${esc(lab(f))}</label><div class="pv">${fInput(e,r,f)}</div>`;};
+  const rows=fl.map(mk).join("");
+  if(e==="contacts"){
+    const tg=fl.filter(f=>TAGK.includes(f.k)).map(mk).join(""),dt=fl.filter(f=>!TAGK.includes(f.k)).map(mk).join("");
+    const card=(ico,t,h)=>h?`<section class="dcard"><h3>${DI[ico]}${t}</h3><div class="props cprops" style="margin:0">${h}</div></section>`:"";
+    return`<div class="props" style="margin-bottom:12px">${ct}</div>${card("tag","Štítky",tg)}${card("main","Údaje",dt)}`;
+  }
   return `<div class="props">${rows}</div>`;
 }
 function optsOf(f,r){return f.o?OPT[f.o].map(x=>[x[0],x[1]]):(f.src==="cats"?cats():ttypes()).map(x=>[x,x]);}
