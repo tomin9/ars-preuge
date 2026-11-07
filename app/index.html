@@ -975,7 +975,7 @@ function dProps(e,r){
   const lab=f=>e==="contacts"&&f.k==="address"?((r.ctype||"osoba")==="osoba"?"Bydlisko":"Sídlo"):f.l;
   const fl=ENT[e].fields.filter(f=>f.t!=="mrel"&&f.t!=="image"&&(!f.only||e!=="contacts"||(r.ctype||"osoba")===f.only)&&(!hideEmpty||filled(f))&&!(e==="contacts"&&(f.k==="email"||f.k==="phone"||(hideEmpty&&(f.k==="orgIds"||f.k==="position")))));
   let ct="";
-  const TAGK=["volunteer","source","orgIds","position"];
+  const TAGK=["volunteer","source","orgIds"];
   const mk=f=>{
     const full=f.t==="long";
     if(e==="contacts"&&f.k==="ctype"){ct=`<div class="pv full ctt">${fInput(e,r,f)}</div>`;return"";}
