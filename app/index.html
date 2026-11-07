@@ -1262,8 +1262,6 @@ function dExtra(e,r){
   if(e==="contacts"){const ed=DW&&DW.edit;
     h+=lkCard(e,r,"ledger");
     if(r.ctype&&r.ctype!=="osoba"&&(ed||related(e,r,"contacts").length))h+=`<section class="dcard lkc">${linkBlock("contacts",r,"contacts").replace(">Ľudia a kontakty<",">Ľudia<")}</section>`;
-    if(ed||S.d.partnerships.some(p=>p.contactId===r.id))h+=contactPartnerships(r);
-    h+=MAIN.filter(t=>t!==e&&t!=="ledger"&&!linkFields(e,t).some(f=>f.t==="rel")&&(ed||related(e,r,t).length)).map(t=>lkCard(e,r,t)).join("");
     if(ed&&!S.readOnly)h+=mergeBlock(r);}
   if(e==="ledger")h+=`<section class="dcard"><div class="ldocs">${LDOCS.map(([k,l])=>docRow("ledger",r,k,l)).join("")}</div></section>
     <section class="dcard note"><textarea aria-label="Poznámka" id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`;
