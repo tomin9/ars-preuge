@@ -320,7 +320,8 @@ textarea{width:100%;min-height:80px;resize:vertical;line-height:1.45}
 .cico.img{border-radius:4px;object-fit:contain;background:#fff}
 .cico.big{width:44px;height:44px;margin:0;top:0;border-radius:10px}.cico.big:not(.img){background:var(--surface2);padding:9px}
 .ctbar{display:flex;align-items:center;justify-content:space-between;gap:12px 16px;flex-wrap:wrap;margin-bottom:18px}.ctools{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}.ctools input[type=search]{min-width:230px}.cthead2{display:grid;grid-template-columns:25% minmax(0,1fr);gap:20px;align-items:start;margin:16px 0 18px}.cphoto .cicobtn{display:block;width:100%}.cphoto .cico.big{width:100%;height:auto;aspect-ratio:2/3;border-radius:12px;object-fit:cover;background:var(--surface2)}.cphoto .cico.big:not(.img){padding:24%}.cphoto .cico.img{background:var(--surface2)}.cphoto .cicoedit{border-radius:0 0 12px 12px;font-size:11px;padding:3px 0}
-.orgchips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px}.oc{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 8px;font-size:13px;background:var(--surface2)}.oc .cico{margin:0;top:0}.oc button{all:unset;cursor:pointer;width:18px;height:18px;border-radius:50%;text-align:center;line-height:18px;color:var(--muted)}.oc button:hover{background:var(--surface3);color:var(--ink)}.orgpick select{width:100%}
+.orgchips,.tagrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.oc,.tg{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--tc,var(--line));border-radius:999px;padding:3px 10px;font-size:13px;line-height:1.3;color:var(--ink);background:color-mix(in srgb,var(--tc,#888) 16%,transparent)}.oc button{all:unset;cursor:pointer;width:16px;height:16px;border-radius:50%;text-align:center;line-height:16px;color:var(--muted);margin-right:-4px}.oc button:hover{background:rgba(127,127,127,.25);color:var(--ink)}.tg{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;border:1px solid var(--tc,var(--line));border-radius:999px;padding:3px 12px;font-size:13px;color:var(--ink);background:color-mix(in srgb,var(--tc,#888) 18%,transparent)}.tg[aria-pressed="false"]{background:transparent;border-style:dashed;border-color:var(--line);color:var(--muted)}.tg[aria-pressed="false"]:hover{border-color:var(--tc);color:var(--ink)}
+.oc.add{position:relative;cursor:pointer;background:transparent;border-style:dashed;border-color:var(--line);color:var(--muted)}.oc.add:hover{border-color:var(--ink);color:var(--ink)}.oc.add select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
 .dcard .linksel{width:100%;margin-top:8px}
 .cmain .ttl{display:block;margin-bottom:2px!important;font-size:24px!important;line-height:1.15}.cinfo{margin-top:12px;font-size:13px;line-height:1.35;color:var(--muted);display:grid;gap:0;min-width:0;overflow-wrap:anywhere}.cinfo a{color:inherit}.cprops{grid-template-columns:calc(25% - 9.5px) minmax(0,1fr)!important}.cprops{gap:0 10px!important;align-items:center}.cprops>label{padding:0!important;font-size:13px;line-height:22px;color:var(--muted);opacity:.85}.cprops .pv>input,.cprops .pv>select{height:22px;padding-top:0!important;padding-bottom:0!important;font-size:13px;line-height:22px;color:var(--muted)}.dcard:has(>.cprops){padding-top:10px;padding-bottom:10px}.cthead2{align-items:stretch!important}.cmain{display:flex;flex-direction:column;min-width:0}.cmain .cinfo{flex:1;display:flex;flex-direction:column;padding-bottom:6px}.cinfo>div:not(.cirow):has(+.cirow){padding-bottom:12px}.cinfo>div:not(.cirow)+.cirow,.cinfo>.cirow:first-child{margin-top:auto}.cinfo>div:not(.cirow)+div:not(.cirow){margin-top:4px}.cinfo>.cirow+.cirow{margin-top:0}.cirow{display:flex;align-items:center;gap:6px}.cii{flex:none;width:16px;height:16px;color:var(--muted)}.cii svg{width:100%;height:100%;display:block}.cirow{min-height:20px}.cirow input{flex:1;min-width:0;border-color:transparent;background:transparent;padding:0 6px;height:20px;line-height:20px;margin-left:-2px;font-size:13px}.cirow input:hover{background:var(--surface3)}.cirow input:focus{border-color:var(--line);background:var(--surface)}.cirow .cio{text-decoration:none;padding:2px 6px;border-radius:6px}.cirow .cio:hover{background:var(--surface3)}
 .seg.segi button{gap:6px}.ctt{margin-bottom:6px}.ctt .seg{display:flex;width:100%}.ctt .seg button{flex:1;padding:8px 10px}.dcard .lkh{display:inline-flex;align-items:center;gap:9px}.dcard .lkh svg{width:18px;height:18px;flex:none;color:var(--muted)}.dcard.lkc{margin-top:14px}.seg.segi svg{width:16px;height:16px;flex:none}
@@ -564,7 +565,7 @@ const ENT={
   lines:{col:"budgetLines",one:"Rozpočtová položka",many:"Rozpočtové položky",title:"name",fields:[
     {k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"total",l:"Celkové náklady",t:"money"},{k:"fromGrant",l:"Z dotácie",t:"money"},{k:"note",l:"Poznámka",t:"long"}]},
   contacts:{col:"contacts",one:"Kontakt",many:"Kontakty",title:"name",fields:[
-    {k:"ctype",l:"Typ",t:"sel",o:"ctype"},{k:"volunteer",l:"Dobrovoľník",t:"check",only:"osoba"},{k:"source",l:"Oslovil nás cez",t:"sel",o:"csrc"},{k:"orgIds",l:"Organizácia / firma",t:"orgs"},{k:"position",l:"Funkcia",t:"text"},
+    {k:"ctype",l:"Typ",t:"sel",o:"ctype"},{k:"tags",l:"Rola",t:"tags"},{k:"source",l:"Oslovil nás cez",t:"sel",o:"csrc"},{k:"orgIds",l:"Organizácie",t:"orgs"},{k:"position",l:"Funkcia",t:"text"},
     {k:"email",l:"E-mail",t:"email"},{k:"phone",l:"Telefón",t:"tel"},{k:"address",l:"Sídlo",t:"text"},{k:"birthDate",l:"Narodený",t:"date",only:"osoba"},{k:"idNo",l:"Číslo OP",t:"text",only:"osoba"},{k:"birthNo",l:"Rodné číslo",t:"text",ph:"napr. 925808/8367",only:"osoba"},{k:"iban",l:"IBAN",t:"text",ph:"SK00 0000 0000 0000 0000 0000"},{k:"ico",l:"IČO",t:"text"},
     {k:"projectIds",l:"Projekty",t:"mrel",e:"projects"},{k:"grantIds",l:"Granty",t:"mrel",e:"grants"},{k:"eventIds",l:"Podujatia",t:"mrel",e:"events"},{k:"note",l:"Poznámka",t:"long"}]},
   partnerships:{col:"partnerships",one:"Spolupráca",many:"Spolupráce",title:"state",fields:[]},
@@ -818,7 +819,7 @@ function render(){
   if(S.loading){v.innerHTML=`<div class="empty">Načítavam dáta tímu…</div>`;return;}
   const notice=!S.live?`<div class="notice">Táto verzia neukladá dáta – po zatvorení sa stratia. Otvorte publikovanú aplikáciu prihlásený do claude.ai, aby ste pracovali so zdieľanými dátami tímu.</div>`
     :(S.readOnly?`<div class="notice">Máte prístup len na čítanie. Ak potrebujete upravovať, požiadajte správcu o úroveň Prispievateľ.</div>`:"");
-  if(!S.ctFix&&!S.readOnly&&S.live){S.ctFix=true;const miss=S.d.contacts.filter(c=>!c.ctype),vol=S.d.contacts.filter(c=>c.role==="dobrovolnik"&&c.volunteer==null),orgm=S.d.contacts.filter(c=>c.orgId&&c.orgIds==null);if(miss.length||vol.length||orgm.length)setTimeout(()=>{orgm.forEach(c=>upd("contacts",c.id,{orgIds:[c.orgId],orgId:""}));miss.forEach(c=>upd("contacts",c.id,{ctype:"osoba"}));vol.forEach(c=>upd("contacts",c.id,{volunteer:true}));},0);}
+  if(!S.ctFix&&!S.readOnly&&S.live){S.ctFix=true;const miss=S.d.contacts.filter(c=>!c.ctype),vol=S.d.contacts.filter(c=>c.tags==null&&(c.volunteer===true||(c.volunteer==null&&c.role==="dobrovolnik"))),orgm=S.d.contacts.filter(c=>c.orgId&&c.orgIds==null);if(miss.length||vol.length||orgm.length)setTimeout(()=>{orgm.forEach(c=>upd("contacts",c.id,{orgIds:[c.orgId],orgId:""}));miss.forEach(c=>upd("contacts",c.id,{ctype:"osoba"}));vol.forEach(c=>upd("contacts",c.id,{tags:["dobrovolnik"],volunteer:null}));},0);}
   const f=VIEWS[S.view]||VIEWS.prehlad;
   v.innerHTML=navBar()+notice+f();
   if(fid){const el=document.getElementById(fid);if(el){if(fval!==null&&el.value!==fval)el.value=fval;el.focus();if(sel&&el.setSelectionRange)try{el.setSelectionRange(sel[0],sel[1]);}catch(_){}}}
@@ -976,7 +977,7 @@ function dProps(e,r){
   const lab=f=>e==="contacts"&&f.k==="address"?((r.ctype||"osoba")==="osoba"?"Bydlisko":"Sídlo"):f.l;
   const fl=ENT[e].fields.filter(f=>f.t!=="mrel"&&f.t!=="image"&&(!f.only||e!=="contacts"||(r.ctype||"osoba")===f.only)&&(!hideEmpty||filled(f))&&!(e==="contacts"&&(f.k==="email"||f.k==="phone"||f.k==="note"||f.k==="position"||f.k==="source"||(hideEmpty&&(f.k==="orgIds"||f.k==="position")))));
   let ct="";
-  const TAGK=["volunteer","source","orgIds"];
+  const TAGK=["tags","orgIds"];
   const mk=f=>{
     const full=f.t==="long";
     if(e==="contacts"&&f.k==="ctype"){ct=`<div class="pv full ctt">${fInput(e,r,f)}</div>`;return"";}
@@ -1015,8 +1016,9 @@ function fInput(e,r,f){
       return`<select id="${id}" data-f="${f.k}">${f.req?"":`<option value="">—</option>`}${optsOf(f,r).map(([k,l])=>`<option value="${esc(k)}" ${v===k?"selected":""}>${esc(l)}</option>`).join("")}${v&&!optsOf(f,r).some(o=>o[0]===v)?`<option selected>${esc(v)}</option>`:""}</select>`;
     case"rel":{const cur=v?get(f.e,v):null;return`<div class="combo"><input type="hidden" id="${id}" data-f="${f.k}" value="${esc(v||"")}"><input type="text" class="combo-in" data-combo="${f.k}" value="${esc(cur?ttl(f.e,cur):"")}" placeholder="— hľadať…" autocomplete="off" spellcheck="false"><div class="combo-list" hidden></div></div>`;}
     case"multi":{const a=Array.isArray(v)?v:[];return`<div class="mchips" id="${id}">${optsOf(f).map(([k,l])=>`<button type="button" data-multi="${f.k}" data-v="${esc(k)}" aria-pressed="${a.includes(k)}">${esc(l)}</button>`).join("")}</div>`;}
+    case"tags":{const a=tagList(r);return`<div class="tagrow">${TAGOPT.map(([k,l,c])=>`<button type="button" class="tg" style="--tc:${c}" data-tagtoggle="${k}" aria-pressed="${a.includes(k)}">${esc(l)}</button>`).join("")}</div>`;}
     case"orgs":{const a=orgList(r),opts=S.d.contacts.filter(c=>c.ctype&&c.ctype!=="osoba"&&c.id!==r.id&&!a.includes(c.id)).sort((x,y)=>(x.name||"").localeCompare(y.name||"","sk"));
-      return`<div class="orgpick">${a.length?`<div class="orgchips">${a.map(i=>{const o=get("contacts",i);return o?`<span class="oc">${cIcon(o)}${esc(o.name||"Bez mena")}<button type="button" data-orgdel="${esc(i)}" aria-label="Odobrať" title="Odobrať">×</button></span>`:"";}).join("")}</div>`:""}<select data-orgadd="1" aria-label="Pridať organizáciu alebo firmu"><option value="">${a.length?"+ Pridať ďalšiu…":"— vybrať —"}</option>${opts.map(c=>`<option value="${esc(c.id)}">${esc(c.name||"Bez mena")} · ${esc(optL("ctype",c.ctype))}</option>`).join("")}</select></div>`;}
+      return`<div class="orgchips">${a.map(i=>{const o=get("contacts",i);return o?`<span class="oc" style="--tc:${ctypeCol(o.ctype)}">${esc(o.name||"Bez mena")}<button type="button" data-orgdel="${esc(i)}" aria-label="Odobrať" title="Odobrať">×</button></span>`:"";}).join("")}${opts.length?`<label class="oc add">${a.length?"+ pridať ďalšiu":"+ pridať"}<select data-orgadd="1" aria-label="Pridať organizáciu alebo firmu"><option value="">—</option>${opts.map(c=>`<option value="${esc(c.id)}">${esc(c.name||"Bez mena")} · ${esc(optL("ctype",c.ctype))}</option>`).join("")}</select></label>`:""}</div>`;}
     case"mrel":{const a=Array.isArray(v)?v:[];return`<div class="mchips" id="${id}">${S.d[f.e].filter(x=>f.e!=="grants"||x.status==="schvalene"||a.includes(x.id)).map(x=>`<button type="button" data-multi="${f.k}" data-v="${esc(x.id)}" aria-pressed="${a.includes(x.id)}">${esc(ttl(f.e,x))}${f.e==="grants"&&provName(x)?`<small class="cprov">${esc(provName(x))}</small>`:""}</button>`).join("")||'<span class="meta">Zatiaľ žiadne projekty</span>'}</div>`;}
     case"color":return`<div class="row" style="padding:4px 6px">${COLORS.map(c=>`<button type="button" data-color="${c}" aria-label="Farba" style="all:unset;cursor:pointer;width:20px;height:20px;border-radius:5px;background:${c};outline:${v===c?"2px solid var(--ink)":"none"};outline-offset:2px"></button>`).join("")}</div>`;
     case"image":{const u=coverUrl(r);return`<div style="padding:4px 0">${u?`<img src="${esc(u)}" alt="" style="width:100%;max-height:190px;object-fit:cover;border-radius:8px;display:block;margin-bottom:6px">`:""}<div class="row">${assets||!S.live?`<label class="btn sm" style="cursor:pointer">${u?"Zmeniť obrázok":"Nahrať obrázok"}<input type="file" accept="image/*" data-img="${f.k}" hidden></label>`:'<span class="meta">Obrázky môžu nahrávať len upravovatelia.</span>'}${u?`<button type="button" class="btn ghost sm" data-imgdel="${f.k}">Odstrániť</button>`:""}</div></div>`;}
@@ -1153,6 +1155,9 @@ const LKI={ledger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
   projects:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H10l2 2.5h7.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>',
   contacts:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>'};
 const lkCard=(e,r,t)=>`<section class="dcard lkc">${linkBlock(e,r,t)}</section>`;
+const TAGOPT=[["dobrovolnik","Dobrovoľník",GREEN],["partner","Partner",ORANGE]];
+const tagList=c=>Array.isArray(c&&c.tags)?c.tags:((c&&(c.volunteer===true||(c.volunteer==null&&c.role==="dobrovolnik")))?["dobrovolnik"]:[]);
+const ctypeCol=t=>((OPT.ctype.find(o=>o[0]===(t||"osoba"))||[])[2])||"#888";
 const orgList=c=>Array.isArray(c&&c.orgIds)?c.orgIds:((c&&c.orgId)?[c.orgId]:[]);
 const ROLES_BY_TYPE={osoba:["tim","umelec","dobrovolnik","externy"],firma:["sponzor","partner"],organizacia:["partner","institucia","sponzor"],media:["medium","mediapartner"]};
 const roleOpts=c=>(ROLES_BY_TYPE[(c&&c.ctype)||"osoba"]||[]).map(k=>[k,optL("crole",k)]);
@@ -1228,7 +1233,8 @@ function linkBlock(e,r,t){
 function linksHtml(e,r){
   return MAIN.filter(t=>t!==e&&!linkFields(e,t).some(f=>f.t==="rel")).map(t=>`<div class="sec">${linkBlock(e,r,t)}</div>`).join("");
 }
-document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-orgdel]");if(!b||!DW||DW.e!=="contacts")return;const r=get("contacts",DW.id);if(!r)return;e.preventDefault();upd("contacts",r.id,{orgIds:orgList(r).filter(x=>x!==b.dataset.orgdel),orgId:""});});
+document.addEventListener("click",e=>{const tt=e.target.closest&&e.target.closest("[data-tagtoggle]");if(tt&&DW&&DW.e==="contacts"){const r=get("contacts",DW.id);if(r){const k=tt.dataset.tagtoggle,a=tagList(r),n=a.includes(k)?a.filter(x=>x!==k):[...a,k];upd("contacts",r.id,{tags:n,volunteer:null});}return;}
+  const b=e.target.closest&&e.target.closest("[data-orgdel]");if(!b||!DW||DW.e!=="contacts")return;const r=get("contacts",DW.id);if(!r)return;e.preventDefault();upd("contacts",r.id,{orgIds:orgList(r).filter(x=>x!==b.dataset.orgdel),orgId:""});});
 document.addEventListener("change",ev=>{const oa=ev.target.closest&&ev.target.closest("[data-orgadd]");if(oa&&DW&&DW.e==="contacts"&&oa.value){const r=get("contacts",DW.id);if(r)upd("contacts",r.id,{orgIds:[...new Set([...orgList(r),oa.value])],orgId:""});return;}
   const rs=ev.target.closest&&ev.target.closest("[data-evrole]");if(rs){const[eid,cid]=rs.dataset.evrole.split("|"),e0=get("events",eid);if(e0)upd("events",eid,{roles:Object.assign({},e0.roles||{},{[cid]:rs.value})});return;}
   const s=ev.target.closest&&ev.target.closest("[data-linkadd]");if(!s||!s.value)return;const[a,t1]=s.dataset.linkadd.split("|");const[e1,i1]=a.split(":");const v=s.value;s.value="";s.blur();link(e1,i1,t1,v,true);});
@@ -1686,11 +1692,12 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 async function mergeContacts(keepId,dupId){
   const keep=get("contacts",keepId),dup=get("contacts",dupId);if(!keep||!dup||keepId===dupId)return false;
   const patch={};
-  ENT.contacts.fields.forEach(f=>{const k=f.k;if(k==="name"||f.t==="image")return;const a=keep[k],b=dup[k];
+  ENT.contacts.fields.forEach(f=>{const k=f.k;if(k==="name"||f.t==="image"||f.t==="tags")return;const a=keep[k],b=dup[k];
     if(f.t==="mrel"){const u=[...new Set([...(a||[]),...(b||[])])];if(u.length!==(a||[]).length)patch[k]=u;}
     else if(f.t==="long"){if(b&&b!==a)patch[k]=a?a+"\n\n"+b:b;}
     else if((a==null||a==="")&&b!=null&&b!=="")patch[k]=b;});
   if(dup.icon&&!keep.icon)patch.icon=dup.icon;
+  {const u=[...new Set([...tagList(keep),...tagList(dup)])];if(u.length&&u.length!==tagList(keep).length)patch.tags=u;}
   if((dup.docs||[]).length)patch.docs=[...(keep.docs||[]),...dup.docs];
   if(patch.orgIds||(keep.orgIds||[]).includes(dupId))patch.orgIds=(patch.orgIds||keep.orgIds||[]).filter(x=>x!==keepId&&x!==dupId);
   if(Object.keys(patch).length)await upd("contacts",keepId,patch);
@@ -2107,10 +2114,10 @@ VIEWS.financie=()=>{
 /* ----- Kontakty ----- */
 const CTABS=[["osoby","Osoby",c=>c.ctype==="osoba"],["firmy","Firmy",c=>c.ctype==="firma"],["organizacie","Organizácie",c=>c.ctype==="organizacia"],["media","Média",c=>c.ctype==="media"]];
 function orgOf(c){const os=orgList(c).map(i=>get("contacts",i)).filter(Boolean);return os.length?os.map(o=>`<button class="btn ghost sm" style="padding:2px 6px" data-peek="contacts:${esc(o.id)}">${cIcon(o)}${esc(o.name)}</button>`).join(" "):esc(c.org||"");}
-const isVol=c=>c.volunteer===true||(c.volunteer==null&&c.role==="dobrovolnik");
+const isVol=c=>tagList(c).includes(S.cf.tag||"dobrovolnik");
 VIEWS.kontakty=()=>{
   const f=S.cf,q=(f.q||"").toLowerCase(),tab=CTABS.find(t=>t[0]===f.tab)||CTABS[0];
-  let list=S.d.contacts.filter(tab[2]).filter(c=>(!f.vol||isVol(c))&&(!q||[c.name,c.org,orgOf(c),c.email,c.phone,c.note,c.position].join(" ").toLowerCase().includes(q))&&(tab[0]!=="spoluprace"||(!f.ev&&!f.state)||S.d.partnerships.some(p=>p.contactId===c.id&&(!f.ev||p.eventId===f.ev)&&(!f.state||p.state===f.state)))).sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk"));
+  let list=S.d.contacts.filter(tab[2]).filter(c=>(!f.tag||isVol(c))&&(!q||[c.name,c.org,orgOf(c),c.email,c.phone,c.note,c.position].join(" ").toLowerCase().includes(q))&&(tab[0]!=="spoluprace"||(!f.ev&&!f.state)||S.d.partnerships.some(p=>p.contactId===c.id&&(!f.ev||p.eventId===f.ev)&&(!f.state||p.state===f.state)))).sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk"));
   S._clist=list;
   const isOrg=["firmy","organizacie","spoluprace"].includes(tab[0]);
   const people=c=>S.d.contacts.filter(x=>orgList(x).includes(c.id)).length;
@@ -2121,7 +2128,7 @@ VIEWS.kontakty=()=>{
   if(tab[0]==="dobrovolnici")cols.push(["Oslovil nás cez",c=>c.source?`<span class="chip"><i style="background:${optC("csrc",c.source)}"></i>${esc(optL("csrc",c.source))}</span>`:""]);
   if(tab[0]==="spoluprace")cols.push(["Spolupráce",c=>S.d.partnerships.filter(p=>p.contactId===c.id&&(!f.ev||p.eventId===f.ev)).map(p=>{const ev=get("events",p.eventId);return ev?`<span class="chip" style="margin:1px 4px 1px 0"><i style="background:${optC("pstav",p.state)}"></i>${esc(ev.name)} · ${esc(optL("pstav",p.state))}</span>`:"";}).join("")]);
   return`<div class="head"><h1>Kontakty</h1><button class="btn pri" data-create="contacts" data-defs='${defs}'>Nový kontakt</button></div>
-  <div class="ctbar"><div class="ptabs" role="tablist" style="margin:0">${CTABS.map(([k,l,fn])=>`<button role="tab" data-ctab="${k}" aria-selected="${tab[0]===k}">${l}<span>${S.d.contacts.filter(fn).length||""}</span></button>`).join("")}</div><div class="ctools"><button class="btn sm${f.vol?" pri":""}" data-cvol aria-pressed="${!!f.vol}" title="Zobraziť len dobrovoľníkov">Dobrovoľníci (${S.d.contacts.filter(isVol).length})</button><input type="search" id="cf-q" placeholder="Hľadať meno, organizáciu, e-mail" value="${esc(f.q||"")}" style="min-width:260px">
+  <div class="ctbar"><div class="ptabs" role="tablist" style="margin:0">${CTABS.map(([k,l,fn])=>`<button role="tab" data-ctab="${k}" aria-selected="${tab[0]===k}">${l}<span>${S.d.contacts.filter(fn).length||""}</span></button>`).join("")}</div><div class="ctools">${TAGOPT.map(([k,l])=>`<button class="btn sm${f.tag===k?" pri":""}" data-cvol="${k}" aria-pressed="${f.tag===k}" title="Zobraziť len: ${l}">${l} (${S.d.contacts.filter(c=>tagList(c).includes(k)).length})</button>`).join("")}<input type="search" id="cf-q" placeholder="Hľadať meno, organizáciu, e-mail" value="${esc(f.q||"")}" style="min-width:260px">
     ${tab[0]==="spoluprace"?`<select id="cf-ev" aria-label="Podujatie"><option value="">Všetky podujatia</option>${S.d.events.filter(ev=>S.d.partnerships.some(p=>p.eventId===ev.id)).map(ev=>`<option value="${esc(ev.id)}" ${f.ev===ev.id?"selected":""}>${esc(ev.name)}</option>`).join("")}</select><select id="cf-state" aria-label="Stav"><option value="">Všetky stavy</option>${OPT.pstav.map(o=>`<option value="${o[0]}" ${f.state===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>`:""}
     <button class="btn sm" id="cf-copy">Kopírovať e-maily (${list.filter(c=>c.email).length})</button></div></div>
   <div class="panel">${list.length?table(cols,list,c=>"contacts:"+esc(c.id)):`<div class="empty">${S.d.contacts.length?"V tejto skupine nikto nie je.":"Zatiaľ žiadne kontakty."}</div>`}</div>`;
@@ -2636,7 +2643,7 @@ function bindView(){
   ["year","acct","type","project","grant"].forEach(k=>on("#ff-"+k,"change",e=>{S.ff[k]=e.target.value;render();}));
   on("#ff-q","input",e=>{S.ff.q=e.target.value;render();});
   on("#cf-q","input",e=>{S.cf.q=e.target.value;render();});
-  v.querySelectorAll("[data-cvol]").forEach(b=>b.onclick=()=>{S.cf.vol=!S.cf.vol;render();});
+  v.querySelectorAll("[data-cvol]").forEach(b=>b.onclick=()=>{S.cf.tag=S.cf.tag===b.dataset.cvol?"":b.dataset.cvol;render();});
   v.querySelectorAll("[data-ctab]").forEach(b=>b.onclick=()=>{S.cf.tab=b.dataset.ctab;render();});
   on("#cf-state","change",e=>{S.cf.state=e.target.value;render();});
   on("#cf-ev","change",e=>{S.cf.ev=e.target.value;render();});
