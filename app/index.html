@@ -945,7 +945,7 @@ function ledgerForm(r){
   const card=(ico,t,body,cls)=>`<section class="dcard${cls?" "+cls:""}">${t?`<h3>${DI[ico]}${t}</h3>`:""}${body}</section>`;
   return card("main","",`<div class="dgrid g3">${seg("type","Typ",OPT.ltype)}${fld("amount")}${fld("state")}</div>
       <div class="dgrid g3" style="margin-top:12px">${seg("account","Účet",OPT.acct)}${fld("date")}${fld("docNo")}</div>`)
-    +card("tag","Priradenie",`<div class="dgrid g2">${fld("projectId")}${fld("eventId")}${fld("category")}${fld("taskId")}${fld("contactId","wide")}</div>`)
+    +card("tag","Priradenie",`<div class="dgrid g2">${fld("projectId")}${fld("eventId")}${fld("category")}${fld("contactId")}</div>`)
     +card("coins","Financovanie",`<div class="dgrid">${fld("grantId")}${fld("cofinGrantId")}${fld("lineId")}</div>`);
 }
 function dProps(e,r){
