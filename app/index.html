@@ -1206,7 +1206,7 @@ function linkBlock(e,r,t){
   const extra=t==="ledger"&&L.length&&e!=="contacts"?` <span class="meta">výdavky ${eur(sum(L.filter(x=>x.type!=="prijem"),x=>x.amount))}</span>`:"";
   const ids=new Set(L.map(x=>x.id));
   const avail=S.d[t].filter(x=>x.id!==r.id&&!ids.has(x.id)&&!(e==="contacts"&&t==="contacts"&&x.ctype&&x.ctype!=="osoba")).sort((a,b)=>t==="ledger"?(b.date||"").localeCompare(a.date||""):ttl(t,a).localeCompare(ttl(t,b),"sk")).slice(0,300);
-  return`<h3 style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="lkh">${LKI[t]||""}${LINK_L[t]}${extra}</span><span class="row" style="gap:6px"><span class="meta">${e==="contacts"&&t==="ledger"?"":(L.length||"")}</span><button class="btn ghost sm" data-linknew="${e}:${esc(r.id)}|${t}">+ Nový</button></span></h3>
+  return`<h3 style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="lkh">${LKI[t]||""}${LINK_L[t]}${extra}</span><span class="row" style="gap:6px"><span class="meta">${e==="contacts"&&t==="ledger"?"":(L.length||"")}</span>${e==="contacts"&&t==="ledger"?"":`<button class="btn ghost sm" data-linknew="${e}:${esc(r.id)}|${t}">+ Nový</button>`}</span></h3>
   ${L.length?`<ul class="items lk">${L.map(x=>linkLi(e,r,t,x)).join("")}</ul>`:""}
   ${avail.length&&e!=="contacts"?`<select data-linkadd="${e}:${esc(r.id)}|${t}" aria-label="Prepojiť existujúci záznam" style="width:100%;margin-top:6px;color:var(--muted)"><option value="">Prepojiť existujúce…</option>${avail.map(x=>`<option value="${esc(x.id)}">${esc(ttl(t,x))}${t==="ledger"?` · ${fdateS(x.date)||"plánované"} · ${eur(x.amount)}`:""}</option>`).join("")}</select>`:""}`;
 }
