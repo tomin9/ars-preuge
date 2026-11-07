@@ -289,7 +289,7 @@ textarea{width:100%;min-height:80px;resize:vertical;line-height:1.45}
 .gnew{all:unset;cursor:pointer;border:1px dashed var(--line);border-radius:12px;display:grid;place-items:center;min-height:120px;color:var(--muted);font-weight:600}
 .gnew:hover{color:var(--ink);border-color:var(--muted)}
 .pcover{width:100%;height:240px;object-fit:cover;border-radius:12px;display:block;margin-bottom:14px}
-.pcw{position:relative;margin-bottom:16px}
+.pcw{position:relative;margin-bottom:16px}.evhead.cov{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:20px;align-items:stretch;margin-bottom:16px}.evhead.cov .pcw{margin:0;min-height:230px}.evhead.cov .pcover{height:100%;min-height:230px;margin:0}.evhead.cov .hero{margin:0}@media(max-width:860px){.evhead.cov{grid-template-columns:1fr}.evhead.cov .pcw{min-height:0}.evhead.cov .pcover{height:180px;min-height:0}}
 .pcw .pcover{margin:0}
 .pcedit{position:absolute;top:12px;right:12px;background:rgba(18,20,26,.55);color:#fff;border-color:rgba(255,255,255,.3);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .pcedit:hover{background:rgba(18,20,26,.75);border-color:rgba(255,255,255,.6)}
@@ -1924,13 +1924,13 @@ VIEWS.podujatie=()=>{
   const when=e.date?`${fdate(e.date)}${e.dateTo&&e.dateTo!==e.date?" → "+fdate(e.dateTo):""}`:"";
   const rel=e.status==="zrealizovane"||n==null?"":n>0?`o ${n} ${n===1?"deň":n<5?"dni":"dní"}`:n===0?"dnes":"";
   const url=e.url?(/^https?:/.test(e.url)?e.url:"https://"+e.url):"";
-  return`  ${coverUrl(e)?`<div class="pcw"><img class="pcover" src="${esc(coverUrl(e))}" alt="" style="object-position:${esc(posOf(e))}"><button class="btn pcedit" data-peek="events:${id}">Upraviť</button></div>`:""}
+  return`  <div class="evhead${coverUrl(e)?" cov":""}">${coverUrl(e)?`<div class="pcw"><img class="pcover" src="${esc(coverUrl(e))}" alt="" style="object-position:${esc(posOf(e))}"><button class="btn pcedit" data-peek="events:${id}">Upraviť</button></div>`:""}
   <section class="hero" style="--pc:${esc(col)}"><div class="spread" style="align-items:flex-start"><div><h1>${esc(e.name||"Podujatie")}</h1>${p?`<p class="sub">projekt <button class="btn ghost sm" data-go="projekt" data-id="${esc(p.id)}">${esc(p.name)}</button></p>`:""}</div>
     <div class="row">${chip("estat",e.status)}${coverUrl(e)?"":`<button class="btn" data-peek="events:${id}">Upraviť</button>`}</div></div>
     <div class="facts evf"><div><span>Dátum</span><b>${when||"—"}</b>${rel?`<span>${rel}</span>`:""}</div><div><span>Čas</span><b>${esc(e.time||"—")}</b></div>
       <div class="evmiesto"><span>Miesto</span><b>${esc(e.place||"—")}</b></div></div>
     ${url||folderId(e.driveFolder)?`<div class="row" style="margin-top:14px">${url?`<a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">Odkaz na podujatie</a>`:""}${folderId(e.driveFolder)?`<a class="btn sm" href="https://drive.google.com/drive/folders/${esc(folderId(e.driveFolder))}" target="_blank" rel="noopener">Priečinok na Disku</a>`:""}</div>`:""}
-    ${e.note?`<p class="desc">${esc(e.note)}</p>`:""}</section>
+    ${e.note?`<p class="desc">${esc(e.note)}</p>`:""}</section></div>
   ${eventTabs(e)}`;
 };
 
