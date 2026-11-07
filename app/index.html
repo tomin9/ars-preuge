@@ -210,7 +210,7 @@ textarea{width:100%;min-height:80px;resize:vertical;line-height:1.45}
 .dcard>h3{display:flex;align-items:center;gap:9px;margin:0 0 12px;font-size:15px}.dcard>h3 svg{width:18px;height:18px;flex:none;color:var(--muted)}
 .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.dgrid.g2{grid-template-columns:1fr 1fr}.dgrid .wide{grid-column:1/-1}
 .dfld>label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}.dfld input:not([type=checkbox]),.dfld select,.dfld textarea{width:100%}
-.seg{display:flex;width:100%}.seg button{flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px}
+.seg{display:flex;width:100%}.seg button{flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px}.dgrid.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.dgrid{align-items:end}
 .dcard .ldocs{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .dcard.note textarea{min-height:90px;border-color:var(--line)}
 .sec h3{margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
@@ -942,11 +942,10 @@ function ledgerForm(r){
   const fld=(k,cls)=>{const f=F(k);return`<div class="dfld${cls?" "+cls:""}"><label for="f-${k}">${esc(f.l)}</label>${fInput("ledger",r,f)}</div>`;};
   const seg=(k,label,opts)=>`<div class="dfld"><label>${label}</label><div class="tabs seg" role="group" aria-label="${label}">${opts.map(([v,l])=>`<button type="button" data-seg="${k}|${v}" aria-pressed="${(r[k]||opts[0][0])===v}">${esc(l)}</button>`).join("")}</div></div>`;
   const card=(ico,t,body,cls)=>`<section class="dcard${cls?" "+cls:""}"><h3>${DI[ico]}${t}</h3>${body}</section>`;
-  return card("main","Hlavné údaje",`<div class="dgrid g2">${seg("type","Typ",OPT.ltype)}${fld("amount")}</div>
-      <div class="dgrid" style="margin-top:12px">${seg("account","Účet",OPT.acct)}${fld("date")}${fld("state")}${fld("docNo")}</div>`)
-    +card("tag","Priradenie",`<div class="dgrid g2">${fld("projectId")}${fld("eventId")}${fld("category")}${fld("taskId")}</div>`)
-    +card("coins","Financovanie",`<div class="dgrid">${fld("grantId")}${fld("cofinGrantId")}${fld("lineId")}</div>`)
-    +card("user","Osoby",`<div class="dgrid"><div class="dfld wide"><label for="f-contactId">${esc(F("contactId").l)}</label>${fInput("ledger",r,F("contactId"))}</div></div>`);
+  return card("main","Hlavné údaje",`<div class="dgrid g3">${seg("type","Typ",OPT.ltype)}${fld("amount")}${fld("state")}</div>
+      <div class="dgrid g3" style="margin-top:12px">${seg("account","Účet",OPT.acct)}${fld("date")}${fld("docNo")}</div>`)
+    +card("tag","Priradenie",`<div class="dgrid g2">${fld("projectId")}${fld("eventId")}${fld("category")}${fld("taskId")}${fld("contactId","wide")}</div>`)
+    +card("coins","Financovanie",`<div class="dgrid">${fld("grantId")}${fld("cofinGrantId")}${fld("lineId")}</div>`);
 }
 function dProps(e,r){
   if(e==="ledger")return ledgerForm(r);
