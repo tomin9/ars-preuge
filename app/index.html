@@ -217,7 +217,7 @@ textarea{width:100%;min-height:80px;resize:vertical;line-height:1.45}
 .dr2-t{display:flex;flex-wrap:wrap;gap:10px}.dr2-t:empty{display:none}.dth{position:relative;width:96px}.dth>a{display:block;width:96px;height:124px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface2);color:var(--muted);text-decoration:none;position:relative}
 .dth>a img,.dth>a canvas{width:100%;height:100%;object-fit:cover;object-position:top;display:block}.dth .dfi{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.04em}.dth .dfi svg{width:26px;height:26px}
 .dth .x{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:6px;background:rgba(18,20,26,.7);color:#fff;border:0;cursor:pointer;line-height:1;font-size:15px}.dth .dl{display:block;font-size:11px;color:var(--muted);margin-top:4px;text-align:center}
-.dcard.note textarea{min-height:90px;border-color:var(--line)}
+.dcard.note{padding:10px 12px}.dcard.note textarea{min-height:56px;border-color:var(--line)}
 .sec h3{margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
 .cl{list-style:none;margin:0;padding:0}
 .cl li{display:flex;align-items:center;gap:10px;padding:5px 0}
@@ -944,7 +944,7 @@ const DI={
   note:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a8 8 0 0 1-11.7 7L3 21l2-5.5A8 8 0 1 1 21 12z"/></svg>'};
 function ledgerForm(r){
   const F=k=>ENT.ledger.fields.find(f=>f.k===k);
-  const fld=(k,cls)=>{const f=F(k);return`<div class="dfld${cls?" "+cls:""}"><label for="f-${k}">${esc(f.l)}</label>${fInput("ledger",r,f)}</div>`;};
+  const fld=(k,cls)=>{const f=F(k);if(k==="amount")return`<div class="dfld${cls?" "+cls:""}"><label for="f-amount">${esc(f.l)}</label><input type="text" inputmode="decimal" id="f-amount" data-f="amount" data-num="1" data-money="1" value="${r.amount==null||r.amount===""?"":esc(eur(r.amount))}" placeholder="0,00 €"></div>`;return`<div class="dfld${cls?" "+cls:""}"><label for="f-${k}">${esc(f.l)}</label>${fInput("ledger",r,f)}</div>`;};
   const seg=(k,label,opts)=>`<div class="dfld"><label>${label}</label><div class="tabs seg" role="group" aria-label="${label}">${opts.map(([v,l])=>`<button type="button" data-seg="${k}|${v}" aria-pressed="${(r[k]||opts[0][0])===v}">${esc(l)}</button>`).join("")}</div></div>`;
   const card=(ico,t,body,cls)=>`<section class="dcard${cls?" "+cls:""}">${t?`<h3>${DI[ico]}${t}</h3>`:""}${body}</section>`;
   return card("main","",`<div class="dgrid g3">${seg("type","Typ",OPT.ltype)}${fld("amount")}${fld("state")}</div>
@@ -996,7 +996,7 @@ function bindPart(root,e,r){
     const ev=inp.tagName==="SELECT"||inp.type==="checkbox"||inp.type==="date"?"change":"change";
     inp.addEventListener(ev,()=>{
       let v=inp.type==="checkbox"?inp.checked:inp.value;
-      if(inp.dataset.num)v=v===""?null:Math.round(parseFloat(v)*100)/100;
+      if(inp.dataset.num){if(inp.dataset.money){const n=parseFloat(String(v).replace(/[^\d,.\-]/g,"").replace(",","."));v=isFinite(n)?Math.round(n*100)/100:null;inp.value=v==null?"":eur(v);}else v=v===""?null:Math.round(parseFloat(v)*100)/100;}
       if(typeof v==="string"&&inp.tagName!=="TEXTAREA")v=v.trim();
       const cur=get(e,r.id);if(!cur||cur[k]===v)return;
       const patch={[k]:v};
@@ -1010,6 +1010,7 @@ function bindPart(root,e,r){
     if(inp.id==="dw-title")inp.addEventListener("keydown",ev=>{if(ev.key==="Enter")inp.blur();});
   });
   renderPdfThumbs(root);
+  root.querySelectorAll("[data-money]").forEach(inp=>{inp.addEventListener("focus",()=>{const n=parseFloat(String(inp.value).replace(/[^\d,.\-]/g,"").replace(",","."));inp.value=isFinite(n)?String(n).replace(".",","):"";inp.select();});inp.addEventListener("blur",()=>{const n=parseFloat(String(inp.value).replace(/[^\d,.\-]/g,"").replace(",","."));inp.value=isFinite(n)?eur(Math.round(n*100)/100):"";});});
   root.querySelectorAll("[data-seg]").forEach(b=>b.onclick=()=>{const[k,v]=b.dataset.seg.split("|"),cur=get(e,r.id);if(!cur||cur[k]===v)return;upd(e,r.id,{[k]:v});});
   root.querySelectorAll("[data-multi]").forEach(b=>b.onclick=()=>{
     const k=b.dataset.multi,cur=get(e,r.id);const a=Array.isArray(cur[k])?[...cur[k]]:[];const v=b.dataset.v;
@@ -1210,7 +1211,7 @@ function dExtra(e,r){
     if(ed||S.d.partnerships.some(p=>p.contactId===r.id))h+=contactPartnerships(r);
     h+=MAIN.filter(t=>t!==e&&t!=="ledger"&&!linkFields(e,t).some(f=>f.t==="rel")&&(ed||related(e,r,t).length)).map(t=>`<div class="sec">${linkBlock(e,r,t)}</div>`).join("");}
   if(e==="ledger")h+=`<section class="dcard"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>Doklady</h3><div class="ldocs">${LDOCS.map(([k,l])=>docRow("ledger",r,k,l)).join("")}</div></section>
-    <section class="dcard note"><h3>${DI.note}Poznámka</h3><textarea id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`;
+    <section class="dcard note"><textarea aria-label="Poznámka" id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`;
   if(MAIN.includes(e)&&e!=="contacts")h+=linksHtml(e,r);
   if(e==="lines"){const c=lineCalc(r);h+=`<div class="sec"><div class="facts" style="margin:0"><div><span>Minuté z dotácie</span><b>${eur(c.sg)}</b></div><div><span>Ostáva z dotácie</span><b class="${(+r.fromGrant||0)-c.sg<0?"neg":""}">${eur((+r.fromGrant||0)-c.sg)}</b></div><div><span>Spolufinancovanie</span><b>${eur(c.sc)}</b></div></div></div>`;
     h+=miniList("Výdavky na položku","ledger",c.L,ledgerLi,{lineId:r.id,grantId:r.grantId||"",projectId:(get("grants",r.grantId)||{}).projectId||""});}
