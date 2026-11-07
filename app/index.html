@@ -212,7 +212,11 @@ textarea{width:100%;min-height:80px;resize:vertical;line-height:1.45}
 .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.dgrid.g2{grid-template-columns:1fr 1fr}.dgrid .wide{grid-column:1/-1}
 .dfld>label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}.dfld input:not([type=checkbox]),.dfld select,.dfld textarea{width:100%}
 .seg{display:flex;width:100%}.seg button{flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px}.dgrid.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.dgrid{align-items:end}
-.dcard .ldocs{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.dcard.plain{border:0;background:none;padding:0 2px 6px;margin-bottom:18px}.drawer:has(.dtop-ic) .ttl{margin:6px 0 20px!important}
+.dcard .ldocs{display:block}.dr2{padding:12px 0;border-top:1px solid var(--line)}.dr2:first-child{border-top:0;padding-top:0}.dr2-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}.dr2-h b{margin-right:auto;font-size:14px}
+.dr2-t{display:flex;flex-wrap:wrap;gap:10px}.dr2-t:empty{display:none}.dth{position:relative;width:96px}.dth>a{display:block;width:96px;height:124px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface2);color:var(--muted);text-decoration:none;position:relative}
+.dth>a img,.dth>a canvas{width:100%;height:100%;object-fit:cover;object-position:top;display:block}.dth .dfi{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.04em}.dth .dfi svg{width:26px;height:26px}
+.dth .x{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:6px;background:rgba(18,20,26,.7);color:#fff;border:0;cursor:pointer;line-height:1;font-size:15px}.dth .dl{display:block;font-size:11px;color:var(--muted);margin-top:4px;text-align:center}
 .dcard.note textarea{min-height:90px;border-color:var(--line)}
 .sec h3{margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
 .cl{list-style:none;margin:0;padding:0}
@@ -944,7 +948,7 @@ function ledgerForm(r){
   const seg=(k,label,opts)=>`<div class="dfld"><label>${label}</label><div class="tabs seg" role="group" aria-label="${label}">${opts.map(([v,l])=>`<button type="button" data-seg="${k}|${v}" aria-pressed="${(r[k]||opts[0][0])===v}">${esc(l)}</button>`).join("")}</div></div>`;
   const card=(ico,t,body,cls)=>`<section class="dcard${cls?" "+cls:""}">${t?`<h3>${DI[ico]}${t}</h3>`:""}${body}</section>`;
   return card("main","",`<div class="dgrid g3">${seg("type","Typ",OPT.ltype)}${fld("amount")}${fld("state")}</div>
-      <div class="dgrid g3" style="margin-top:12px">${seg("account","Účet",OPT.acct)}${fld("date")}${fld("docNo")}</div>`)
+      <div class="dgrid g3" style="margin-top:12px">${seg("account","Účet",OPT.acct)}${fld("date")}${fld("docNo")}</div>`,"plain")
     +card("tag","Priradenie",`<div class="dgrid g2">${fld("projectId")}${fld("eventId")}${fld("category")}${fld("contactId")}</div>`)
     +card("coins","Financovanie",`<div class="dgrid">${fld("grantId")}${fld("cofinGrantId")}${fld("lineId")}</div>`);
 }
@@ -1005,6 +1009,7 @@ function bindPart(root,e,r){
     });
     if(inp.id==="dw-title")inp.addEventListener("keydown",ev=>{if(ev.key==="Enter")inp.blur();});
   });
+  renderPdfThumbs(root);
   root.querySelectorAll("[data-seg]").forEach(b=>b.onclick=()=>{const[k,v]=b.dataset.seg.split("|"),cur=get(e,r.id);if(!cur||cur[k]===v)return;upd(e,r.id,{[k]:v});});
   root.querySelectorAll("[data-multi]").forEach(b=>b.onclick=()=>{
     const k=b.dataset.multi,cur=get(e,r.id);const a=Array.isArray(cur[k])?[...cur[k]]:[];const v=b.dataset.v;
@@ -1204,7 +1209,7 @@ function dExtra(e,r){
     if(r.ctype&&r.ctype!=="osoba"&&(ed||related(e,r,"contacts").length))h+=`<div class="sec">${linkBlock("contacts",r,"contacts").replace(">Ľudia a kontakty<",">Ľudia<")}</div>`;
     if(ed||S.d.partnerships.some(p=>p.contactId===r.id))h+=contactPartnerships(r);
     h+=MAIN.filter(t=>t!==e&&t!=="ledger"&&!linkFields(e,t).some(f=>f.t==="rel")&&(ed||related(e,r,t).length)).map(t=>`<div class="sec">${linkBlock(e,r,t)}</div>`).join("");}
-  if(e==="ledger")h+=`<section class="dcard"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>Doklady</h3><div class="ldocs">${LDOCS.map(([k,l])=>docSlot("ledger",r,k,l,"",true)).join("")}</div></section>
+  if(e==="ledger")h+=`<section class="dcard"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>Doklady</h3><div class="ldocs">${LDOCS.map(([k,l])=>docRow("ledger",r,k,l)).join("")}</div></section>
     <section class="dcard note"><h3>${DI.note}Poznámka</h3><textarea id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`;
   if(MAIN.includes(e)&&e!=="contacts")h+=linksHtml(e,r);
   if(e==="lines"){const c=lineCalc(r);h+=`<div class="sec"><div class="facts" style="margin:0"><div><span>Minuté z dotácie</span><b>${eur(c.sg)}</b></div><div><span>Ostáva z dotácie</span><b class="${(+r.fromGrant||0)-c.sg<0?"neg":""}">${eur((+r.fromGrant||0)-c.sg)}</b></div><div><span>Spolufinancovanie</span><b>${eur(c.sc)}</b></div></div></div>`;
@@ -1528,6 +1533,30 @@ VIEWS.grant=()=>{
 const GRTABS=[["grant","Grant"],["ulohy","Úlohy"],["rozpocet","Rozpočet"],["podujatia","Podujatia"]];
 const GDOCS=[["ziadost","Žiadosť","podaná žiadosť, prílohy, rozpočet zo žiadosti"],["zmluva","Zmluva","zmluva o poskytnutí dotácie, dodatky"],["vyuctovanie","Vyúčtovanie","vyúčtovanie, záverečná správa, doklady"]];
 function docHref(d){return d.asset?ARSP_BLOB+d.asset:(/^https?:/.test(d.url||"")?d.url:"https://"+(d.url||""));}
+function docThumb(e,r,d,i){
+  const nm=d.name||"Dokument",ext=((nm.split(".").pop()||"").toLowerCase()),href=docHref(d);
+  const m=String(d.driveId||"").trim()||((/drive\.google\.com\/file\/d\/([\w-]{10,})/.exec(d.url||"")||[])[1]||"");
+  const isImg=/^(png|jpe?g|gif|webp|avif)$/.test(ext),isPdf=ext==="pdf";
+  const FI='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg>';
+  const fb=`<div class="dfi">${FI}<span>${esc(ext&&ext.length<=4&&d.asset?ext.toUpperCase():"ODKAZ")}</span></div>`;
+  let inner=fb;
+  if(d.asset&&isImg)inner=`${fb}<img src="${esc(href)}" alt="" loading="lazy" onerror="this.remove()" style="position:absolute;inset:0">`;
+  else if(d.asset&&isPdf)inner=`${fb}<canvas data-pdfthumb="${esc(href)}" hidden></canvas>`;
+  else if(m)inner=`${fb}<img src="https://drive.google.com/thumbnail?id=${esc(m)}&sz=w300" alt="" loading="lazy" onerror="this.remove()" style="position:absolute;inset:0">`;
+  return`<div class="dth"><a href="${esc(href)}" target="_blank" rel="noopener" title="${esc(nm)}" aria-label="${esc(nm)}">${inner}</a><button type="button" class="x" data-docrm="${e}:${esc(r.id)}:${i}" aria-label="Odstrániť" title="Odstrániť">×</button></div>`;
+}
+function docRow(e,r,kind,label){
+  const D=(r.docs||[]).map((d,i)=>({d,i})).filter(x=>(x.d.kind||"")===kind),key=`${e}:${esc(r.id)}:${kind}`;
+  return`<div class="docslot dr2"><div class="dr2-h"><b>${esc(label)}</b><label class="btn sm" style="cursor:pointer">Nahrať súbor<input type="file" data-dfile="${key}" hidden></label><button class="btn sm ghost" data-dlink="${key}">+ Odkaz</button></div><div class="dr2-t">${D.map(({d,i})=>docThumb(e,r,d,i)).join("")}</div></div>`;
+}
+function renderPdfThumbs(root){
+  root.querySelectorAll("canvas[data-pdfthumb]").forEach(async cv=>{
+    const href=cv.dataset.pdfthumb;cv.removeAttribute("data-pdfthumb");
+    try{const lib=await loadPdfJs();const buf=await (await fetch(href)).arrayBuffer();const pdf=await lib.getDocument({data:buf}).promise;const pg=await pdf.getPage(1);
+      const v0=pg.getViewport({scale:1}),sc=220/v0.width,vp=pg.getViewport({scale:sc});cv.width=vp.width;cv.height=vp.height;
+      await pg.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;cv.hidden=false;const f=cv.parentNode.querySelector(".dfi");if(f)f.remove();}catch(_){}
+  });
+}
 function docSlot(e,r,kind,label,hint,mini){
   const D=(r.docs||[]).map((d,i)=>({d,i})).filter(x=>(x.d.kind||"")===kind);const key=`${e}:${esc(r.id)}:${kind}`;
   return`<div class="${mini?"docslot mini":"panel docslot"}"><div class="spread">${mini?`<b>${esc(label)}</b>`:`<h2>${esc(label)}</h2>`}<span class="meta">${D.length||""}</span></div>
@@ -1560,7 +1589,7 @@ async function viewDoc(href,name){
     return;}
   body.innerHTML=`<div class="dvmsg">Tento typ súboru sa nedá zobraziť priamo tu.${dl?" Použi Stiahnuť.":""}</div>`;
 }
-document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest('a[href*="arsp_blob="]');if(!a)return;e.preventDefault();e.stopPropagation();viewDoc(a.getAttribute("href"),a.textContent.trim());},true);
+document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest('a[href*="arsp_blob="]');if(!a)return;e.preventDefault();e.stopPropagation();viewDoc(a.getAttribute("href"),a.textContent.trim()||a.getAttribute("title")||"");},true);
 
 /* ===== drag to reorder rows (event budget) ===== */
 (function(){let D=null;
