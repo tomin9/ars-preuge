@@ -57,9 +57,23 @@ Majiteľ potrebuje: **plánovaný rozpočet** (zo žiadosti/zmluvy) → **kateg�
 - ✅ **Jedna platba = jedna položka** (ostáva ako dnes).
 - ✅ **Kategórie sú pri každom grante vlastné** (zo žiadosti alebo ručne), žiadny stály zoznam.
 
-## Ďalšie záložky – na prebratie
+## Záložka Úlohy – dohodnuté
 
-- Úlohy · Podujatia · hlavná karta grantu.
+- Zoznam úloh grantu ostáva. Pribudne **„Navrhnúť úlohy z dokumentov“**: Claude prečíta zmluvu (prípadne výzvu či iný dokument grantu) a navrhne úlohy s termínmi (napr. vyúčtovanie, záverečná správa, publicita/logo, oznámenie zmien) → prehľad na potvrdenie, jednotlivé sa dajú odškrtnúť → vytvoria sa ako bežné úlohy priradené ku grantu (kalendár, Prehľad).
+
+## Záložka Podujatia – dohodnuté
+
+- Stačí zobraziť priradené podujatia (ako dnes). Bez ďalších výpočtov.
+
+## Hlavná karta grantu – návrh
+
+- Podoba ako karta podujatia (obrázok vľavo, názov, štítok stavu, ceruzka), tri dokumenty Žiadosť · Zmluva · Vyúčtovanie ako náhľady.
+- Otvorené: ktoré sumy na prvý pohľad (ostatné do Rozpočtu); či ostáva export „Podklad k vyúčtovaniu (CSV)“.
+
+## Navrhované poradie prác
+
+1. **Bez Claude (dá sa hneď):** Rozpočet s kategóriami (zaplatené/plánované, limit presunu, pôvodný rozpočet) + opravy E7–E9 · zrušenie záložky Zmluva a tri dokumenty v hlavnej karte · hlavná karta v podobe podujatia · Žiadosť ako editor častí (s limitmi znakov a komentármi – časti sa dajú zapísať aj ručne).
+2. **S Claude (po získaní API kľúča):** nastavenie kľúča v plugine · Načítať výzvu · Načítať formulár žiadosti (+ rozpočet do Rozpočtu) · Navrhnúť text · Navrhnúť úlohy z dokumentov.
 
 ## Zistené chyby (zapísať aj do ZOZNAM-UPRAV.md)
 
