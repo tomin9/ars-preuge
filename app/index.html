@@ -1595,12 +1595,18 @@ VIEWS.grant=()=>{
   const unassigned=c.L.filter(x=>x.type!=="prijem"&&!x.lineId);
   const cofinOk=c.cofinReq?c.sc>=c.cofinReq:true;
   const cl=g.checklist||[];
-  const gtab=GRTABS.find(t=>t[0]===S.grtab)?S.grtab:"grant";
+  const gtab=GRTABS.find(t=>t[0]===S.grtab)?S.grtab:"vyzva";
   const gcnt={ulohy:T.filter(t=>!isDone(t)).length,rozpocet:Ln.length,podujatia:E.length};
-  const tbar=`<div class="ptabs" role="tablist" style="margin-top:6px">${GRTABS.map(([k,l])=>`<button role="tab" data-grtab="${k}" aria-selected="${gtab===k}">${l}${gcnt[k]?`<span>${gcnt[k]}</span>`:""}</button>`).join("")}</div>`;
+  const tbar=`<div class="ptabs ntabs" role="tablist" style="margin-top:6px">${GRTABS.map(([k,l])=>`<button role="tab" data-grtab="${k}" aria-selected="${gtab===k}">${l}</button>`).join("")}</div>`;
   let body="";
-  if(gtab==="grant")body=`<div class="docslots">${GDOCS.map(([k,l,h])=>docSlot("grants",g,k,l,h)).join("")}</div>
-    <div class="panel" style="margin-top:20px"><h2>Text ku grantu</h2><textarea id="g-text" placeholder="Popis projektu, ciele, zdôvodnenie, poznámky k realizácii a vyúčtovaniu…" style="width:100%;min-height:260px;margin-top:8px">${esc(g.text||"")}</textarea></div>
+  if(gtab==="vyzva")body=`<div class="docslots">${docSlot("grants",g,"vyzva","Výzva","text výzvy, podmienky, prílohy")}</div>
+    <div class="panel" style="margin-top:20px"><div class="spread"><h2>Údaje o výzve</h2><button class="btn sm" data-peek="grants:${esc(g.id)}">Upraviť</button></div>
+      <div class="facts" style="margin-top:10px"><div><span>Poskytovateľ</span><b>${esc(provName(g)||"—")}</b></div><div><span>Program / výzva</span><b>${esc(g.program||"—")}</b></div><div><span>Uzávierka žiadosti</span><b>${g.submitTo?fdate(g.submitTo):"—"}</b></div></div>
+      ${g.callUrl?`<div class="row" style="margin-top:12px"><a class="btn sm" href="${esc(/^https?:/.test(g.callUrl)?g.callUrl:"https://"+g.callUrl)}" target="_blank" rel="noopener">Otvoriť výzvu</a></div>`:""}
+      <h3 style="margin:18px 0 6px">Poznámky k výzve</h3><textarea id="g-calltext" placeholder="Podmienky, oprávnené výdavky, kritériá hodnotenia, dôležité termíny…" style="width:100%;min-height:200px">${esc(g.callText||"")}</textarea></div>`;
+  else if(gtab==="ziadost")body=`<div class="docslots">${docSlot("grants",g,"ziadost","Žiadosť","podaná žiadosť, prílohy, rozpočet zo žiadosti")}</div>
+    <div class="panel" style="margin-top:20px"><div class="spread"><h2>Text žiadosti</h2>${g.formUrl?`<a class="btn sm" href="${esc(/^https?:/.test(g.formUrl)?g.formUrl:"https://"+g.formUrl)}" target="_blank" rel="noopener">Žiadosť / systém</a>`:""}</div><textarea id="g-text" placeholder="Popis projektu, ciele, zdôvodnenie, poznámky k žiadosti…" style="width:100%;min-height:260px;margin-top:8px">${esc(g.text||"")}</textarea></div>`;
+  else if(gtab==="grant")body=`<div class="docslots">${GDOCS.filter(x=>x[0]!=="ziadost").map(([k,l,h])=>docSlot("grants",g,k,l,h)).join("")}</div>
     <div class="grid2" style="margin-top:20px"><div class="panel"><div class="spread"><h2>Postup</h2><span class="meta">${cl.filter(x=>x.d).length} / ${cl.length}</span></div>
         <ul class="cl">${cl.map((x,i)=>`<li class="${x.d?"on":""}"><button class="check ${x.d?"on":""}" data-ck-toggle="grants:${esc(g.id)}" data-i="${i}" aria-label="Splnené"></button><span>${esc(x.t)}</span></li>`).join("")}</ul>
         <input type="text" id="g-ck-add" placeholder="+ Pridať krok a Enter" style="width:100%;margin-top:6px"></div><div class="panel">${linkBlock("grants",g,"contacts")}</div></div>`;
@@ -1629,7 +1635,7 @@ VIEWS.grant=()=>{
   ${tbar}${body}`;
 };
 
-const GRTABS=[["grant","Grant"],["ulohy","Úlohy"],["rozpocet","Rozpočet"],["podujatia","Podujatia"]];
+const GRTABS=[["vyzva","Výzva"],["ziadost","Žiadosť"],["grant","Zmluva"],["rozpocet","Rozpočet"],["ulohy","Úlohy"],["podujatia","Podujatia"]];
 const GDOCS=[["ziadost","Žiadosť","podaná žiadosť, prílohy, rozpočet zo žiadosti"],["zmluva","Zmluva","zmluva o poskytnutí dotácie, dodatky"],["vyuctovanie","Vyúčtovanie","vyúčtovanie, záverečná správa, doklady"]];
 function docHref(d){return d.asset?ARSP_BLOB+d.asset:(/^https?:/.test(d.url||"")?d.url:"https://"+(d.url||""));}
 function docThumb(e,r,d,i){
@@ -2793,7 +2799,7 @@ function bindView(){
   v.querySelectorAll("[data-tmode]").forEach(b=>b.onclick=()=>{S.tf.mode=b.dataset.tmode;render();});
   v.querySelectorAll("[data-gmode]").forEach(b=>b.onclick=()=>{S.gf.mode=b.dataset.gmode;render();});
   v.querySelectorAll("[data-grtab]").forEach(b=>b.onclick=()=>{S.grtab=b.dataset.grtab;render();});
-  on("#g-text","change",e=>upd("grants",S.id,{text:e.target.value}));
+  on("#g-text","change",e=>upd("grants",S.id,{text:e.target.value}));on("#g-calltext","change",e=>upd("grants",S.id,{callText:e.target.value}));
   v.querySelectorAll("[data-evtab]").forEach(b=>b.onclick=()=>{S.evtab=b.dataset.evtab;render();});
   {const ev=S.view==="podujatie"&&get("events",S.id);if(ev){
     const setEv=d=>upd("events",ev.id,d);
