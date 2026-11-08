@@ -41,7 +41,7 @@ Majiteľ už má granty v aplikácii zadané a fungujú – **nič sa nesmie zma
 - Majiteľ záložku nepotrebuje. Predtým mal pri grante **tri PDF: Žiadosť, Zmluva, Vyúčtovanie** a to mu vyhovovalo.
 - Návrh: tri dokumenty ako malé náhľady **priamo v hlavnej karte grantu** (otvoriť / nahrať, ak chýba). Žiadosť sa použije aj v záložke Žiadosť na načítanie formulára. „Postup“ a „Ľudia a kontakty“ zo záložky Zmluva – rozhodnúť, či niekam presunúť alebo zrušiť.
 
-## Záložka Rozpočet – dohodnuté
+## Záložka Rozpočet – ✅ hotové vo verzii 1.69.0
 
 Majiteľ potrebuje: **plánovaný rozpočet** (zo žiadosti/zmluvy) → **kategórie** → **položky** s plánovanou sumou → **skutočné výdavky** (platby z denníka priradené k položke). Treba dodržať súčet každej kategórie aj celkovú sumu; snažia sa držať pôvodného plánu.
 
@@ -72,7 +72,7 @@ Majiteľ potrebuje: **plánovaný rozpočet** (zo žiadosti/zmluvy) → **kateg�
 
 ## Navrhované poradie prác
 
-1. **Bez Claude (dá sa hneď):** Rozpočet s kategóriami (zaplatené/plánované, limit presunu, pôvodný rozpočet) + opravy E7–E9 · zrušenie záložky Zmluva a tri dokumenty v hlavnej karte · hlavná karta v podobe podujatia · Žiadosť ako editor častí (s limitmi znakov a komentármi – časti sa dajú zapísať aj ručne).
+1. **Bez Claude (dá sa hneď):** ✅ Rozpočet s kategóriami (1.69.0; limit presunu = % z plánu kategórie, porovnáva sa s celkovými nákladmi – majiteľ ešte potvrdí, či to tak ráta poskytovateľ) (zaplatené/plánované, limit presunu, pôvodný rozpočet) + opravy E7–E9 · zrušenie záložky Zmluva a tri dokumenty v hlavnej karte · hlavná karta v podobe podujatia · Žiadosť ako editor častí (s limitmi znakov a komentármi – časti sa dajú zapísať aj ručne).
 2. **S Claude (po získaní API kľúča):** nastavenie kľúča v plugine · Načítať výzvu · Načítať formulár žiadosti (+ rozpočet do Rozpočtu) · Navrhnúť text · Navrhnúť úlohy z dokumentov.
 
 ## Zistené chyby (zapísať aj do ZOZNAM-UPRAV.md)

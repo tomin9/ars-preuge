@@ -8,3 +8,25 @@
 .tl b{font-weight:600}
 .pprops{display:grid;grid-template-columns:170px 1fr;gap:10px 16px;max-width:760px}
 .pprops .pl{color:var(--muted);font-size:14px}
+/* rozpočet grantu: kategórie → položky → platby */
+.gbt td{vertical-align:top}
+.gbt td .meta{white-space:nowrap}
+.gbt tr.gbcat td{background:var(--surface3);font-weight:700;border-top:1px solid var(--line)}
+.gbcn{margin-left:0;gap:6px}
+.gbt input.gbcatname{all:unset;box-sizing:border-box;font-weight:700;min-width:0;flex:1;padding:2px 6px;border:1px solid transparent;border-radius:6px}
+.gbt input.gbcatname:hover{background:var(--surface)}
+.gbt input.gbcatname:focus{border-color:var(--line);background:var(--surface)}
+.gbt input.gbcatname::placeholder{color:var(--muted);font-style:italic}
+.gbtw{display:inline-block;width:14px;color:var(--muted);cursor:pointer;font-size:12px;flex:none}
+.gbt tr.gbl{cursor:pointer}
+.gbt tr.gbl td.t{padding-left:22px}
+.gbn{display:flex;align-items:center;gap:2px;min-width:0;margin-left:-16px}
+.gbn .cut{min-width:0}
+.gbt td.t .gbm{padding-left:0}
+.gbt tr.gbl:hover td{background:var(--surface3)}
+.gbt tr.gbl.open td{border-bottom-color:transparent}
+.gbt tr.gbpay td{font-size:13px;padding-top:5px;padding-bottom:5px;border-bottom-style:dashed}
+.gbt tr.gbpay td.t{padding-left:44px;font-weight:400}
+.gbt tr.gbact td{padding:6px 8px 12px 44px}
+.gbt tr.gbact .linksel{margin:0;max-width:360px}
+.gbt tr.gbadd td{border-bottom:0;padding:4px 8px 10px 22px}

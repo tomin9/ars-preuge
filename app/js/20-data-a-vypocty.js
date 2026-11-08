@@ -88,8 +88,9 @@ function ledgerCalc(){
 const cofinG=x=>x.cofinGrantId||(x.cofin?x.grantId||"":"");
 function grantCalc(g){
   const L=S.d.ledger.filter(x=>x.grantId===g.id||(x.type!=="prijem"&&cofinG(x)===g.id));let sg=0,sc=0,rec=0;
-  L.forEach(x=>{const a=+x.amount||0;if(x.type==="prijem"){if(x.grantId===g.id)rec+=a;}else if(cofinG(x)){if(cofinG(x)===g.id)sc+=a;}else sg+=a;});
-  const appr=+g.approved||0;return{L,sg,sc,rec,appr,rest:appr-sg,cofinReq:+g.cofinReq||0};
+  let paidG=0,planG=0;
+  L.forEach(x=>{const a=+x.amount||0;if(x.type==="prijem"){if(x.grantId===g.id)rec+=a;}else if(cofinG(x)){if(cofinG(x)===g.id)sc+=a;}else{sg+=a;if(x.paid!==false&&x.date)paidG+=a;else planG+=a;}});
+  const appr=+g.approved||0;return{L,sg,sc,rec,appr,rest:appr-sg,cofinReq:+g.cofinReq||0,paidG,planG};  /* sg = všetko (aj plánované); paidG = zaplatené, planG = plánované */
 }
 function lineCalc(l){
   const L=S.d.ledger.filter(x=>x.lineId===l.id&&x.type!=="prijem");let sg=0,sc=0;

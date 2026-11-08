@@ -34,7 +34,7 @@ const ENT={
     {k:"cover",l:"Obrázok",t:"image"},{k:"status",l:"Stav",t:"sel",o:"gstat"},{k:"providerId",l:"Poskytovateľ",t:"rel",e:"contacts"},{k:"program",l:"Program / výzva",t:"text"},{k:"callNo",l:"Číslo výzvy",t:"text",ph:"napr. Výzva č. 1/2027"},{k:"callOpen",l:"Podávanie žiadostí od",t:"date"},{k:"callMin",l:"Minimálna dotácia",t:"money"},{k:"callMax",l:"Maximálna dotácia",t:"money"},{k:"cofinPct",l:"Spolufinancovanie žiadateľa",t:"text",ph:"napr. 10 % z rozpočtu projektu"},{k:"spendFrom",l:"Čerpanie od",t:"date"},
     {k:"projectId",l:"Projekt",t:"rel",e:"projects"},{k:"lead",l:"Zodpovedný",t:"person"},
     {k:"submitTo",l:"Uzávierka žiadosti",t:"date"},{k:"realFrom",l:"Realizácia od",t:"date"},{k:"realTo",l:"Realizácia do",t:"date"},{k:"settleDue",l:"Termín vyúčtovania",t:"date"},
-    {k:"requested",l:"Žiadaná suma",t:"money"},{k:"approved",l:"Schválená suma",t:"money"},{k:"totalBudget",l:"Celkový rozpočet",t:"money"},{k:"cofinReq",l:"Povinné spolufinancovanie",t:"money"},
+    {k:"requested",l:"Žiadaná suma",t:"money"},{k:"approved",l:"Schválená suma",t:"money"},{k:"totalBudget",l:"Celkový rozpočet",t:"money"},{k:"cofinReq",l:"Povinné spolufinancovanie",t:"money"},{k:"shiftPct",l:"Povolený presun medzi kategóriami (%)",t:"num"},
     {k:"contractNo",l:"Číslo zmluvy",t:"text"},{k:"callUrl",l:"Výzva",t:"url"},{k:"formUrl",l:"Žiadosť / systém",t:"url"},{k:"driveFolder",l:"Priečinok na Disku",t:"url"},{k:"note",l:"Poznámka",t:"long"}]},
   events:{col:"events",one:"Podujatie",many:"Podujatia",title:"name",fields:[
     {k:"cover",l:"Plagát / obrázok",t:"image"},{k:"status",l:"Stav",t:"sel",o:"estat"},{k:"date",l:"Dátum",t:"date"},{k:"dateTo",l:"Do (viacdňové)",t:"date"},{k:"time",l:"Čas",t:"text",ph:"napr. 17.00 – 23.00"},
@@ -52,7 +52,7 @@ const ENT={
     {k:"eventId",l:"Podujatie",t:"rel",e:"events"},{k:"taskId",l:"Úloha",t:"rel",e:"tasks"},{k:"category",l:"Kategória",t:"sel",src:"cats"},{k:"state",l:"Stav",t:"sel",o:"lstate"},
     {k:"note",l:"Poznámka",t:"long"}]},
   lines:{col:"budgetLines",one:"Rozpočtová položka",many:"Rozpočtové položky",title:"name",fields:[
-    {k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"total",l:"Celkové náklady",t:"money"},{k:"fromGrant",l:"Z dotácie",t:"money"},{k:"note",l:"Poznámka",t:"long"}]},
+    {k:"grantId",l:"Grant",t:"rel",e:"grants"},{k:"category",l:"Kategória",t:"text",ph:"napr. Honoráre"},{k:"total",l:"Celkové náklady",t:"money"},{k:"fromGrant",l:"Z dotácie",t:"money"},{k:"note",l:"Poznámka",t:"long"}]},
   contacts:{col:"contacts",one:"Kontakt",many:"Kontakty",title:"name",fields:[
     {k:"ctype",l:"Typ",t:"sel",o:"ctype"},{k:"tags",l:"Rola",t:"tags"},{k:"source",l:"Oslovil nás cez",t:"sel",o:"csrc"},{k:"orgIds",l:"Organizácie",t:"orgs",only:"osoba"},{k:"position",l:"Funkcia",t:"text"},
     {k:"email",l:"E-mail",t:"email"},{k:"phone",l:"Telefón",t:"tel"},{k:"legalName",l:"Názov",t:"text",only:"!osoba"},{k:"address",l:"Sídlo",t:"text"},{k:"birthDate",l:"Narodený",t:"date",only:"osoba"},{k:"idNo",l:"Číslo OP",t:"text",only:"osoba"},{k:"birthNo",l:"Rodné číslo",t:"text",ph:"napr. 925808/8367",only:"osoba"},{k:"iban",l:"IBAN",t:"text",ph:"SK00 0000 0000 0000 0000 0000"},{k:"ico",l:"IČO",t:"text"},{k:"dic",l:"DIČ",t:"text"},{k:"icdph",l:"IČ DPH",t:"text"},
