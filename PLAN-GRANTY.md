@@ -13,13 +13,17 @@ Rozhovor s majiteľom o záložkách grantu (november 2026). Zapisuje sa, čo je
 - Tlačidlo **„Načítať výzvu“**: odkaz na stránku výzvy alebo nahratie PDF → Claude vytiahne údaje (termíny, sumy, spolufinancovanie, kto môže žiadať, oprávnené výdavky, povinné prílohy…) → prehľad na potvrdenie → uloží sa; PDF sa uloží medzi dokumenty výzvy.
 - Otvorené: ktoré údaje sú najdôležitejšie; odkazy na 2–3 skutočné výzvy na vyskúšanie.
 
-## Záložka Žiadosť – návrh (čaká na odpovede)
+## Záložka Žiadosť – dohodnuté
 
 - Majiteľ chce: nahrať PDF z grantového systému (štruktúra je vždy iná), načítať ho a potom do toho dopisovať.
-- Návrh: „Načítať formulár žiadosti“ (PDF) → Claude vytiahne časti/otázky, pokyny, limity znakov, prípadne už napísaný text → prehľad na potvrdenie.
-- Písanie v rozložení ako **Texty podujatia**: vľavo časti s bodkou stavu, vpravo editor s pokynom, počítadlo znakov s limitom (červené pri prekročení), Kopírovať; súhrn „hotové X z Y“.
-- Nová verzia PDF: zhodné časti si nechajú text, nové pribudnú, zrušené sa len označia.
-- Otázky: rozpočet zo žiadosti rovno do záložky Rozpočet? povinné prílohy ako kontrolný zoznam so súbormi? „Navrhnúť text“ cez Claude? viac autorov (kto má časť na starosti, komentáre)? stiahnuť celú žiadosť ako Word/PDF?
+- **„Načítať formulár žiadosti“** (PDF) → Claude vytiahne časti/otázky, pokyny, limity znakov, prípadne už napísaný text → prehľad na potvrdenie; PDF sa uloží medzi dokumenty žiadosti.
+- Písanie v rozložení ako **Texty podujatia**: vľavo časti s bodkou stavu, vpravo editor s pokynom z formulára, počítadlo znakov s limitom (červené pri prekročení), Kopírovať; súhrn „hotové X z Y“.
+- Nová verzia PDF: zhodné časti si nechajú text, nové pribudnú, zrušené sa len označia (nič sa nezmaže).
+- ✅ **Rozpočet zo žiadosti** sa načíta rovno do záložky Rozpočet ako rozpočtové položky (s prehľadom na potvrdenie).
+- ✅ **„Navrhnúť text“** pri každej časti – Claude napíše návrh z údajov o projekte, podujatiach a výzve; majiteľ ho upraví.
+- ✅ **Komentáre** pri každej časti (bez prideľovania „kto má časť na starosti“).
+- ❌ Stiahnutie celej žiadosti ako Word/PDF netreba.
+- ❓ Povinné prílohy: majiteľ nevie → zatiaľ ukázať zoznam príloh z výzvy ako nepovinný kontrolný zoznam (s možnosťou priložiť súbor); rozhodne sa, keď ho uvidí.
 
 ## Ďalšie záložky – na prebratie
 
