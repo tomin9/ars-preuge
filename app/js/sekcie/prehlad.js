@@ -30,7 +30,7 @@ VIEWS.prehlad=()=>{
       <div class="panel"><div class="spread"><h2>Granty v realizácii</h2><button class="btn ghost sm" data-go="granty">Všetky granty</button></div>
         ${activeG.length?activeG.map(g=>{const c=grantCalc(g);const n=daysTo(g.settleDue);return`<div data-open="grants:${esc(g.id)}" style="cursor:pointer;padding:9px 0;border-top:1px solid var(--line)">
           <div class="spread"><b>${esc(g.name||"Grant")}</b><span class="meta">${g.settleDue?`vyúčtovanie ${n<0?`<span class="late">${fdateS(g.settleDue)}</span>`:fdateS(g.settleDue)}`:""}</span></div>
-          <div class="barline" style="margin-top:6px">${bar(c.sg,c.appr,pcolor(g.projectId),c.sc)}<span class="meta">${eur0(c.sg)} z ${eur0(c.appr)}</span></div></div>`;}).join(""):`<div class="empty">Žiadny schválený grant v realizácii.</div>`}</div>
+          <div class="barline" style="margin-top:6px">${bar(c.paidG,c.appr,pcolor(g.projectId),c.planG)}<span class="meta">${eur0(c.paidG)} z ${eur0(c.appr)}${c.planG?` · plánované ${eur0(c.planG)}`:""}</span></div></div>`;}).join(""):`<div class="empty">Žiadny schválený grant v realizácii.</div>`}</div>
       ${unpaid.length?`<div class="panel"><div class="spread"><h2>Nevyplatené a nevybavené</h2><span class="meta">${eur(sum(unpaid,x=>x.amount))}</span></div><ul class="items">${unpaid.slice(0,8).map(ledgerLi).join("")}</ul></div>`:""}
     </div>
     <div class="stack">

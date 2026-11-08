@@ -22,9 +22,9 @@ VIEWS.granty=()=>{
   <div class="ptabs" role="tablist">${GTABS.map(([k,l,sts])=>{const n=G.filter(g=>sts.includes(g.status||"napad")).length;return`<button role="tab" data-gtab="${k}" aria-selected="${tab[0]===k}">${l}${n?`<span>${n}</span>`:""}</button>`;}).join("")}</div>`;
   if(S.gf.mode==="list")return head+`<div class="panel">${list.length?table([
     ["Grant",g=>`<span class="cut">${esc(g.name||"Grant")}</span>`,"t"],["Poskytovateľ",g=>provIcon(g)+esc(provName(g))],["Stav",g=>chip("gstat",g.status)],["Projekt",g=>pdot(g.projectId)],
-    ["Žiadané",g=>g.requested?eur0(g.requested):"","num"],["Schválené",g=>g.approved?eur0(g.approved):"","num"],["Čerpané",g=>{const c=grantCalc(g);return c.sg?eur0(c.sg):"";},"num"],
+    ["Žiadané",g=>g.requested?eur0(g.requested):"","num"],["Schválené",g=>g.approved?eur0(g.approved):"","num"],["Zaplatené",g=>{const c=grantCalc(g);return c.paidG?eur0(c.paidG):"";},"num"],
     ["Najbližší termín",g=>{const n=nextGrantDate(g);return n?`<span class="meta">${n[0]} </span>${dueHtml(n[1])}`:"";}]
-  ],list,g=>"grants:"+esc(g.id),`<td colspan="4">Spolu</td><td class="num">${eur0(sum(list,g=>g.requested))}</td><td class="num">${eur0(sum(list,g=>g.approved))}</td><td class="num">${eur0(sum(list,g=>grantCalc(g).sg))}</td><td></td>`):`<div class="empty">V tejto skupine nie sú žiadne granty.</div>`}</div>`;
+  ],list,g=>"grants:"+esc(g.id),`<td colspan="4">Spolu</td><td class="num">${eur0(sum(list,g=>g.requested))}</td><td class="num">${eur0(sum(list,g=>g.approved))}</td><td class="num">${eur0(sum(list,g=>grantCalc(g).paidG))}</td><td></td>`):`<div class="empty">V tejto skupine nie sú žiadne granty.</div>`}</div>`;
   return head+`<div class="gal">${list.map(grantCard).join("")}<button class="gnew" data-create="grants" data-defs='${defs}'>+ Nový grant</button></div>`;
 };
 VIEWS.grant=()=>{
