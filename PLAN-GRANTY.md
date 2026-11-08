@@ -65,7 +65,7 @@ Majiteľ potrebuje: **plánovaný rozpočet** (zo žiadosti/zmluvy) → **kateg�
 
 - Stačí zobraziť priradené podujatia (ako dnes). Bez ďalších výpočtov.
 
-## Hlavná karta grantu – ✅ hotová vo verzii 1.70.0 (sumy: schválené/žiadané, zaplatené + plánované, zostáva, spolufinancovanie a prijaté len ak majú hodnotu; bez exportu CSV)
+## Hlavná karta grantu – ✅ hotová vo verzii 1.70.0, upravená v 1.74.0: na výšku ako podujatie, obrázok 1/4, bez dokumentov a bez tlačidla Výzva. Dokumenty Žiadosť · Zmluva · Vyúčtovanie sú dočasne v záložke Výzva – majiteľ chce určiť iné miesto. (sumy: schválené/žiadané, zaplatené + plánované, zostáva, spolufinancovanie a prijaté len ak majú hodnotu; bez exportu CSV)
 
 - Podoba ako karta podujatia (obrázok vľavo, názov, štítok stavu, ceruzka), tri dokumenty Žiadosť · Zmluva · Vyúčtovanie ako náhľady.
 - Otvorené: ktoré sumy na prvý pohľad (ostatné do Rozpočtu); či ostáva export „Podklad k vyúčtovaniu (CSV)“.

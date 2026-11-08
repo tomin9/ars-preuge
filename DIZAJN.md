@@ -94,7 +94,7 @@ Systémové písmo zariadenia (na Macu San Francisco, na Windows Segoe UI). Nes�
 5. Kliknutie na riadok otvorí bočný panel (malé záznamy) alebo stránku (projekt, grant, podujatie).
 
 ### Detail (vzor: podujatie)
-1. **Hlavná karta** (`hero evc`): vľavo obrázok (asi tretina šírky; bez obrázka farebný prechod), vpravo:
+1. **Hlavná karta** (`hero evc`): vľavo obrázok (**štvrtina šírky**, pomer obrázok : text = 1 : 3; bez obrázka farebný prechod), vpravo – všetko **na výšku, jedno pod druhým**:
    - veľký názov `h1`, pod ním „projekt **Nové sídlisko**“ (odkaz),
    - vpravo hore **stavový štítok** a **ikonové tlačidlo ceruzka** (upraviť),
    - „fakty“: malý sivý popis nad tučnou hodnotou (Dátum, Miesto),

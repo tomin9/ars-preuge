@@ -42,7 +42,7 @@
 .pcover{width:100%;height:240px;object-fit:cover;border-radius:12px;display:block;margin-bottom:14px}
 .pcw{position:relative;margin-bottom:16px}
 .hero.evc{padding:0;display:grid;grid-template-columns:1fr}
-.hero.evc.cov{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+.hero.evc.cov{grid-template-columns:minmax(0,1fr) minmax(0,3fr)}
 .hero.evc::before{display:none}
 .hero.evc.cov .evinfo::before{display:none}
 @media(max-width:860px){
