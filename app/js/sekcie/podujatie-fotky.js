@@ -16,7 +16,7 @@ function fotkyTab(e){
   setTimeout(()=>phLoad(e.id,false),0);
   const IC={dl:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',rf:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>',ed:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',gp:'<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M12 12V3.2A4.4 4.4 0 0 0 7.6 7.6V12z" fill="#EA4335"/><path d="M12 12h8.8A4.4 4.4 0 0 0 16.4 7.6H12z" fill="#FBBC04"/><path d="M12 12v8.8a4.4 4.4 0 0 0 4.4-4.4V12z" fill="#34A853"/><path d="M12 12H3.2a4.4 4.4 0 0 0 4.4 4.4H12z" fill="#4285F4"/></svg>'};
   return`<div class="phbar"><div class="ptabs phtabs" role="tablist">${A.length>1?A.map(a=>phTabBtn(e,a,A,cur)).join(""):""}<button type="button" class="phadd" data-phadd="${eid}">+ Pridať album</button></div>
-    <div class="row phic" style="gap:2px"><a class="tplus" href="${esc(cur.url)}" target="_blank" rel="noopener" title="Otvoriť v Google Fotkách" aria-label="Otvoriť v Google Fotkách">${IC.gp}</a><button class="tplus" data-phall="${eid}" title="Stiahnuť všetky fotky albumu (ZIP)" aria-label="Stiahnuť všetky fotky">${IC.dl}</button><button class="tplus" data-phchange="${eid}" title="Zmeniť odkaz na album" aria-label="Zmeniť odkaz na album">${IC.ed}</button></div></div>
+    <div class="row phic" style="gap:2px"><a class="tplus" href="${esc(cur.url)}" target="_blank" rel="noopener" title="Otvoriť v Google Fotkách" aria-label="Otvoriť v Google Fotkách">${IC.gp}</a><button class="tplus" data-phall="${eid}" title="Stiahnuť všetky fotky albumu (ZIP)" aria-label="Stiahnuť všetky fotky">${IC.dl}</button><button class="tplus" data-phchange="${eid}" title="Zmeniť odkaz na album" aria-label="Zmeniť odkaz na album">${IC.ed}</button><button class="tplus tdel" data-phdel="${eid}" title="Odobrať album z podujatia" aria-label="Odobrať album z podujatia">${TI.del}</button></div></div>
     <div id="ph-box" class="phbox"><div class="empty">Načítavam fotky…</div></div>`;
 }
 function phTabBtn(e,a,A,cur){const d=S._ph[a.url],n=d&&d.photos?d.photos.length:0;
@@ -53,6 +53,9 @@ document.addEventListener("click",async ev=>{const T=ev.target;if(!T.closest)ret
   if((el=T.closest("[data-phtab]"))){S._phsel[el.dataset.phev]=el.dataset.phtab;render();return;}
   if((el=T.closest("[data-phadd]"))){phModal(el.dataset.phadd,"add");return;}
   if((el=T.closest("[data-phchange]"))){phModal(el.dataset.phchange,"edit");return;}
+  if((el=T.closest("[data-phdel]"))){const e=get("events",el.dataset.phdel),c=e&&phCur(e);if(!c)return;const d=S._ph[c.url];
+    if(!await ask(`Odobrať album${d&&d.title?` „${d.title}“`:""} z podujatia? V Google Fotkách ostane.`,"Odobrať"))return;
+    const N=phAlbums(e).filter(a=>a.id!==c.id);delete S._phsel[e.id];await upd("events",e.id,{albums:N,photosUrl:N.length?N[0].url:""});return;}
   if((el=T.closest("[data-phrefresh]"))){phLoad(el.dataset.phrefresh,true);return;}
 });
 /* okno v strede: pridať album / zmeniť odkaz (prázdny odkaz = odobrať album z podujatia) */
