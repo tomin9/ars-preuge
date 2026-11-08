@@ -552,7 +552,7 @@ const ENT={
   projects:{col:"projects",one:"Projekt",many:"Projekty",title:"name",fields:[
     {k:"place",l:"Miesto",t:"text"},{k:"cover",l:"Titulný obrázok",t:"image"},{k:"color",l:"Farba",t:"color"},{k:"desc",l:"Popis",t:"long"}]},
   grants:{col:"grants",one:"Grant",many:"Granty",title:"name",fields:[
-    {k:"cover",l:"Obrázok",t:"image"},{k:"status",l:"Stav",t:"sel",o:"gstat"},{k:"providerId",l:"Poskytovateľ",t:"rel",e:"contacts"},{k:"program",l:"Program / výzva",t:"text"},
+    {k:"cover",l:"Obrázok",t:"image"},{k:"status",l:"Stav",t:"sel",o:"gstat"},{k:"providerId",l:"Poskytovateľ",t:"rel",e:"contacts"},{k:"program",l:"Program / výzva",t:"text"},{k:"callNo",l:"Číslo výzvy",t:"text",ph:"napr. Výzva č. 1/2027"},{k:"callOpen",l:"Podávanie žiadostí od",t:"date"},{k:"callMin",l:"Minimálna dotácia",t:"money"},{k:"callMax",l:"Maximálna dotácia",t:"money"},{k:"cofinPct",l:"Spolufinancovanie žiadateľa",t:"text",ph:"napr. 10 % z rozpočtu projektu"},{k:"spendFrom",l:"Čerpanie od",t:"date"},
     {k:"projectId",l:"Projekt",t:"rel",e:"projects"},{k:"lead",l:"Zodpovedný",t:"person"},
     {k:"submitTo",l:"Uzávierka žiadosti",t:"date"},{k:"realFrom",l:"Realizácia od",t:"date"},{k:"realTo",l:"Realizácia do",t:"date"},{k:"settleDue",l:"Termín vyúčtovania",t:"date"},
     {k:"requested",l:"Žiadaná suma",t:"money"},{k:"approved",l:"Schválená suma",t:"money"},{k:"totalBudget",l:"Celkový rozpočet",t:"money"},{k:"cofinReq",l:"Povinné spolufinancovanie",t:"money"},
@@ -1608,11 +1608,14 @@ VIEWS.grant=()=>{
   const gcnt={ulohy:T.filter(t=>!isDone(t)).length,rozpocet:Ln.length,podujatia:E.length};
   const tbar=`<div class="ptabs ntabs" role="tablist" style="margin-top:6px">${GRTABS.map(([k,l])=>`<button role="tab" data-grtab="${k}" aria-selected="${gtab===k}">${l}</button>`).join("")}</div>`;
   let body="";
-  if(gtab==="vyzva")body=`<div class="docslots">${docSlot("grants",g,"vyzva","Výzva","text výzvy, podmienky, prílohy")}</div>
-    <div class="panel" style="margin-top:20px"><div class="spread"><h2>Údaje o výzve</h2><button class="btn sm" data-peek="grants:${esc(g.id)}">Upraviť</button></div>
-      <div class="facts" style="margin-top:10px"><div><span>Poskytovateľ</span><b>${esc(provName(g)||"—")}</b></div><div><span>Program / výzva</span><b>${esc(g.program||"—")}</b></div><div><span>Uzávierka žiadosti</span><b>${g.submitTo?fdate(g.submitTo):"—"}</b></div></div>
-      ${g.callUrl?`<div class="row" style="margin-top:12px"><a class="btn sm" href="${esc(/^https?:/.test(g.callUrl)?g.callUrl:"https://"+g.callUrl)}" target="_blank" rel="noopener">Otvoriť výzvu</a></div>`:""}
-      <h3 style="margin:18px 0 6px">Poznámky k výzve</h3><textarea id="g-calltext" placeholder="Podmienky, oprávnené výdavky, kritériá hodnotenia, dôležité termíny…" style="width:100%;min-height:200px">${esc(g.callText||"")}</textarea></div>`;
+  if(gtab==="vyzva"){const TA=(f,l,ph,h)=>`<div class="panel"><h3 style="margin-bottom:6px">${l}</h3><textarea data-gf="${f}" placeholder="${ph}" style="width:100%;min-height:${h||120}px">${esc(g[f]||"")}</textarea></div>`;
+    body=`<div class="docslots">${docSlot("grants",g,"vyzva","Výzva","text výzvy, podmienky, prílohy")}</div>
+    <div class="panel" style="margin-top:20px"><div class="spread"><h2>Údaje o výzve</h2><span class="row" style="gap:6px"><button class="btn sm" data-fpu24="${esc(g.id)}" title="Doplní prázdne polia podľa podprogramu 2.4 Fondu na podporu umenia">Doplniť z FPU 2.4</button><button class="btn sm" data-peek="grants:${esc(g.id)}">Upraviť</button></span></div>
+      <div class="facts" style="margin-top:10px"><div><span>Poskytovateľ</span><b>${esc(provName(g)||"—")}</b></div><div><span>Program / výzva</span><b>${esc([g.callNo,g.program].filter(Boolean).join(" · ")||"—")}</b></div><div><span>Podávanie žiadostí</span><b>${g.callOpen?fdate(g.callOpen):"—"}${g.submitTo?" → "+fdate(g.submitTo):""}</b></div>
+        <div><span>Výška dotácie</span><b>${g.callMin||g.callMax?`${g.callMin?eur(g.callMin):"—"} – ${g.callMax?eur(g.callMax):"—"}`:"—"}</b></div><div><span>Spolufinancovanie</span><b>${esc(g.cofinPct||"—")}</b></div><div><span>Čerpanie od</span><b>${g.spendFrom?fdate(g.spendFrom):"—"}</b></div></div>
+      ${g.callUrl?`<div class="row" style="margin-top:12px"><a class="btn sm" href="${esc(/^https?:/.test(g.callUrl)?g.callUrl:"https://"+g.callUrl)}" target="_blank" rel="noopener">Otvoriť výzvu</a></div>`:""}</div>
+    <div class="grid2" style="margin-top:20px">${TA("callApplicants","Kto môže žiadať","Oprávnení žiadatelia…")}${TA("callPurpose","Na čo možno dotáciu použiť","Oprávnené aktivity a výdavky…")}</div>
+    <div class="grid2" style="margin-top:20px">${TA("callAttach","Povinné prílohy a podmienky","Prílohy, limity počtu žiadostí…")}${TA("callText","Poznámky k výzve","Kritériá hodnotenia, dôležité termíny…")}</div>`;}
   else if(gtab==="ziadost")body=`<div class="docslots">${docSlot("grants",g,"ziadost","Žiadosť","podaná žiadosť, prílohy, rozpočet zo žiadosti")}</div>
     <div class="panel" style="margin-top:20px"><div class="spread"><h2>Text žiadosti</h2>${g.formUrl?`<a class="btn sm" href="${esc(/^https?:/.test(g.formUrl)?g.formUrl:"https://"+g.formUrl)}" target="_blank" rel="noopener">Žiadosť / systém</a>`:""}</div><textarea id="g-text" placeholder="Popis projektu, ciele, zdôvodnenie, poznámky k žiadosti…" style="width:100%;min-height:260px;margin-top:8px">${esc(g.text||"")}</textarea></div>`;
   else if(gtab==="grant")body=`<div class="docslots">${GDOCS.filter(x=>x[0]!=="ziadost").map(([k,l,h])=>docSlot("grants",g,k,l,h)).join("")}</div>
@@ -1644,6 +1647,16 @@ VIEWS.grant=()=>{
   ${tbar}${body}`;
 };
 
+/* predvyplnenie podľa podprogramu 2.4 Fondu na podporu umenia (www.fpu.sk) – dopĺňa len prázdne polia */
+function fpu24(id){const g=get("grants",id);if(!g)return;
+  const P={program:"2.4 Podpora prehliadok, festivalov, súťaží, výstav a koncertov",callNo:"Výzva č. 1/2027",callOpen:"2026-10-19",submitTo:"2026-11-16",callMin:1000,callMax:60000,spendFrom:"2027-01-01",
+    cofinPct:"10 % z rozpočtu projektu (20 % ak je žiadateľ v zriaďovateľskej pôsobnosti)",callUrl:"https://www.fpu.sk/sk/podpora/2-4-festivaly-vystavy-sutaze-vytvarne-umenie/",
+    callApplicants:"Subjekty, ktoré preukázateľne pôsobia v danej oblasti a majú oprávnenie na činnosti, ktoré plánujú realizovať (napr. občianske združenia, nadácie, neziskové organizácie). Jeden žiadateľ môže podať v podprograme dve žiadosti.",
+    callPurpose:"Realizácia samostatnej výstavy, kolektívnej výstavy, salónu, festivalu alebo súťaže v oblasti výtvarného a vizuálneho umenia.",
+    callAttach:"Pri súťaži: štatút súťaže. Pri výstave, salóne a festivale: kurátorský koncept. Pri site-specific diele: skica."};
+  const patch={};Object.keys(P).forEach(k=>{if(g[k]===undefined||g[k]===null||g[k]==="")patch[k]=P[k];});
+  if(!Object.keys(patch).length){toast("Všetky polia sú už vyplnené.");return;}
+  upd("grants",id,patch);toast("Doplnené podľa FPU 2.4 – overte v texte výzvy.");}
 const GRTABS=[["vyzva","Výzva"],["ziadost","Žiadosť"],["grant","Zmluva"],["rozpocet","Rozpočet"],["ulohy","Úlohy"],["podujatia","Podujatia"]];
 const GDOCS=[["ziadost","Žiadosť","podaná žiadosť, prílohy, rozpočet zo žiadosti"],["zmluva","Zmluva","zmluva o poskytnutí dotácie, dodatky"],["vyuctovanie","Vyúčtovanie","vyúčtovanie, záverečná správa, doklady"]];
 function docHref(d){return d.asset?ARSP_BLOB+d.asset:(/^https?:/.test(d.url||"")?d.url:"https://"+(d.url||""));}
@@ -2808,7 +2821,7 @@ function bindView(){
   v.querySelectorAll("[data-tmode]").forEach(b=>b.onclick=()=>{S.tf.mode=b.dataset.tmode;render();});
   v.querySelectorAll("[data-gmode]").forEach(b=>b.onclick=()=>{S.gf.mode=b.dataset.gmode;render();});
   v.querySelectorAll("[data-grtab]").forEach(b=>b.onclick=()=>{S.grtab=b.dataset.grtab;render();});
-  on("#g-text","change",e=>upd("grants",S.id,{text:e.target.value}));on("#g-calltext","change",e=>upd("grants",S.id,{callText:e.target.value}));
+  on("#g-text","change",e=>upd("grants",S.id,{text:e.target.value}));v.querySelectorAll("[data-gf]").forEach(t=>t.onchange=()=>upd("grants",S.id,{[t.dataset.gf]:t.value}));v.querySelectorAll("[data-fpu24]").forEach(b=>b.onclick=()=>fpu24(b.dataset.fpu24));
   v.querySelectorAll("[data-evtab]").forEach(b=>b.onclick=()=>{S.evtab=b.dataset.evtab;render();});
   {const ev=S.view==="podujatie"&&get("events",S.id);if(ev){
     const setEv=d=>upd("events",ev.id,d);
