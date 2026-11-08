@@ -36,7 +36,7 @@ Majiteľ už má granty v aplikácii zadané a fungujú – **nič sa nesmie zma
 - ❌ Stiahnutie celej žiadosti ako Word/PDF netreba.
 - ❓ Povinné prílohy: majiteľ nevie → zatiaľ ukázať zoznam príloh z výzvy ako nepovinný kontrolný zoznam (s možnosťou priložiť súbor); rozhodne sa, keď ho uvidí.
 
-## Záložka Zmluva – zrušiť (dohodnuté)
+## Záložka Zmluva – ✅ zrušená vo verzii 1.70.0 (Postup a Ľudia a kontakty sú v záložke Úlohy)
 
 - Majiteľ záložku nepotrebuje. Predtým mal pri grante **tri PDF: Žiadosť, Zmluva, Vyúčtovanie** a to mu vyhovovalo.
 - Návrh: tri dokumenty ako malé náhľady **priamo v hlavnej karte grantu** (otvoriť / nahrať, ak chýba). Žiadosť sa použije aj v záložke Žiadosť na načítanie formulára. „Postup“ a „Ľudia a kontakty“ zo záložky Zmluva – rozhodnúť, či niekam presunúť alebo zrušiť.
@@ -65,7 +65,7 @@ Majiteľ potrebuje: **plánovaný rozpočet** (zo žiadosti/zmluvy) → **kateg�
 
 - Stačí zobraziť priradené podujatia (ako dnes). Bez ďalších výpočtov.
 
-## Hlavná karta grantu – návrh
+## Hlavná karta grantu – ✅ hotová vo verzii 1.70.0 (sumy: schválené/žiadané, zaplatené + plánované, zostáva, spolufinancovanie a prijaté len ak majú hodnotu; bez exportu CSV)
 
 - Podoba ako karta podujatia (obrázok vľavo, názov, štítok stavu, ceruzka), tri dokumenty Žiadosť · Zmluva · Vyúčtovanie ako náhľady.
 - Otvorené: ktoré sumy na prvý pohľad (ostatné do Rozpočtu); či ostáva export „Podklad k vyúčtovaniu (CSV)“.

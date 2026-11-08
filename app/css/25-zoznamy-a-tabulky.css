@@ -60,3 +60,5 @@ tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0}
 .drow{display:flex;align-items:center;gap:6px;min-width:0}
 .drow .cut{min-width:0;flex:0 1 auto}
 .clip{flex:none;font-size:12px;opacity:.7;line-height:1}
+.lkh{display:inline-flex;align-items:center;gap:9px}
+.lkh svg{width:18px;height:18px;flex:none;color:var(--muted)}
