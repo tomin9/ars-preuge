@@ -20,7 +20,7 @@ function budgetCalc(g){
   const add=(a,k)=>sum(a,x=>x[k]);
   const cats=order.map(name=>{const I=L.filter(x=>gbCat(x.l)===name);
     const c={name,I,plan:add(I,"plan"),planG:add(I,"planG"),paid:add(I,"paid"),planned:add(I,"planned"),paidG:add(I,"paidG"),plannedG:add(I,"plannedG"),
-      orig:I.some(x=>x.orig!=null)?sum(I,x=>x.orig??0):null};c.act=c.paid+c.planned;c.actG=c.paidG+c.plannedG;c.rest=Math.round((c.plan-c.act)*100)/100;return c;}).filter(c=>c.I.length||c.name);
+      orig:I.some(x=>x.orig!=null)?sum(I,x=>x.orig??0):null};c.act=c.paid+c.planned;c.actG=c.paidG+c.plannedG;c.rest=Math.round((c.plan-c.act)*100)/100;return c;}).filter(c=>c.I.length);   /* prázdne kategórie (bez položiek) sa neukazujú – zostávajú len v údajoch */
   const un=S.d.ledger.filter(x=>x.type!=="prijem"&&(x.grantId===g.id||cofinG(x)===g.id)&&!ids.has(x.lineId));
   const T={plan:add(L,"plan"),planG:add(L,"planG"),paid:add(L,"paid"),planned:add(L,"planned"),paidG:add(L,"paidG"),plannedG:add(L,"plannedG"),orig:L.some(x=>x.orig!=null)?sum(L,x=>x.orig??0):null};
   T.unPaid=sum(un.filter(gbPaid),x=>x.amount);T.unPlanned=sum(un.filter(x=>!gbPaid(x)),x=>x.amount);
