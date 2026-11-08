@@ -1,7 +1,8 @@
 /* ===== Podujatie – záložka Fotky (album Google Fotiek, prezeranie).
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-fotky.js. Nie je to samostatný skript. ===== */
 S._ph=S._ph||{};
-const phThumb=(id,w)=>`https://lh3.googleusercontent.com/pw/${id}=w${w}-h${Math.round(w*0.75)}-c`;
+const phRow=id=>`https://lh3.googleusercontent.com/pw/${id}=w1400-h440`;   /* náhľad bez orezania – riadky ako v Google Fotkách */
+S._phr=S._phr||{};   /* pomer strán fotiek (šírka/výška), zistený po načítaní náhľadu */
 const phFull=id=>`https://lh3.googleusercontent.com/pw/${id}=w2000`;
 function fotkyTab(e){
   const url=e.photosUrl||"";
@@ -18,7 +19,7 @@ async function phLoad(eid,refresh){
     catch(er){const b2=document.getElementById("ph-box");if(b2)b2.innerHTML=`<div class="empty">Náhľady fotiek sa nepodarilo načítať${er&&er.message?` (${esc(er.message)})`:""}. Album môžete otvoriť v Google Fotkách.</div>`;return;}}
   const b=document.getElementById("ph-box");if(!b)return;
   const L=(d&&d.photos)||[];
-  b.innerHTML=L.length?`<div class="phgrid">${L.map((id,i)=>`<button type="button" class="phi" data-phi="${i}" aria-label="Fotka ${i+1}"><img src="${phThumb(id,480)}" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`).join("")}</div><p class="meta" style="margin-top:10px">${L.length} fotiek${d.title?` · ${esc(d.title)}`:""}</p>`:`<div class="empty">V albume sa nenašli žiadne fotky, alebo ich Google nevrátil. Skúste Obnoviť alebo otvorte album v Google Fotkách.</div>`;
+  b.innerHTML=L.length?`<div class="phgrid">${L.map((id,i)=>`<button type="button" class="phi" data-phi="${i}" aria-label="Fotka ${i+1}"${S._phr[id]?` style="--r:${S._phr[id]}"`:""}><img src="${phRow(id)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-phid="${esc(id)}"></button>`).join("")}</div><p class="meta" style="margin-top:10px">${L.length} fotiek${d.title?` · ${esc(d.title)}`:""}</p>`:`<div class="empty">V albume sa nenašli žiadne fotky, alebo ich Google nevrátil. Skúste Obnoviť alebo otvorte album v Google Fotkách.</div>`;
 }
 function phOpen(url,i){
   const d=S._ph[url];if(!d||!d.photos||!d.photos.length)return;let n=d.photos.length,cur=Math.max(0,Math.min(n-1,i));
@@ -70,3 +71,5 @@ async function phDownloadAll(eid,btn){
   finally{btn.disabled=false;btn.textContent=lbl;}
 }
 document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest("[data-phall]");if(b){ev.preventDefault();if(!b.disabled)phDownloadAll(b.dataset.phall,b);}});
+document.addEventListener("load",ev=>{const im=ev.target;if(!im||im.tagName!=="IMG"||!im.dataset||!im.dataset.phid||!im.naturalHeight)return;
+  const r=Math.round(im.naturalWidth/im.naturalHeight*1000)/1000;S._phr[im.dataset.phid]=r;im.parentNode.style.setProperty("--r",r);},true);

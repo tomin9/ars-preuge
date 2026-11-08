@@ -53,9 +53,10 @@ table.lt td.t{display:flex;gap:8px;align-items:baseline;min-width:0}
 .txcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;align-items:start}
 .txbody{min-height:96px;resize:vertical}
 .phbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.phgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
-.phi{all:unset;cursor:zoom-in;display:block;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--surface2)}
-.phi img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s}
+.phgrid{display:flex;flex-wrap:wrap;gap:6px}
+.phgrid::after{content:"";flex-grow:1e9}
+.phi{all:unset;cursor:zoom-in;display:block;--r:1.5;flex:calc(var(--r)*1000) 1 calc(var(--r)*200px);max-width:100%;border-radius:6px;overflow:hidden;background:var(--surface2)}
+.phi img{width:100%;aspect-ratio:var(--r);height:auto;object-fit:cover;display:block;transition:transform .2s}
 .phi:hover img{transform:scale(1.03)}
 .phi:focus-visible{outline:2px solid var(--accent)}
 .rowgrip{margin-left:-2px}
