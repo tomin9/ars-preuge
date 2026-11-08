@@ -35,7 +35,11 @@
 .gbbox{margin-top:16px}
 .gbtools{flex-wrap:wrap;gap:8px;padding:6px 0 8px;border-bottom:1px solid var(--line)}
 .gbpays{margin-top:22px;border:1px solid var(--line);border-radius:12px;padding:6px 14px 6px}
-.gbpays tfoot td{font-weight:400;border-top:1px solid var(--line);padding-top:6px;padding-bottom:6px}
+.gbpays tfoot td{font-weight:400;border-top:1px solid var(--line);padding-top:6px;padding-bottom:6px;background:var(--surface2)}
+.gbpays tfoot td:first-child{border-radius:8px 0 0 8px}
+.gbpays tfoot td:last-child{border-radius:0 8px 8px 0}
+.gbnew input[type=date]{width:136px}
+.gbnew.num input{width:110px}
 .gbnew input,.gbnew select{width:100%;box-sizing:border-box;border:1px solid transparent;background:transparent;padding:4px 6px;margin:0 -6px;font:inherit;color:var(--ink)}
 .gbnew.num input{text-align:right}
 .gbnew input:hover,.gbnew select:hover{border-color:var(--line)}
