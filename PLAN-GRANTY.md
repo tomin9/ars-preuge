@@ -19,7 +19,7 @@ Majiteľ už má granty v aplikácii zadané a fungujú – **nič sa nesmie zma
 - WordPress súbor alebo stránku stiahne / prijme, pošle Claude a vráti výsledok aplikácii. **Vždy sa najprv ukáže prehľad na potvrdenie**, až potom sa ukladá.
 - Stránky a PDF za prihlásením do grantového systému WordPress sám neotvorí → majiteľ ich stiahne ako PDF a nahrá.
 
-## Záložka Výzva – dohodnuté
+## Záložka Výzva – ✅ „Načítať výzvu“ hotové vo verzii 1.73.0 (odkaz, nahraté PDF alebo už nahraný dokument → Claude → prehľad s výberom polí; existujúce hodnoty sa prepíšu len po zaškrtnutí). Treba vyskúšať na skutočných výzvach.
 
 - Tlačidlo **„Načítať výzvu“**: odkaz na stránku výzvy alebo nahratie PDF → Claude vytiahne údaje (termíny, sumy, spolufinancovanie, kto môže žiadať, oprávnené výdavky, povinné prílohy…) → prehľad na potvrdenie → uloží sa; PDF sa uloží medzi dokumenty výzvy.
 - Otvorené: ktoré údaje sú najdôležitejšie; odkazy na 2–3 skutočné výzvy na vyskúšanie.
@@ -73,7 +73,7 @@ Majiteľ potrebuje: **plánovaný rozpočet** (zo žiadosti/zmluvy) → **kateg�
 ## Navrhované poradie prác
 
 1. **Bez Claude (dá sa hneď):** ✅ Rozpočet s kategóriami (1.69.0; limit presunu = % z plánu kategórie, porovnáva sa s celkovými nákladmi – majiteľ ešte potvrdí, či to tak ráta poskytovateľ) (zaplatené/plánované, limit presunu, pôvodný rozpočet) + opravy E7–E9 · zrušenie záložky Zmluva a tri dokumenty v hlavnej karte · hlavná karta v podobe podujatia · ✅ Žiadosť ako editor častí (1.71.0; doterajšie pole „Text žiadosti“ sa ukazuje ako prvá časť).
-2. **S Claude (po získaní API kľúča):** nastavenie kľúča v plugine · Načítať výzvu · Načítať formulár žiadosti (+ rozpočet do Rozpočtu) · Navrhnúť text · Navrhnúť úlohy z dokumentov.
+2. **S Claude (po získaní API kľúča):** ✅ nastavenie kľúča v plugine · ✅ Načítať výzvu (1.73.0) · Načítať formulár žiadosti (+ rozpočet do Rozpočtu) · Navrhnúť text · Navrhnúť úlohy z dokumentov.
 
 ## Zistené chyby (zapísať aj do ZOZNAM-UPRAV.md)
 

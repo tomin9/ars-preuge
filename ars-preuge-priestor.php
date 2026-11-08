@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.72.0
+ * Version: 1.73.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,10 +11,12 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.72.0');
+define('ARSP_VER', '1.73.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
+
+require_once ARSP_DIR . 'inc/claude.php';   /* napojenie na Claude (API kľúč len na serveri) */
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -219,6 +221,7 @@ add_action('template_redirect', function () {
         'base'  => get_option('permalink_structure') ? rtrim((string) wp_parse_url(arsp_app_url(), PHP_URL_PATH), '/') : '',
         'admin' => current_user_can('manage_options') ? admin_url() : '',
         'logout'=> wp_logout_url(home_url('/')),
+        'ai'    => arsp_claude_key() !== '',
     );
     $inject = '<script>window.ARSP=' . wp_json_encode($cfg) . ';var ARSP_BLOB=window.ARSP.blob;</script>'
             . '<script>' . file_get_contents(ARSP_DIR . 'app/shim.js') . '</script>';
@@ -411,6 +414,7 @@ function arsp_admin_page() {
     echo '</ul>';
     if (current_user_can('manage_options')) {
         $exp = wp_nonce_url(admin_url('admin-post.php?action=arsp_export'), 'arsp_export');
+        arsp_claude_admin_section();
         echo '<h2>Záloha</h2><p><a class="button" href="' . esc_url($exp) . '">Stiahnuť zálohu dát (JSON)</a></p>';
         echo '<h2>Import dát</h2><p>Nahrajte balík dát (<code>.zip</code> so súborom seed.json a dokumentmi, alebo zálohu <code>.json</code>). Záznamy s rovnakým ID sa prepíšu, ostatné zostanú.</p>';
         echo '<form method="post" enctype="multipart/form-data" action="' . esc_url(admin_url('admin-post.php')) . '">';

@@ -10,7 +10,7 @@ if len(sys.argv)>3:  # nové poradie štýlov: všetky súbory z priečinka pod�
     h=re.sub(r'(<link rel="stylesheet" href="css/[a-z0-9-]+\.css">\n)+',lambda m:links,h,count=1)
 h=re.sub(r'<link rel="stylesheet" href="css/([a-z0-9-]+\.css)">',lambda m:'<style>\n'+open(css+'/'+m[1],encoding='utf-8').read()+'</style>',h)
 h=re.sub(r'(?m)^//@subor (js/[a-z0-9-]+(?:/[a-z0-9-]+)?\.js)[ \t]*$',lambda m:re.sub(r'\n\Z','',open(R+m[1],encoding='utf-8').read(),count=1),h)
-cfg={"rest":"https://t/rest/","nonce":"x","me":{"id":"wp_1","name":"Tomáš Test","firstName":"Tomáš","avatarUrl":""},"blob":"https://t/?arsp_blob=","home":"https://t/","base":"/priestor","admin":"","logout":""}
+cfg={"rest":"https://t/rest/","nonce":"x","me":{"id":"wp_1","name":"Tomáš Test","firstName":"Tomáš","avatarUrl":""},"blob":"https://t/?arsp_blob=","home":"https://t/","base":"/priestor","admin":"","logout":"","ai":True}
 inj='<script>window.ARSP='+json.dumps(cfg)+';var ARSP_BLOB=window.ARSP.blob;</script><script>'+open(R+'shim.js',encoding='utf-8').read()+'</script>'
 p=h.index('<script>');h=h[:p]+inj+'\n'+h[p:]
 open(out,'w',encoding='utf-8').write(h)
