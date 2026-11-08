@@ -51,8 +51,8 @@ VIEWS.grant=()=>{
         <input type="text" id="g-ck-add" placeholder="+ Pridať krok a Enter" style="width:100%;margin-top:6px"></div><div class="panel">${linkBlock("grants",g,"contacts")}</div></div>`;
   else if(gtab==="rozpocet")body=grantBudgetTab(g);
   else if(gtab==="dokumenty")body=`<div class="docslots">${docSlot("grants",g,"vyzva","Výzva","text výzvy, podmienky, prílohy")}${GDOCS.map(([k,l,h])=>docSlot("grants",g,k,l,h)).join("")}${(g.docs||[]).some(d=>!["vyzva","ziadost","zmluva","vyuctovanie"].includes(d.kind||""))?docSlot("grants",g,"","Ostatné",""):""}</div>`;
-  else body=`<div class="panel"><div class="spread"><h2>Podujatia</h2><button class="btn sm" data-create="events" data-defs='${esc(JSON.stringify(def))}'>+ Podujatie</button></div>
-        ${E.length?`<ul class="items">${E.map(eventLi).join("")}</ul>`:`<div class="empty">Žiadne podujatia.</div>`}</div>`;
+  else{const ed={grantIds:[g.id]};if(g.projectId)ed.projectId=g.projectId;  /* podujatia ako karty – rovnako ako granty v podujatí */
+    body=`<div class="gal">${E.map(eventCard).join("")}<button class="gnew" data-create="events" data-defs='${esc(JSON.stringify(ed))}'>+ Nové podujatie</button><div class="gsel">${linkSel("grants",g,"events")}</div></div>`;}
   const cov=coverUrl(g),PEN='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
   return`  <section class="hero evc cov" style="--pc:${esc(p?p.color:OCHRE)}">${cov?`<div class="evimg"><img src="${esc(cov)}" alt="" style="object-position:${esc(posOf(g))}"></div>`:`<div class="evimg" style="background:${gradFor(g.id)}"></div>`}
   <div class="evinfo ginfo"><div class="spread" style="align-items:flex-start;flex-wrap:nowrap"><div style="min-width:0"><h1>${esc(g.name||"Grant")}</h1><p class="sub">${provIcon(g)}${[provName(g),g.program].filter(Boolean).map(esc).join(" · ")}${p?` · projekt <button class="btn ghost sm" data-go="projekt" data-id="${esc(p.id)}">${esc(p.name)}</button>`:""}</p></div>
