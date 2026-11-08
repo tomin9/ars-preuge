@@ -701,6 +701,7 @@ function refreshPeople(){
 
 async function boot(){
   const now=new Date();S.cal={y:now.getFullYear(),m:now.getMonth()};
+  {const hv=hashView()||"prehlad";S.view=hv;try{history.replaceState(history.state,"","#/"+hv);}catch(_){}}
   render();
   const C=window.claude;const use=n=>(C&&typeof C.use==="function")?C.use(n):Promise.resolve(null);
   [db,user,dl,assets,mcp]=await Promise.all([use("db"),use("user"),use("downloads"),use("assets"),use("mcp")]);
@@ -766,6 +767,7 @@ function go(view,id,isBack){
   id=id||null;
   if(!isBack&&(S.view!==view||S.id!==id)){S.hist=S.hist||[];S.hist.push({view:S.view,id:S.id});if(S.hist.length>50)S.hist.shift();try{history.pushState({n:S.hist.length},"");}catch(_){}}
   S.view=view;S.id=id;closeSide();
+  try{const u="#/"+(ACT[view]||view);if(location.hash!==u)history.replaceState(history.state,"",u);}catch(_){}
   if(view!=="projekt"&&view!=="grant"&&view!=="podujatie")closeDrawer();
   render();const m=$("#main");if(m)m.scrollTop=0;
 }
@@ -773,7 +775,11 @@ function goBack(){
   if(DW){closeDrawer();return;}
   const h=(S.hist||[]).pop();if(h)go(h.view,h.id,true);else if(S.view!=="prehlad")go("prehlad",null,true);
 }
-window.addEventListener("popstate",()=>{if((S.hist||[]).length||DW)goBack();});
+const hashView=()=>{const k=(location.hash||"").replace(/^#\/?/,"").split("/")[0];return NAV.some(n=>n!=="-"&&n[0]===k)?k:"";};
+window.addEventListener("popstate",()=>{
+  const hv=hashView(),h=(S.hist||[]);const last=h[h.length-1],lastSec=last&&(ACT[last.view]||last.view);
+  if(!DW&&hv&&hv!==(ACT[S.view]||S.view)&&hv!==lastSec){go(hv);return;}
+  if(h.length||DW)goBack();});
 function navBar(){
   const sec=ACT[S.view]||S.view,secL=(NAV.find(n=>n!=="-"&&n[0]===sec)||[0,""])[1];
   const ent={projekt:"projects",grant:"grants",podujatie:"events"}[S.view];const r=ent&&get(ent,S.id);
