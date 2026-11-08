@@ -73,14 +73,13 @@ function grantBudgetTab(g){  /* vzhľad ako Rozpočet podujatia → Granty: tabu
   const rows=S.d.ledger.filter(x=>x.grantId===g.id||cofinG(x)===g.id||lids.has(x.lineId))
     .sort((a,b)=>{if(!!a.date!==!!b.date)return a.date?-1:1;if(a.date&&b.date&&a.date!==b.date)return a.date.localeCompare(b.date);const oa=typeof a.ord==="number"?a.ord:Infinity,ob=typeof b.ord==="number"?b.ord:Infinity;if(oa!==ob)return oa-ob;return isInc(b)-isInc(a);});
   const lopt=x=>`<option value="">—</option>${cats?B.cats.map(c=>`<optgroup label="${esc(c.name||"Bez kategórie")}">${c.I.map(o=>`<option value="${esc(o.l.id)}" ${x.lineId===o.l.id?"selected":""}>${esc(o.l.name||"Položka")}</option>`).join("")}</optgroup>`).join(""):B.Ln.map(l=>`<option value="${esc(l.id)}" ${x.lineId===l.id?"selected":""}>${esc(l.name||"Položka")}</option>`).join("")}`;
-  const def={type:"vydavok",grantId:g.id};if(g.projectId)def.projectId=g.projectId;
-  const ids=new Set(rows.map(x=>x.id));
-  const avail=S.d.ledger.filter(x=>!ids.has(x.id)&&!x.grantId&&!cofinG(x)).sort((a,b)=>(b.date||"").localeCompare(a.date||"")).slice(0,300);
-  const pays=`<div class="gbpays"><div class="spread" style="margin-bottom:6px"><h2>Platby</h2><button class="btn sm" data-create="ledger" data-defs='${esc(JSON.stringify(def))}'>+ Platba</button></div>
-    ${rows.length?table([["Dátum",x=>`<span class="meta">${x.date?fdateS(x.date):"plánované"}</span>`],["Popis",x=>`<span class="drow"><span class="cut">${esc(x.desc||"—")}</span>${clip(x)}</span>${cofinG(x)===g.id?'<span class="meta"> · spolufin.</span>':""}`,"t"],["Suma",x=>`<span class="${isInc(x)?"pos":"neg"}">${eur(x.amount||0)}</span>`,"num"],["Meno",x=>ctLink(x.contactId)],
-      ["Rozp. položka",x=>isInc(x)||!B.Ln.length?"":`<select class="lsel" data-lline="${esc(x.id)}" aria-label="Rozpočtová položka">${lopt(x)}</select>`],["Kategória",x=>x.category?`<span class="meta">${esc(x.category)}</span>`:""]],rows,x=>"ledger:"+esc(x.id))
-    :`<div class="empty">Ku grantu zatiaľ nie sú platby. Pridajte novú alebo priraďte existujúcu z denníka.</div>`}
-    ${avail.length?`<select class="linksel" data-gbaddpay="${gid}" style="margin-top:10px"><option value="">↗ Priradiť existujúcu platbu z denníka…</option>${avail.map(x=>`<option value="${esc(x.id)}">${esc(x.desc||"Platba")} · ${x.date?fdateS(x.date):"plánované"} · ${eur(x.amount)}</option>`).join("")}</select>`:""}</div>`;
+  /* posledný riadok = nová platba: píše sa priamo do tabuľky, uloží sa po opustení riadku alebo Enter (rozpísané sa drží v S.gbdraft, prežije aj obnovenie zo servera) */
+  const D=(S.gbdraft=S.gbdraft||{})[g.id]||{};
+  const nIn=(k,ph,extra)=>`<input id="gbn-${k}" data-gbn="${gid}|${k}" value="${esc(D[k]||"")}" placeholder="${ph}" aria-label="${ph}" ${extra||'type="text"'}>`;
+  const newRow=`<td class="gbnew">${nIn("date","dátum",'type="date"')}</td><td class="gbnew">${nIn("desc","Nová platba…")}</td><td class="gbnew num">${nIn("amount","0,00 €",'type="text" inputmode="decimal"')}</td><td class="gbnew"></td>
+    <td class="gbnew">${B.Ln.length?`<select id="gbn-lineId" data-gbn="${gid}|lineId" aria-label="Rozpočtová položka">${lopt({lineId:D.lineId||""})}</select>`:""}</td><td class="gbnew">${nIn("category","—")}</td>`;
+  const pays=`<div class="gbpays">${table([["Dátum",x=>`<span class="meta">${x.date?fdateS(x.date):"plánované"}</span>`],["Popis",x=>`<span class="drow"><span class="cut">${esc(x.desc||"—")}</span>${clip(x)}</span>${cofinG(x)===g.id?'<span class="meta"> · spolufin.</span>':""}`,"t"],["Suma",x=>`<span class="${isInc(x)?"pos":"neg"}">${eur(x.amount||0)}</span>`,"num"],["Meno",x=>ctLink(x.contactId)],
+      ["Rozp. položka",x=>isInc(x)||!B.Ln.length?"":`<select class="lsel" data-lline="${esc(x.id)}" aria-label="Rozpočtová položka">${lopt(x)}</select>`],["Kategória",x=>x.category?`<span class="meta">${esc(x.category)}</span>`:""]],rows,x=>"ledger:"+esc(x.id),newRow)}</div>`;
   return`<div class="glines gbbox">${tools}${tbl}${warn.length?`<p class="small muted" style="margin:6px 0 2px">${warn.map(esc).join(" ")}</p>`:""}</div>${pays}`;
 }
 /* ovládanie */
@@ -117,3 +116,16 @@ document.addEventListener("change",async ev=>{const t=ev.target;if(!t.closest)re
     const seen=new Set();await upd("grants",gid,{budgetCats:bc.filter(x=>x&&!seen.has(x)&&seen.add(x))});
     for(const l of L)await upd("lines",l.id,{category:nv});return;}
 });
+/* nový riadok platby v rozpočte grantu */
+const gbnSave=async gid=>{const D=(S.gbdraft||{})[gid];const g=get("grants",gid);if(!D||!g)return;
+  const raw=String(D.amount||"").trim(),desc=String(D.desc||"").trim();if(!desc&&!raw)return;
+  const n=parseFloat(raw.replace(/[^\d,.\-]/g,"").replace(",","."));const inc=/^\+/.test(raw);
+  const d={type:inc?"prijem":"vydavok",grantId:g.id,desc,amount:isFinite(n)?Math.round(Math.abs(n)*100)/100:0,date:D.date||"",paid:!!D.date};
+  if(D.lineId&&!inc)d.lineId=D.lineId;if(String(D.category||"").trim())d.category=String(D.category).trim();if(g.projectId)d.projectId=g.projectId;
+  delete S.gbdraft[gid];const id=await add("ledger",d);if(!id){S.gbdraft[gid]=D;render();return;}toast("Platba pridaná.");};
+document.addEventListener("input",ev=>{const t=ev.target;if(!t.dataset||!t.dataset.gbn)return;const[gid,k]=split1(t.dataset.gbn);S.gbdraft=S.gbdraft||{};(S.gbdraft[gid]=S.gbdraft[gid]||{})[k]=t.value;});
+document.addEventListener("change",ev=>{const t=ev.target;if(!t.dataset||!t.dataset.gbn||t.tagName!=="SELECT")return;const[gid,k]=split1(t.dataset.gbn);S.gbdraft=S.gbdraft||{};(S.gbdraft[gid]=S.gbdraft[gid]||{})[k]=t.value;});
+document.addEventListener("keydown",ev=>{const t=ev.target;if(ev.key!=="Enter"||!t.dataset||!t.dataset.gbn)return;ev.preventDefault();const[gid]=split1(t.dataset.gbn);
+  gbnSave(gid).then(()=>setTimeout(()=>{const f=document.getElementById("gbn-date");if(f)f.focus();},80));});
+document.addEventListener("focusout",ev=>{const t=ev.target;if(!t.dataset||!t.dataset.gbn)return;const nx=ev.relatedTarget;if(nx&&nx.dataset&&nx.dataset.gbn)return;
+  const[gid]=split1(t.dataset.gbn);setTimeout(()=>{const a=document.activeElement;if(a&&a.dataset&&a.dataset.gbn)return;gbnSave(gid);},0);});
