@@ -43,8 +43,7 @@ VIEWS.grant=()=>{
   const tbar=`<div class="ptabs ntabs" role="tablist" style="margin-top:6px">${GRTABS.map(([k,l])=>`<button role="tab" data-grtab="${k}" aria-selected="${gtab===k}">${l}</button>`).join("")}</div>`;
   let body="";
   if(gtab==="vyzva"){const TA=(f,l,ph,h)=>`<div class="panel"><h3 style="margin-bottom:6px">${l}</h3><textarea data-gf="${f}" placeholder="${ph}" style="width:100%;min-height:${h||120}px">${esc(g[f]||"")}</textarea></div>`;
-    body=`<div class="docslots">${docSlot("grants",g,"vyzva","Výzva","text výzvy, podmienky, prílohy")}${GDOCS.map(([k,l,h])=>docSlot("grants",g,k,l,h)).join("")}${(g.docs||[]).some(d=>!["vyzva","ziadost","zmluva","vyuctovanie"].includes(d.kind||""))?docSlot("grants",g,"","Ostatné",""):""}</div>
-    <div class="panel" style="margin-top:20px"><div class="spread"><h2>Údaje o výzve</h2><span class="row" style="gap:6px"><button class="btn sm" data-aivyzva="${esc(g.id)}" title="Claude prečíta výzvu (odkaz alebo PDF) a navrhne údaje">Načítať výzvu</button><button class="btn ghost sm" data-callimp="${esc(g.id)}" title="Vložiť údaje o výzve ručne (text od Claude)">Vložiť ručne</button><button class="btn sm" data-peek="grants:${esc(g.id)}">Upraviť</button></span></div>
+    body=`<div class="panel"><div class="spread"><h2>Údaje o výzve</h2><span class="row" style="gap:6px"><button class="btn sm" data-aivyzva="${esc(g.id)}" title="Claude prečíta výzvu (odkaz alebo PDF) a navrhne údaje">Načítať výzvu</button><button class="btn ghost sm" data-callimp="${esc(g.id)}" title="Vložiť údaje o výzve ručne (text od Claude)">Vložiť ručne</button><button class="btn sm" data-peek="grants:${esc(g.id)}">Upraviť</button></span></div>
       <div class="facts" style="margin-top:10px"><div><span>Poskytovateľ</span><b>${esc(provName(g)||"—")}</b></div><div><span>Program / výzva</span><b>${esc([g.callNo,g.program].filter(Boolean).join(" · ")||"—")}</b></div><div><span>Podávanie žiadostí</span><b>${g.callOpen?fdate(g.callOpen):"—"}${g.submitTo?" → "+fdate(g.submitTo):""}</b></div>
         <div><span>Výška dotácie</span><b>${g.callMin||g.callMax?`${g.callMin?eur(g.callMin):"—"} – ${g.callMax?eur(g.callMax):"—"}`:"—"}</b></div><div><span>Spolufinancovanie</span><b>${esc(g.cofinPct||"—")}</b></div><div><span>Čerpanie od</span><b>${g.spendFrom?fdate(g.spendFrom):"—"}</b></div></div>
       ${g.callUrl?`<div class="row" style="margin-top:12px"><a class="btn sm" href="${esc(/^https?:/.test(g.callUrl)?g.callUrl:"https://"+g.callUrl)}" target="_blank" rel="noopener">Otvoriť výzvu</a></div>`:""}</div>
@@ -57,6 +56,7 @@ VIEWS.grant=()=>{
         <ul class="cl">${cl.map((x,i)=>`<li class="${x.d?"on":""}"><button class="check ${x.d?"on":""}" data-ck-toggle="grants:${esc(g.id)}" data-i="${i}" aria-label="Splnené"></button><span>${esc(x.t)}</span></li>`).join("")}</ul>
         <input type="text" id="g-ck-add" placeholder="+ Pridať krok a Enter" style="width:100%;margin-top:6px"></div><div class="panel">${linkBlock("grants",g,"contacts")}</div></div>`;
   else if(gtab==="rozpocet")body=grantBudgetTab(g);
+  else if(gtab==="dokumenty")body=`<div class="docslots">${docSlot("grants",g,"vyzva","Výzva","text výzvy, podmienky, prílohy")}${GDOCS.map(([k,l,h])=>docSlot("grants",g,k,l,h)).join("")}${(g.docs||[]).some(d=>!["vyzva","ziadost","zmluva","vyuctovanie"].includes(d.kind||""))?docSlot("grants",g,"","Ostatné",""):""}</div>`;
   else body=`<div class="panel"><div class="spread"><h2>Podujatia</h2><button class="btn sm" data-create="events" data-defs='${esc(JSON.stringify(def))}'>+ Podujatie</button></div>
         ${E.length?`<ul class="items">${E.map(eventLi).join("")}</ul>`:`<div class="empty">Žiadne podujatia.</div>`}</div>`;
   const cov=coverUrl(g),PEN='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
@@ -92,5 +92,5 @@ function callImport(id){
     if(!Object.keys(patch).length){toast("V texte som nenašiel žiadne známe polia.");return;}
     done();upd("grants",id,patch);toast("Doplnených polí: "+Object.keys(patch).length+".");};
 }
-const GRTABS=[["vyzva","Výzva"],["ziadost","Žiadosť"],["rozpocet","Rozpočet"],["ulohy","Úlohy"],["podujatia","Podujatia"]];  /* záložka Zmluva zrušená (1.70.0): dokumenty sú v hlavnej karte, Postup a kontakty v Úlohách */
+const GRTABS=[["vyzva","Výzva"],["ziadost","Žiadosť"],["rozpocet","Rozpočet"],["ulohy","Úlohy"],["podujatia","Podujatia"],["dokumenty","Dokumenty"]];  /* záložka Zmluva zrušená (1.70.0): dokumenty sú v hlavnej karte, Postup a kontakty v Úlohách */
 const GDOCS=[["ziadost","Žiadosť","podaná žiadosť, prílohy, rozpočet zo žiadosti"],["zmluva","Zmluva","zmluva o poskytnutí dotácie, dodatky"],["vyuctovanie","Vyúčtovanie","vyúčtovanie, záverečná správa, doklady"]];
