@@ -1,5 +1,9 @@
 # Dizajn pracovného priestoru Ars Preuge
 
+> **Dva vzory (potvrdené majiteľom, tmavý režim):**
+> 1. **Detail záznamu = stránka podujatia** – cesta hore („Podujatia / NOX:ART“), veľká karta s obrázkom vľavo, záložky s čiarou. Záložka Texty ukazuje aj vzor „zoznam vľavo + editor vpravo“: vľavo položky (ikona, názov, podtitul, bodka stavu), vpravo karta s malým nadpisom veľkými písmenami („TEXTY / NOX:ART“), veľkým názvom, stavovým riadkom a veľkým poľom na text; dole počet slov.
+> 2. **Zoznam = stránka Kontakty** – veľký nadpis, záložky-tabletky s počtom, obrysové filtre, čistá tabuľka bez zbytočných čiar a **bočný panel** zprava: fotka/ikona, meno, kontakty s malou šípkou „otvoriť“, pod tým karty s ikonou a nadpisom (Údaje, Platby). Výdavky sa píšu červeno so znamienkom mínus.
+
 Toto je jednotný dizajn aplikácie. Vychádza z toho, čo už v aplikácii je, a za vzor berie **stránku podujatia** (detail podujatia: veľká karta hore, pod ňou záložky). Keď sa vytvára alebo upravuje akákoľvek obrazovka, má vyzerať ako táto.
 
 Hodnoty nižšie sú aktuálne hodnoty z kódu (`app/index.html`, začiatok súboru). Ak sa niečo v dizajne zmení, zmení sa najprv tu a potom na jednom mieste v kóde – nie na desiatich miestach.
@@ -94,14 +98,13 @@ Pravidlo: **stav = vždy chip**. Prázdny chip s rámikom (`chip out`) je pre ne
 
 ## 7. Záložky
 
-Záložky sú v aplikácii štyrikrát rôzne (pozri `ZOZNAM-UPRAV.md`). **Vzorom je záložka podujatia** (`ptabs ntabs`):
+Sú **dva schválené druhy**, každý na iné miesto:
 
-- riadok pod hlavnou kartou, text 16 px, neaktívna záložka sivá,
-- vybraná záložka: tmavý text, tučne a **3 px modrá čiara pod ňou**,
-- celý riadok má dole 1 px čiaru,
-- počet (ak je) sa píše malým sivým číslom za názvom.
+**a) Záložky s čiarou – v detaile záznamu** (vzor: podujatie, grant). Riadok pod hlavnou kartou, text 16 px, neaktívna sivá, vybraná tmavá a tučná s **3 px modrou čiarou pod ňou**; celý riadok má dole 1 px čiaru.
 
-Na prepínanie **pohľadu** (Galéria / Tabuľka) sa používa osobitný „prepínač“ (`.tabs`) – dva až tri spojené gombíky, vybraný je svetlomodrý. Ten sa nemieša so záložkami.
+**b) Záložky „tabletky“ s počtom – v zoznamoch** (vzor: Kontakty – Osoby 100 · Firmy 78 · Organizácie 28 · Média 3). Vybraná tabletka má jemné pozadie, počet je malý a sivý za názvom. Pod nimi môže byť riadok filtrov z obrysových štítkov (Dobrovoľník, Partner…).
+
+Detail projektu má dnes tabletky – podľa tohto pravidla má mať čiaru (pozri `ZOZNAM-UPRAV.md`). Prepínač pohľadu **Galéria / Tabuľka** je osobitný prvok (dva-tri spojené gombíky) a s tabletkami sa nemieša.
 
 ## 8. Formuláre
 

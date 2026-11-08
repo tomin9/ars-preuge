@@ -12,8 +12,8 @@ Stav k 8. 11. 2026 – zatiaľ **nič z toho nie je opravené**, toto je len sú
 
 ### Záložky
 
-- [ ] 🔴 **Štyri rôzne druhy záložiek.** Detail podujatia a detail grantu majú záložky s modrou čiarou pod vybranou (vzor). Detail projektu, zoznamy (Podujatia, Granty, Kontakty, Financie) majú záložky ako sivé „tabletky“. Rozpočet podujatia má ďalší menší druh. Prepínač Galéria/Tabuľka je štvrtý. → Všetky záložky v detailoch aj zoznamoch podľa vzoru podujatia; prepínač pohľadu ostane osobitný.
-  *Kde:* `.ptabs`, `.ptabs.ntabs`, `.ptabs.evbtabs`, `.tabs`; použitie napr. `VIEWS.projekt`, `VIEWS.podujatia`, `VIEWS.kontakty`.
+- [ ] 🟡 **Záložky nasledujú dve schválené podoby** (čiara v detaile, tabletky s počtom v zoznamoch – pozri `DIZAJN.md`, časť 7). Treba zjednotiť len odchýlky: detail projektu má tabletky namiesto čiary a rozpočet podujatia má tretí, menší druh. Prepínač Galéria/Tabuľka ostáva osobitný.
+  *Kde:* `.ptabs`, `.ptabs.ntabs`, `.ptabs.evbtabs`, `.tabs`; napr. `VIEWS.projekt`.
 
 ### Farby
 
@@ -71,7 +71,7 @@ Stav k 8. 11. 2026 – zatiaľ **nič z toho nie je opravené**, toto je len sú
 
 1. Texty o claude.ai (A, „Prázdne stavy a texty“) – rýchle a vidno ich hneď.
 2. Farby: jedna sada pre oba režimy + oprava `--text`.
-3. Záložky podľa vzoru podujatia.
+3. Záložky: detail projektu na čiaru, rozpočet podujatia zjednotiť.
 4. Stavové štítky v Zabezpečení a rozpočte grantu → `chip`.
 5. Hlavičky detailov (projekt, grant) podľa podujatia.
 6. Stupnica písma, rohov a odstupov; odstránenie `style="…"` z prvkov.
