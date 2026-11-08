@@ -30,6 +30,11 @@
 .gbt tr.gbact td{padding:6px 8px 12px 44px}
 .gbt tr.gbact .linksel{margin:0;max-width:360px}
 .gbt tr.gbadd td{border-bottom:0;padding:4px 8px 10px 22px}
+.gbt tr.gbi td.t{padding-left:26px}
+.gbt tr.gbcat td.t{display:table-cell;padding-left:22px}
+.gbbox{margin-top:16px}
+.gbtools{flex-wrap:wrap;gap:8px;padding:6px 0 8px;border-bottom:1px solid var(--line)}
+.gbpays{margin-top:22px}
 /* hlavná karta grantu: tri dokumenty (Žiadosť, Zmluva, Vyúčtovanie) */
 .gdocs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:16px}
 .gdocs .docslot.mini{background:var(--surface);min-width:0}

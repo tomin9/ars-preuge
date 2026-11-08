@@ -38,43 +38,51 @@ function gbState(act,plan,pct,isCat){
 }
 const gbChip=s=>s[1]?`<span class="chip" title="${esc(s[1])}"><i style="background:${s[2]}"></i>${esc(s[1])}</span>`:"";
 const gbMoney=(v,dash)=>v||!dash?eur(v):"—";
-function grantBudgetTab(g){
-  const B=budgetCalc(g),gid=esc(g.id),hasOrig=!!g.origAt,col=(get("projects",g.projectId)||{}).color;
-  const def={type:"vydavok",grantId:g.id};if(g.projectId)def.projectId=g.projectId;
-  const sub=(v,lbl)=>v?`<div class="meta">${lbl} ${eur(v)}</div>`:"";
-  const origCell=(o,cur)=>hasOrig?`<td class="num">${o==null?'<span class="meta">nová</span>':eur(o)}${o!=null&&Math.abs(cur-o)>0.005?`<div class="meta">${cur-o>0?"+":"−"}${eur(Math.abs(cur-o))}</div>`:""}</td>`:"";
-  const opts=S.d.ledger.filter(x=>x.type!=="prijem"&&!B.Ln.some(l=>l.id===x.lineId)&&(x.grantId===g.id||cofinG(x)===g.id||(!x.grantId&&!cofinG(x))))
-    .sort((a,b)=>(b.date||"").localeCompare(a.date||"")).slice(0,300);
-  const optHtml=opts.map(x=>`<option value="${esc(x.id)}">${esc(x.desc||"Platba")} · ${x.date?fdateS(x.date):"plánované"} · ${eur(x.amount)}${x.grantId===g.id||cofinG(x)===g.id?"":" · bez grantu"}</option>`).join("");
-  const payRows=o=>o.P.sort((a,b)=>(a.date||"9999").localeCompare(b.date||"9999")).map(x=>`<tr class="gbpay" data-open="ledger:${esc(x.id)}"><td class="t"><span class="cut">${esc(x.desc||"Platba")}</span><div class="meta">${x.date?fdateS(x.date):"plánované"}${x.docNo?" · doklad "+esc(x.docNo):""}${cofinG(x)?" · spolufinancovanie":""}${x.paid===false?" · nevyplatené":""}</div></td>${hasOrig?"<td></td>":""}<td></td><td class="num">${gbPaid(x)?eur(x.amount):""}</td><td class="num">${gbPaid(x)?"":eur(x.amount)}</td><td colspan="3"></td></tr>`).join("");
-  const lineRow=o=>{const open=!!S.gb.open[o.l.id],st=gbState(o.act,o.plan,B.pct,false),stG=o.planG&&o.actG>o.planG+0.005?["warn","dotácia nad plánom","var(--ochre)"]:null;
-    return`<tr class="gbl${open?" open":""}" data-gbline="${esc(o.l.id)}"><td class="t"><div class="gbn"><span class="gbtw">${open?"▾":"▸"}</span><span class="cut">${esc(o.l.name||"Položka")}</span></div><div class="meta gbm">${o.P.length?`${o.P.length} ${o.P.length===1?"platba":o.P.length<5?"platby":"platieb"}`:"bez platieb"}</div></td>
-      ${origCell(o.orig,o.plan)}<td class="num">${gbMoney(o.plan,true)}${o.planG&&o.planG<o.plan-0.005?sub(o.planG,"dotácia"):""}</td><td class="num">${gbMoney(o.paid,true)}${o.paid&&o.paidG<o.paid-0.005?sub(o.paidG,"dotácia"):""}</td><td class="num">${gbMoney(o.planned,true)}</td>
-      <td class="num ${o.rest<-0.005?"neg":""}">${o.plan?eur(o.rest):"—"}</td><td style="min-width:90px">${o.plan?bar(o.paid,o.plan,col,o.planned):""}</td><td>${gbChip(stG||st)}</td></tr>
-      ${open?payRows(o)+`<tr class="gbact"><td colspan="${hasOrig?8:7}"><div class="row" style="gap:8px">${optHtml?`<select class="linksel" data-gbassign="${esc(o.l.id)}" aria-label="Priradiť platbu z denníka"><option value="">Priradiť platbu z denníka…</option>${optHtml}</select>`:""}<button class="btn sm" data-gbnewpay="${esc(o.l.id)}">+ Nová platba</button><button class="btn ghost sm" data-open="lines:${esc(o.l.id)}">Upraviť položku</button></div></td></tr>`:""}`;};
+function grantBudgetTab(g){  /* vzhľad ako Rozpočet podujatia → Granty: tabuľka položiek (v kategóriách) a pod ňou všetky platby grantu */
+  const B=budgetCalc(g),gid=esc(g.id),hasOrig=!!g.origAt,cats=B.cats.some(c=>c.name);
+  const lbar=(paid,act,plan)=>{if(!plan)return"";const pp=Math.min(100,paid/plan*100),pl=Math.max(0,Math.min(100-pp,(act-paid)/plan*100));return`<div class="lbar${act>plan+0.005?" over":""}"><i style="width:${pp}%"></i><i class="pl" style="left:${pp}%;width:${pl}%"></i></div>`;};
+  const lst=s=>s[1]?`<span class="lst ${s[0]}">${esc(s[1])}</span>`:"";
+  const cf=o=>Math.max(0,o.plan-o.planG);
+  const origTd=(o,cur)=>hasOrig?`<td class="num">${o==null?'<span class="meta">nová</span>':eur(o)}${o!=null&&Math.abs(cur-o)>0.005?`<div class="meta">${cur-o>0?"+":"−"}${eur(Math.abs(cur-o))}</div>`:""}</td>`:"";
+  const nc=hasOrig?9:8;
+  const lineRow=o=>{const st=o.planG&&o.actG>o.planG+0.005&&o.act<=o.plan+0.005?["warn","dotácia nad plánom"]:gbState(o.act,o.plan,B.pct,false);
+    return`<tr data-open="lines:${esc(o.l.id)}"${cats?' class="gbi"':""}><td class="t"><span class="cut">${esc(o.l.name||"Položka")}</span><span class="meta">${o.P.length?o.P.length+" plat.":""}</span></td>${origTd(o.orig,o.plan)}
+      <td class="num">${o.planG?eur(o.planG):"—"}</td><td class="num">${cf(o)?eur(cf(o)):"—"}</td><td class="num">${o.act?eur(o.act):"—"}</td><td class="num neg">${eur(o.paid)}</td><td class="num ${o.rest<-0.005?"neg":""}">${o.plan?eur(o.rest):"—"}</td><td>${lbar(o.paid,o.act,o.plan)}</td><td>${o.plan?lst(st):'<span class="meta">bez rozpočtu</span>'}</td></tr>`;};
   const catRows=c=>{const st=gbState(c.act,c.plan,B.pct,true),closed=!!S.gb.closed[g.id+"|"+c.name];
-    return`<tr class="gbcat"><td class="t"><div class="gbn gbcn"><span class="gbtw" data-gbcatt="${gid}|${esc(c.name)}">${closed?"▸":"▾"}</span><input type="text" class="gbcatname" value="${esc(c.name)}" placeholder="Bez kategórie" data-gbcat="${gid}|${esc(c.name)}" aria-label="Názov kategórie" maxlength="80"></div></td>
-      ${hasOrig?`<td class="num">${c.orig==null?"":eur(c.orig)}</td>`:""}<td class="num">${eur(c.plan)}${c.planG&&c.planG<c.plan-0.005?sub(c.planG,"dotácia"):""}</td><td class="num">${gbMoney(c.paid,true)}</td><td class="num">${gbMoney(c.planned,true)}</td>
-      <td class="num ${c.rest<-0.005?"neg":""}">${eur(c.rest)}</td><td style="min-width:90px">${c.plan?bar(c.paid,c.plan,col,c.planned):""}</td><td>${gbChip(st)}</td></tr>
-      ${closed?"":c.I.map(lineRow).join("")+`<tr class="gbadd"><td colspan="${hasOrig?8:7}"><button class="addrow" data-gbnewline="${gid}|${esc(c.name)}">+ Pridať položku</button></td></tr>`}`;};
-  const nBad=B.cats.filter(c=>gbState(c.act,c.plan,B.pct,true)[0]==="bad").length;
-  const T=B.T,stT=nBad&&T.act<=T.plan+0.005?["bad",`${nBad} ${nBad===1?"kategória prekročená":nBad<5?"kategórie prekročené":"kategórií prekročených"}`,"var(--bad)"]:gbState(T.act,T.plan,0,true),cofinReq=+g.cofinReq||0,cofinAct=sum(S.d.ledger.filter(x=>x.type!=="prijem"&&cofinG(x)===g.id),x=>x.amount);
-  const appr=+g.approved||0,planGsum=sum(B.L,x=>x.planG);
+    return`<tr class="gbcat"><td class="t"><div class="gbn gbcn"><span class="gbtw" data-gbcatt="${gid}|${esc(c.name)}">${closed?"▸":"▾"}</span><input type="text" class="gbcatname" value="${esc(c.name)}" placeholder="Bez kategórie" data-gbcat="${gid}|${esc(c.name)}" aria-label="Názov kategórie" maxlength="80"></div></td>${hasOrig?`<td class="num">${c.orig==null?"":eur(c.orig)}</td>`:""}
+      <td class="num">${eur(c.planG)}</td><td class="num">${cf(c)?eur(cf(c)):"—"}</td><td class="num">${c.act?eur(c.act):"—"}</td><td class="num neg">${eur(c.paid)}</td><td class="num ${c.rest<-0.005?"neg":""}">${eur(c.rest)}</td><td>${lbar(c.paid,c.act,c.plan)}</td><td>${lst(st)}</td></tr>
+      ${closed?"":c.I.map(lineRow).join("")+`<tr class="gbadd"><td colspan="${nc}"><button class="addrow" data-gbnewline="${gid}|${esc(c.name)}">+ Pridať položku</button></td></tr>`}`;};
+  const nBad=B.cats.filter(c=>c.name&&gbState(c.act,c.plan,B.pct,true)[0]==="bad").length;
+  const T=B.T,stT=nBad&&T.act<=T.plan+0.005?["bad",`${nBad} ${nBad===1?"kategória prekročená":nBad<5?"kategórie prekročené":"kategórií prekročených"}`]:gbState(T.act,T.plan,0,true);
+  const cofinReq=+g.cofinReq||0,cofinAct=sum(S.d.ledger.filter(x=>x.type!=="prijem"&&cofinG(x)===g.id),x=>x.amount);
+  const appr=+g.approved||0,planGsum=sum(B.L,x=>x.planG),cfSum=sum(B.L,cf);
   const head=`<div class="strip"><div><b>${eur0(T.plan)}</b><span>rozpočet spolu${T.plan>planGsum+0.005&&planGsum?` · z toho dotácia ${eur0(planGsum)}`:""}</span></div><div><b>${eur0(T.paid+T.unPaid)}</b><span>zaplatené</span></div><div><b>${eur0(T.planned+T.unPlanned)}</b><span>plánované (ešte nezaplatené)</span></div><div><b class="${T.rest<-0.005?"neg":""}">${eur0(T.rest)}</b><span>zostáva</span></div>${cofinReq||cofinAct?`<div><b class="${cofinReq&&cofinAct<cofinReq-0.005?"warn":""}">${eur0(cofinAct)}${cofinReq?` / ${eur0(cofinReq)}`:""}</b><span>spolufinancovanie</span></div>`:""}</div>`;
-  const tools=`<div class="spread" style="margin-bottom:10px"><h2>Rozpočet</h2><div class="row" style="gap:8px"><label class="small muted">Povolený presun medzi kategóriami <input type="number" min="0" max="100" step="1" data-gbpct="${gid}" value="${B.pct||""}" placeholder="0" style="width:64px;padding:4px 8px"> %</label>
-    <button class="btn sm" data-gbnewcat="${gid}">+ Kategória</button><button class="btn ghost sm" data-gborig="${gid}" title="Odfotí súčasný plán ako pôvodný rozpočet (zo zmluvy); neskoršie zmeny sa porovnajú s ním">${hasOrig?"Prepísať pôvodný rozpočet":"Uložiť ako pôvodný rozpočet"}</button></div></div>`;
+  const tools=`<div class="spread gbtools"><label class="small muted">Povolený presun medzi kategóriami <input type="number" min="0" max="100" step="1" data-gbpct="${gid}" value="${B.pct||""}" placeholder="0" style="width:64px;padding:4px 8px"> %</label>
+    <div class="row" style="gap:8px"><button class="btn sm" data-gbnewcat="${gid}">+ Kategória</button><button class="btn ghost sm" data-gborig="${gid}" title="Odfotí súčasný plán ako pôvodný rozpočet (zo zmluvy); neskoršie zmeny sa porovnajú s ním">${hasOrig?"Prepísať pôvodný rozpočet":"Uložiť ako pôvodný rozpočet"}</button></div></div>`;
   const warn=[];
-  if(appr&&B.L.length&&Math.abs(planGsum-appr)>0.009)warn.push(`Súčet plánu z dotácie (${eur(planGsum)}) nesedí so schválenou sumou (${eur(appr)}).`);
+  if(appr&&B.L.length&&Math.abs(planGsum-appr)>0.009)warn.push(`Súčet rozpočtu z dotácie (${eur(planGsum)}) nesedí so schválenou sumou (${eur(appr)}).`);
   if(hasOrig)warn.push(`Pôvodný rozpočet uložený ${fdate(iso(new Date(g.origAt)))}.`);
-  const unBlock=B.un.length?`<div class="panel" style="margin-top:20px"><div class="spread"><h2>Platby bez položky</h2><span class="meta">${B.un.length} · ${eur(sum(B.un,x=>x.amount))}</span></div>
-    <p class="small muted" style="margin:0 0 6px">Tieto výdavky patria ku grantu, ale nie sú priradené k žiadnej položke rozpočtu – započítavajú sa len do súčtu.</p>
-    <ul class="items">${B.un.map(x=>`<li data-open="ledger:${esc(x.id)}"><span class="t">${esc(x.desc||"Platba")}</span><span class="meta">${x.date?fdateS(x.date):"plánované"}</span><span class="num neg">−${eur(x.amount)}</span>${B.Ln.length?`<select class="lsel" data-gbput="${esc(x.id)}" aria-label="Priradiť k položke"><option value="">Priradiť k položke…</option>${B.cats.map(c=>`<optgroup label="${esc(c.name||"Bez kategórie")}">${c.I.map(o=>`<option value="${esc(o.l.id)}">${esc(o.l.name||"Položka")}</option>`).join("")}</optgroup>`).join("")}</select>`:""}</li>`).join("")}</ul></div>`:"";
-  const incBlock=B.inc.length?`<div class="panel" style="margin-top:20px"><div class="spread"><h2>Príjmy od poskytovateľa</h2><span class="meta">${eur(sum(B.inc,x=>x.amount))}</span></div><ul class="items">${B.inc.map(x=>`<li data-open="ledger:${esc(x.id)}"><span class="t">${esc(x.desc||"Príjem")}</span><span class="meta">${x.date?fdateS(x.date):"plánované"}</span><span class="num pos">+${eur(x.amount)}</span></li>`).join("")}</ul></div>`:"";
-  const th=`<thead><tr><th>Kategória / položka</th>${hasOrig?'<th class="num">Pôvodný</th>':""}<th class="num">Plán</th><th class="num">Zaplatené</th><th class="num">Plánované</th><th class="num">Zostáva</th><th></th><th>Stav</th></tr></thead>`;
-  const foot=`<tfoot><tr><td>Spolu${T.unPaid+T.unPlanned?` <span class="meta">(vrátane platieb bez položky)</span>`:""}</td>${hasOrig?`<td class="num">${T.orig==null?"":eur(T.orig)}</td>`:""}<td class="num">${eur(T.plan)}</td><td class="num">${eur(T.paid+T.unPaid)}</td><td class="num">${eur(T.planned+T.unPlanned)}</td><td class="num ${T.rest<-0.005?"neg":""}">${eur(T.rest)}</td><td></td><td>${gbChip(stT)}</td></tr></tfoot>`;
-  const table=B.cats.length?`<div class="tw"><table class="gbt">${th}<tbody>${B.cats.map(catRows).join("")}</tbody>${foot}</table></div>`
-    :`<div class="empty">Rozpočet grantu je prázdny. Pridajte kategóriu (napr. Honoráre, Technické zabezpečenie) a v nej položky podľa žiadosti alebo zmluvy. Ku každej položke potom priradíte platby z denníka.<div style="margin-top:8px"><button class="btn pri" data-gbnewcat="${gid}">+ Kategória</button></div></div>`;
-  return head+`<div class="panel">${tools}${table}${warn.length?`<p class="small muted" style="margin:10px 0 0">${warn.map(esc).join(" ")}</p>`:""}</div>${unBlock}${incBlock}`;
+  const addL=cats?"":`<button class="addic" data-gbnewline="${gid}|" title="Pridať rozpočtovú položku" aria-label="Pridať rozpočtovú položku">+</button>`;
+  const th=`<thead><tr><th>Rozpočtová položka ${addL}</th>${hasOrig?'<th class="num">Pôvodný</th>':""}<th class="num">Rozpočet</th><th class="num">Spolufin.</th><th class="num">Plánované</th><th class="num">Zaplatené</th><th class="num">Zostáva</th><th style="width:20%"></th><th></th></tr></thead>`;
+  const unAct=T.unPaid+T.unPlanned;
+  const foot=`<tfoot><tr><td>Spolu${unAct?` <span class="meta">(aj ${eur(unAct)} bez položky)</span>`:""}</td>${hasOrig?`<td class="num">${T.orig==null?"":eur(T.orig)}</td>`:""}<td class="num">${eur(planGsum)}</td><td class="num ${cofinReq&&cfSum<cofinReq-0.005?"warn":""}" title="${cofinReq?"Povinné spolufinancovanie "+eur(cofinReq):""}">${eur(cfSum)}</td><td class="num">${eur(T.act)}</td><td class="num neg">${eur(T.paid+T.unPaid)}</td><td class="num ${T.rest<-0.005?"neg":""}">${eur(T.rest)}</td><td></td><td>${lst(stT)}</td></tr></tfoot>`;
+  const body=cats?B.cats.map(catRows).join(""):B.L.map(lineRow).join("");
+  const tbl=B.L.length||cats?`<div class="tw"><table class="lt gbt">${th}<tbody>${body}</tbody>${foot}</table></div>`
+    :`<div class="empty">Rozpočet grantu je prázdny. Pridajte položky podľa žiadosti alebo zmluvy (<button class="addic" data-gbnewline="${gid}|" title="Pridať rozpočtovú položku" aria-label="Pridať rozpočtovú položku">+</button>), prípadne ich zoskupte do kategórií (+ Kategória). Platby potom priradíte k položkám v zozname nižšie.</div>`;
+  /* všetky platby grantu: dátum, popis, suma, meno, rozpočtová položka, časť programu */
+  const lids=new Set(B.Ln.map(l=>l.id)),isInc=x=>x.type==="prijem";
+  const rows=S.d.ledger.filter(x=>x.grantId===g.id||cofinG(x)===g.id||lids.has(x.lineId))
+    .sort((a,b)=>{if(!!a.date!==!!b.date)return a.date?-1:1;if(a.date&&b.date&&a.date!==b.date)return a.date.localeCompare(b.date);const oa=typeof a.ord==="number"?a.ord:Infinity,ob=typeof b.ord==="number"?b.ord:Infinity;if(oa!==ob)return oa-ob;return isInc(b)-isInc(a);});
+  const lopt=x=>`<option value="">—</option>${cats?B.cats.map(c=>`<optgroup label="${esc(c.name||"Bez kategórie")}">${c.I.map(o=>`<option value="${esc(o.l.id)}" ${x.lineId===o.l.id?"selected":""}>${esc(o.l.name||"Položka")}</option>`).join("")}</optgroup>`).join(""):B.Ln.map(l=>`<option value="${esc(l.id)}" ${x.lineId===l.id?"selected":""}>${esc(l.name||"Položka")}</option>`).join("")}`;
+  const def={type:"vydavok",grantId:g.id};if(g.projectId)def.projectId=g.projectId;
+  const ids=new Set(rows.map(x=>x.id));
+  const avail=S.d.ledger.filter(x=>!ids.has(x.id)&&!x.grantId&&!cofinG(x)).sort((a,b)=>(b.date||"").localeCompare(a.date||"")).slice(0,300);
+  const pays=`<div class="gbpays"><div class="spread" style="margin-bottom:6px"><h2>Platby</h2><button class="btn sm" data-create="ledger" data-defs='${esc(JSON.stringify(def))}'>+ Platba</button></div>
+    ${rows.length?table([["Dátum",x=>`<span class="meta">${x.date?fdateS(x.date):"plánované"}</span>`],["Popis",x=>`<span class="drow"><span class="cut">${esc(x.desc||"—")}</span>${clip(x)}</span>${cofinG(x)===g.id?'<span class="meta"> · spolufin.</span>':""}`,"t"],["Suma",x=>`<span class="${isInc(x)?"pos":"neg"}">${eur(x.amount||0)}</span>`,"num"],["Meno",x=>ctLink(x.contactId)],
+      ["Rozp. položka",x=>isInc(x)||!B.Ln.length?"":`<select class="lsel" data-lline="${esc(x.id)}" aria-label="Rozpočtová položka">${lopt(x)}</select>`],["Kategória",x=>x.category?`<span class="meta">${esc(x.category)}</span>`:""]],rows,x=>"ledger:"+esc(x.id))
+    :`<div class="empty">Ku grantu zatiaľ nie sú platby. Pridajte novú alebo priraďte existujúcu z denníka.</div>`}
+    ${avail.length?`<select class="linksel" data-gbaddpay="${gid}" style="margin-top:10px"><option value="">↗ Priradiť existujúcu platbu z denníka…</option>${avail.map(x=>`<option value="${esc(x.id)}">${esc(x.desc||"Platba")} · ${x.date?fdateS(x.date):"plánované"} · ${eur(x.amount)}</option>`).join("")}</select>`:""}</div>`;
+  return head+`<div class="glines gbbox">${tools}${tbl}${warn.length?`<p class="small muted" style="margin:6px 0 2px">${warn.map(esc).join(" ")}</p>`:""}</div>${pays}`;
 }
 /* ovládanie */
 document.addEventListener("click",async ev=>{const t=ev.target;if(!t.closest)return;let el;
@@ -100,6 +108,8 @@ document.addEventListener("change",async ev=>{const t=ev.target;if(!t.closest)re
   if((el=t.closest("[data-gbassign]"))&&el.value){const l=get("lines",el.dataset.gbassign),x=get("ledger",el.value);el.value="";if(!l||!x)return;
     const p={lineId:l.id};if(!x.grantId&&!cofinG(x))p.grantId=l.grantId;const g=get("grants",l.grantId);if(g&&g.projectId&&!x.projectId)p.projectId=g.projectId;
     upd("ledger",x.id,p);toast("Platba priradená k položke.");return;}
+  if((el=t.closest("[data-gbaddpay]"))&&el.value){const g=get("grants",el.dataset.gbaddpay),x=get("ledger",el.value);el.value="";if(!g||!x)return;
+    const p={grantId:g.id};if(g.projectId&&!x.projectId)p.projectId=g.projectId;upd("ledger",x.id,p);toast("Platba priradená ku grantu.");return;}
   if((el=t.closest("[data-gbput]"))&&el.value){const x=get("ledger",el.dataset.gbput);const lid=el.value;el.value="";if(x)upd("ledger",x.id,{lineId:lid});return;}
   if((el=t.closest("[data-gbcat]"))){const[gid,old]=split1(el.dataset.gbcat);const nv=el.value.trim();const g=get("grants",gid);if(!g||nv===old)return;
     const L=S.d.lines.filter(l=>l.grantId===gid&&gbCat(l)===old);
