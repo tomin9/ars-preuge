@@ -34,12 +34,14 @@
 .gbt tr.gbcat td.t{display:table-cell;padding-left:22px}
 .gbbox{margin-top:16px}
 .gbtools{flex-wrap:wrap;gap:8px;padding:6px 0 8px;border-bottom:1px solid var(--line)}
-.gbpays{margin-top:22px;border:1px solid var(--line);border-radius:12px;padding:6px 14px 6px}
-.gbpays tfoot td{font-weight:400;border-top:1px solid var(--line);padding-top:6px;padding-bottom:6px;background:var(--surface2)}
-.gbpays tfoot td:first-child{border-radius:8px 0 0 8px}
-.gbpays tfoot td:last-child{border-radius:0 8px 8px 0}
-.gbnew input[type=date]{width:136px}
-.gbnew.num input{width:110px}
+.gbpays{margin-top:22px;border:1px solid var(--line);border-radius:12px;padding:6px 0 0;overflow:hidden}
+.gbpays .tw{margin:0;padding:0}
+.gbpays td:first-child,.gbpays th:first-child{padding-left:18px}
+.gbpays td:last-child,.gbpays th:last-child{padding-right:18px}
+.gbpays tfoot td{font-weight:400;border-top:1px solid var(--line);padding-top:8px;padding-bottom:8px;background:var(--surface2)}
+.gbpays select.lsel,.gbnew select{min-width:220px;max-width:260px}
+.gbndate{position:relative;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.gbndate input[type=date]{position:absolute;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;padding:0;margin:0;border:0}
 .gbnew input,.gbnew select{width:100%;box-sizing:border-box;border:1px solid transparent;background:transparent;padding:4px 6px;margin:0 -6px;font:inherit;color:var(--ink)}
 .gbnew.num input{text-align:right}
 .gbnew input:hover,.gbnew select:hover{border-color:var(--line)}
