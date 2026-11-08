@@ -92,8 +92,8 @@ function arsp_claude_url_block($url) {
     $body = preg_replace('#<(script|style|noscript|svg)[^>]*>.*?</\1>#is', ' ', $body);
     $text = html_entity_decode(wp_strip_all_tags($body), ENT_QUOTES, 'UTF-8');
     $text = trim(preg_replace('/[ \t]+/u', ' ', preg_replace('/\s*\n\s*/u', "\n", $text)));
-    if (mb_strlen($text) < 200) return new WP_Error('empty_page', 'Na stránke sa nenašiel text výzvy (možno je za prihlásením alebo sa načítava až v prehliadači). Stiahnite výzvu ako PDF a nahrajte ju.', array('status' => 422));
-    if (mb_strlen($text) > 400000) return new WP_Error('too_long', 'Stránka je príliš dlhá. Stiahnite samotnú výzvu ako PDF a nahrajte ju.', array('status' => 422));
+    if (mb_strlen($text) < 200) return new WP_Error('empty_page', 'Na stránke sa nenašiel text dokumentu (možno je za prihlásením alebo sa načítava až v prehliadači). Stiahnite dokument ako PDF a nahrajte ho.', array('status' => 422));
+    if (mb_strlen($text) > 400000) return new WP_Error('too_long', 'Stránka je príliš dlhá. Stiahnite samotný dokument ako PDF a nahrajte ho.', array('status' => 422));
     return array('type' => 'text', 'text' => "Text stránky " . $url . ":\n\n" . $text);
 }
 
@@ -123,6 +123,26 @@ function arsp_claude_call_system() {
         . "- Texty píš po slovensky, vecne a stručne (odrážky „- “), bez úvodných fráz.";
 }
 
+/** Schéma častí formulára žiadosti – zodpovedá appSections grantu (title, hint, limit, body). */
+function arsp_claude_app_schema() {
+    $sec = array('type' => 'object', 'properties' => array(
+        'title' => array('type' => 'string'),
+        'hint'  => array('type' => 'string'),
+        'limit' => array('anyOf' => array(array('type' => 'integer'), array('type' => 'null'))),
+        'body'  => array('type' => 'string'),
+    ), 'required' => array('title', 'hint', 'limit', 'body'), 'additionalProperties' => false);
+    return array('type' => 'object', 'properties' => array('sections' => array('type' => 'array', 'items' => $sec)), 'required' => array('sections'), 'additionalProperties' => false);
+}
+
+function arsp_claude_app_system() {
+    return "Pomáhaš občianskemu združeniu Ars Preuge (kultúra, Prievidza) písať grantové žiadosti. Dostaneš formulár žiadosti (vzor z grantového systému alebo vyplnenú žiadosť) a vypíšeš jeho časti, do ktorých žiadateľ píše vlastný text.\n"
+        . "- Vypíš len textové časti (napr. Popis projektu, Ciele, Cieľové skupiny, Harmonogram, Propagácia, Udržateľnosť). Vynechaj identifikačné údaje (názov, IČO, adresa, banka, štatutár), tabuľky rozpočtu, zaškrtávacie polia a prílohy.\n"
+        . "- Poradie zachovaj ako vo formulári. title: názov časti presne podľa formulára (bez čísla, ak je len poradové).\n"
+        . "- hint: čo má časť podľa formulára obsahovať (otázka alebo pokyn), stručne, po slovensky.\n"
+        . "- limit: najväčší povolený počet znakov, ak ho formulár uvádza; inak null. Ak je limit v slovách alebo stranách, daj null a uveď ho v hint.\n"
+        . "- body: text, ktorý je v časti už vyplnený (pri vyplnenej žiadosti) – presne, bez úprav; pri prázdnom vzore \"\". Nič si nevymýšľaj.";
+}
+
 add_action('rest_api_init', function () {
     $perm = function () { return current_user_can(ARSP_CAP); };
     /* Načítanie výzvy: { asset: id nahraného súboru } alebo { url: odkaz } → navrhované údaje (nič sa neukladá) */
@@ -141,6 +161,23 @@ add_action('rest_api_init', function () {
             return array('fields' => $out['data'], 'usage' => $out['usage'], 'model' => $out['model']);
         },
     ));
+    /* Načítanie formulára žiadosti: { asset } alebo { url } → navrhnuté časti žiadosti (nič sa neukladá) */
+    register_rest_route('arsp/v1', '/ai/ziadost', array(
+        'methods' => 'POST', 'permission_callback' => $perm,
+        'callback' => function (WP_REST_Request $r) {
+            $lock = 'arsp_ai_busy_' . get_current_user_id();
+            if (get_transient($lock)) return new WP_Error('busy', 'Claude ešte číta predchádzajúci dokument – počkajte, kým skončí.', array('status' => 429));
+            $block = $r->get_param('asset') ? arsp_claude_asset_block($r->get_param('asset')) : arsp_claude_url_block($r->get_param('url'));
+            if (is_wp_error($block)) return $block;
+            set_transient($lock, 1, 300);
+            $content = array($block, array('type' => 'text', 'text' => 'Toto je formulár grantovej žiadosti. Vypíš jeho textové časti podľa pokynov.'));
+            $out = arsp_claude_call($content, arsp_claude_app_system(), arsp_claude_app_schema(), 'medium', 32000);
+            delete_transient($lock);
+            if (is_wp_error($out)) return $out;
+            $sec = isset($out['data']['sections']) && is_array($out['data']['sections']) ? $out['data']['sections'] : array();
+            return array('sections' => $sec, 'usage' => $out['usage'], 'model' => $out['model']);
+        },
+    ));
 });
 
 /* ------------------------------------------------------- administrácia */
@@ -154,7 +191,7 @@ function arsp_claude_admin_section() {
         if (isset($txt[$m])) echo '<div class="notice notice-' . $txt[$m][0] . '"><p>' . esc_html($txt[$m][1]) . '</p></div>';
         elseif ($m === 'err') echo '<div class="notice notice-error"><p>' . esc_html((string) get_transient('arsp_ai_test_err')) . '</p></div>';
     }
-    echo '<p>Pracovný priestor vie s pomocou Claude prečítať grantovú výzvu (a neskôr formulár žiadosti či zmluvu) a navrhnúť údaje. Kľúč vytvoríte na <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">platform.claude.com → API keys</a> (ideálne cez servisný účet a bez dátumu vypršania). Je uložený len na tomto serveri, tím ho nevidí. Platí sa za použitie podľa cenníka Anthropic; v Claude Console si môžete nastaviť mesačný limit výdavkov.</p>';
+    echo '<p>Pracovný priestor vie s pomocou Claude prečítať grantovú výzvu a formulár žiadosti (neskôr aj zmluvu) a navrhnúť údaje. Kľúč vytvoríte na <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">platform.claude.com → API keys</a> (ideálne cez servisný účet a bez dátumu vypršania). Je uložený len na tomto serveri, tím ho nevidí. Platí sa za použitie podľa cenníka Anthropic; v Claude Console si môžete nastaviť mesačný limit výdavkov.</p>';
     $mask = arsp_claude_masked();
     echo '<p>Stav: ' . ($mask ? 'kľúč je uložený (<code>' . esc_html($mask) . '</code>), model <code>' . esc_html(ARSP_CLAUDE_MODEL) . '</code>' : '<b>kľúč nie je nastavený</b>') . '</p>';
     echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">';

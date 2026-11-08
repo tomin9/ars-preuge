@@ -27,7 +27,7 @@ Majiteľ už má granty v aplikácii zadané a fungujú – **nič sa nesmie zma
 ## Záložka Žiadosť – ✅ editor po častiach hotový vo verzii 1.71.0 (časti sa zatiaľ pridávajú ručne; načítanie z PDF a „Navrhnúť text“ prídu s napojením na Claude)
 
 - Majiteľ chce: nahrať PDF z grantového systému (štruktúra je vždy iná), načítať ho a potom do toho dopisovať.
-- **„Načítať formulár žiadosti“** (PDF) → Claude vytiahne časti/otázky, pokyny, limity znakov, prípadne už napísaný text → prehľad na potvrdenie; PDF sa uloží medzi dokumenty žiadosti.
+- ✅ (1.79.0, tlačidlo „Načítať žiadosť“) **„Načítať formulár žiadosti“** (PDF alebo odkaz) → Claude vytiahne časti/otázky, pokyny, limity znakov, prípadne už napísaný text → prehľad na potvrdenie; PDF sa uloží medzi dokumenty žiadosti. Pridávajú sa len nové časti, existujúce sa nemenia. Rozpočet zo žiadosti do Rozpočtu ešte nie.
 - Písanie v rozložení ako **Texty podujatia**: vľavo časti s bodkou stavu, vpravo editor s pokynom z formulára, počítadlo znakov s limitom (červené pri prekročení), Kopírovať; súhrn „hotové X z Y“.
 - Nová verzia PDF: zhodné časti si nechajú text, nové pribudnú, zrušené sa len označia (nič sa nezmaže).
 - ✅ **Rozpočet zo žiadosti** sa načíta rovno do záložky Rozpočet ako rozpočtové položky (s prehľadom na potvrdenie).
@@ -73,7 +73,7 @@ Majiteľ potrebuje: **plánovaný rozpočet** (zo žiadosti/zmluvy) → **kateg�
 ## Navrhované poradie prác
 
 1. **Bez Claude (dá sa hneď):** ✅ Rozpočet s kategóriami (1.69.0; limit presunu = % z plánu kategórie, porovnáva sa s celkovými nákladmi – majiteľ ešte potvrdí, či to tak ráta poskytovateľ) (zaplatené/plánované, limit presunu, pôvodný rozpočet) + opravy E7–E9 · zrušenie záložky Zmluva a tri dokumenty v hlavnej karte · hlavná karta v podobe podujatia · ✅ Žiadosť ako editor častí (1.71.0; doterajšie pole „Text žiadosti“ sa ukazuje ako prvá časť).
-2. **S Claude (po získaní API kľúča):** ✅ nastavenie kľúča v plugine · ✅ Načítať výzvu (1.73.0) · Načítať formulár žiadosti (+ rozpočet do Rozpočtu) · Navrhnúť text · Navrhnúť úlohy z dokumentov.
+2. **S Claude (po získaní API kľúča):** ✅ nastavenie kľúča v plugine · ✅ Načítať výzvu (1.73.0) · ✅ Načítať formulár žiadosti (1.79.0; rozpočet do Rozpočtu ešte nie) · Navrhnúť text · Navrhnúť úlohy z dokumentov.
 
 ## Zistené chyby (zapísať aj do ZOZNAM-UPRAV.md)
 
