@@ -56,8 +56,6 @@ function grantBudgetTab(g){  /* vzhľad ako Rozpočet podujatia → Granty: tabu
   const T=B.T,stT=nBad&&T.act<=T.plan+0.005?["bad",`${nBad} ${nBad===1?"kategória prekročená":nBad<5?"kategórie prekročené":"kategórií prekročených"}`]:gbState(T.act,T.plan,0,true);
   const cofinReq=+g.cofinReq||0,cofinAct=sum(S.d.ledger.filter(x=>x.type!=="prijem"&&cofinG(x)===g.id),x=>x.amount);
   const appr=+g.approved||0,planGsum=sum(B.L,x=>x.planG),cfSum=sum(B.L,cf);
-  const tools=`<div class="spread gbtools"><label class="small muted">Povolený presun medzi kategóriami <input type="number" min="0" max="100" step="1" data-gbpct="${gid}" value="${B.pct||""}" placeholder="0" style="width:64px;padding:4px 8px"> %</label>
-    <div class="row" style="gap:8px"><button class="btn sm" data-gbnewcat="${gid}">+ Kategória</button><button class="btn ghost sm" data-gborig="${gid}" title="Odfotí súčasný plán ako pôvodný rozpočet (zo zmluvy); neskoršie zmeny sa porovnajú s ním">${hasOrig?"Prepísať pôvodný rozpočet":"Uložiť ako pôvodný rozpočet"}</button></div></div>`;
   const warn=[];
   if(appr&&B.L.length&&Math.abs(planGsum-appr)>0.009)warn.push(`Súčet rozpočtu z dotácie (${eur(planGsum)}) nesedí so schválenou sumou (${eur(appr)}).`);
   if(hasOrig)warn.push(`Pôvodný rozpočet uložený ${fdate(iso(new Date(g.origAt)))}.`);
@@ -67,7 +65,7 @@ function grantBudgetTab(g){  /* vzhľad ako Rozpočet podujatia → Granty: tabu
   const foot=`<tfoot><tr><td>Spolu${unAct?` <span class="meta">(aj ${eur(unAct)} bez položky)</span>`:""}</td>${hasOrig?`<td class="num">${T.orig==null?"":eur(T.orig)}</td>`:""}<td class="num">${eur(planGsum)}</td><td class="num ${cofinReq&&cfSum<cofinReq-0.005?"warn":""}" title="${cofinReq?"Povinné spolufinancovanie "+eur(cofinReq):""}">${eur(cfSum)}</td><td class="num">${eur(T.act)}</td><td class="num neg">${eur(T.paid+T.unPaid)}</td><td class="num ${T.rest<-0.005?"neg":""}">${eur(T.rest)}</td><td></td><td>${lst(stT)}</td></tr></tfoot>`;
   const body=cats?B.cats.map(catRows).join(""):B.L.map(lineRow).join("");
   const tbl=B.L.length||cats?`<div class="tw"><table class="lt gbt">${th}<tbody>${body}</tbody>${foot}</table></div>`
-    :`<div class="empty">Rozpočet grantu je prázdny. Pridajte položky podľa žiadosti alebo zmluvy (<button class="addic" data-gbnewline="${gid}|" title="Pridať rozpočtovú položku" aria-label="Pridať rozpočtovú položku">+</button>), prípadne ich zoskupte do kategórií (+ Kategória). Platby potom priradíte k položkám v zozname nižšie.</div>`;
+    :`<div class="empty">Rozpočet grantu je prázdny. Pridajte položky podľa žiadosti alebo zmluvy (<button class="addic" data-gbnewline="${gid}|" title="Pridať rozpočtovú položku" aria-label="Pridať rozpočtovú položku">+</button>). Platby potom priradíte k položkám v zozname nižšie.</div>`;
   /* všetky platby grantu: dátum, popis, suma, meno, rozpočtová položka, časť programu */
   const lids=new Set(B.Ln.map(l=>l.id)),isInc=x=>x.type==="prijem";
   const rows=S.d.ledger.filter(x=>x.grantId===g.id||cofinG(x)===g.id||lids.has(x.lineId))
@@ -80,7 +78,7 @@ function grantBudgetTab(g){  /* vzhľad ako Rozpočet podujatia → Granty: tabu
     <td class="gbnew">${B.Ln.length?`<select id="gbn-lineId" data-gbn="${gid}|lineId" aria-label="Rozpočtová položka">${lopt({lineId:D.lineId||""})}</select>`:""}</td><td class="gbnew">${nIn("category","—")}</td>`;
   const pays=`<div class="gbpays">${table([["Dátum",x=>`<span class="meta">${x.date?fdateS(x.date):"plánované"}</span>`],["Popis",x=>`<span class="drow"><span class="cut">${esc(x.desc||"—")}</span>${clip(x)}</span>${cofinG(x)===g.id?'<span class="meta"> · spolufin.</span>':""}`,"t"],["Suma",x=>`<span class="${isInc(x)?"pos":"neg"}">${eur(x.amount||0)}</span>`,"num"],["Meno",x=>ctLink(x.contactId)],
       ["Rozp. položka",x=>isInc(x)||!B.Ln.length?"":`<select class="lsel" data-lline="${esc(x.id)}" aria-label="Rozpočtová položka">${lopt(x)}</select>`],["Kategória",x=>x.category?`<span class="meta">${esc(x.category)}</span>`:""]],rows,x=>"ledger:"+esc(x.id),newRow)}</div>`;
-  return`<div class="glines gbbox">${tools}${tbl}${warn.length?`<p class="small muted" style="margin:6px 0 2px">${warn.map(esc).join(" ")}</p>`:""}</div>${pays}`;
+  return`<div class="glines gbbox">${tbl}${warn.length?`<p class="small muted" style="margin:6px 0 2px">${warn.map(esc).join(" ")}</p>`:""}</div>${pays}`;
 }
 /* ovládanie */
 document.addEventListener("click",async ev=>{const t=ev.target;if(!t.closest)return;let el;
