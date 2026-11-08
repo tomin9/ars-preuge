@@ -39,3 +39,7 @@
 .gdocs .docslot.mini .items li .meta{display:none}
 .gdocs .docslot.mini .items li .t{white-space:normal;overflow-wrap:anywhere}
 @media (max-width:760px){.evinfo .tl{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* žiadosť grantu: pokyn z formulára pod stavovým riadkom */
+.txmain input.gahint{display:block;width:100%;box-sizing:border-box;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:10px 26px;font-size:13.5px;color:var(--muted);font-style:italic}
+.txmain input.gahint:focus{outline:none;background:var(--surface3)}
+.txi small.neg{color:var(--bad)}

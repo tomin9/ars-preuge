@@ -24,7 +24,7 @@ Majiteľ už má granty v aplikácii zadané a fungujú – **nič sa nesmie zma
 - Tlačidlo **„Načítať výzvu“**: odkaz na stránku výzvy alebo nahratie PDF → Claude vytiahne údaje (termíny, sumy, spolufinancovanie, kto môže žiadať, oprávnené výdavky, povinné prílohy…) → prehľad na potvrdenie → uloží sa; PDF sa uloží medzi dokumenty výzvy.
 - Otvorené: ktoré údaje sú najdôležitejšie; odkazy na 2–3 skutočné výzvy na vyskúšanie.
 
-## Záložka Žiadosť – dohodnuté
+## Záložka Žiadosť – ✅ editor po častiach hotový vo verzii 1.71.0 (časti sa zatiaľ pridávajú ručne; načítanie z PDF a „Navrhnúť text“ prídu s napojením na Claude)
 
 - Majiteľ chce: nahrať PDF z grantového systému (štruktúra je vždy iná), načítať ho a potom do toho dopisovať.
 - **„Načítať formulár žiadosti“** (PDF) → Claude vytiahne časti/otázky, pokyny, limity znakov, prípadne už napísaný text → prehľad na potvrdenie; PDF sa uloží medzi dokumenty žiadosti.
@@ -72,7 +72,7 @@ Majiteľ potrebuje: **plánovaný rozpočet** (zo žiadosti/zmluvy) → **kateg�
 
 ## Navrhované poradie prác
 
-1. **Bez Claude (dá sa hneď):** ✅ Rozpočet s kategóriami (1.69.0; limit presunu = % z plánu kategórie, porovnáva sa s celkovými nákladmi – majiteľ ešte potvrdí, či to tak ráta poskytovateľ) (zaplatené/plánované, limit presunu, pôvodný rozpočet) + opravy E7–E9 · zrušenie záložky Zmluva a tri dokumenty v hlavnej karte · hlavná karta v podobe podujatia · Žiadosť ako editor častí (s limitmi znakov a komentármi – časti sa dajú zapísať aj ručne).
+1. **Bez Claude (dá sa hneď):** ✅ Rozpočet s kategóriami (1.69.0; limit presunu = % z plánu kategórie, porovnáva sa s celkovými nákladmi – majiteľ ešte potvrdí, či to tak ráta poskytovateľ) (zaplatené/plánované, limit presunu, pôvodný rozpočet) + opravy E7–E9 · zrušenie záložky Zmluva a tri dokumenty v hlavnej karte · hlavná karta v podobe podujatia · ✅ Žiadosť ako editor častí (1.71.0; doterajšie pole „Text žiadosti“ sa ukazuje ako prvá časť).
 2. **S Claude (po získaní API kľúča):** nastavenie kľúča v plugine · Načítať výzvu · Načítať formulár žiadosti (+ rozpočet do Rozpočtu) · Navrhnúť text · Navrhnúť úlohy z dokumentov.
 
 ## Zistené chyby (zapísať aj do ZOZNAM-UPRAV.md)
