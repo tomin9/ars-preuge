@@ -202,3 +202,5 @@ function table(cols,rows,open,foot){
   ${rows.map(r=>`<tr data-open="${open(r)}">${cols.map(c=>`<td class="${c[2]||""}">${c[1](r)}</td>`).join("")}</tr>`).join("")}</tbody>${foot?`<tfoot><tr>${foot}</tr></tfoot>`:""}</table></div>`;
 }
 
+/* ================= views ================= */
+const VIEWS={};

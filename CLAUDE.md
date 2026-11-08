@@ -19,8 +19,10 @@ Majiteľ repozitára nie je programátor – výsledky a problémy vysvetľuj po
 
 | Súbor | Na čo slúži |
 |---|---|
-| `app/index.html` | Kostra stránky a **sekcie** (Prehľad, Kalendár, Úlohy, Projekty, Granty, Podujatia, Financie, Kontakty, Nastavenia, Zabezpečenie) – ~1 570 riadkov. Na začiatku odkazy na štýly a riadky `//@subor js/…`. |
-| `app/js/*.js` | **Spoločný základ programu** – 6 častí v pevnom poradí: `00-nastavenia` (stavy, polia, farby štítkov) · `10-pomocnici` (dátumy, sumy, štítky, bublina, okno s otázkou) · `20-data-a-vypocty` (ukladanie, načítanie, zostatky, čerpanie) · `30-kostra` (navigácia, menu, vykreslenie) · `40-bocny-panel` · `50-prepojenia-a-zoznamy`. **Nie sú to samostatné skripty** – sú to kusy jedného programu; plugin ich vloží do `app/index.html` na miesto riadkov `//@subor js/…` (vnútri spoločného obalu `(function(){ "use strict"; … })()`). Preto do nich nepatrí vlastný obal ani `"use strict"`. |
+| `app/index.html` | Len **kostra stránky** (~60 riadkov): odkazy na štýly, prázdne miesta pre menu, obsah a bočný panel, a **zoznam riadkov `//@subor js/…`** – ten určuje, z ktorých častí a v akom poradí sa program poskladá. |
+| `app/js/*.js` | **Spoločné časti programu:** `00-nastavenia` (stavy, polia, farby štítkov) · `10-pomocnici` (dátumy, sumy, štítky, bublina, okno s otázkou) · `20-data-a-vypocty` (ukladanie, načítanie, zostatky, čerpanie) · `30-kostra` (navigácia, menu, vykreslenie) · `40-bocny-panel` · `50-prepojenia-a-zoznamy` (+ zoznam obrazoviek `VIEWS`) · `60–64` dokumenty, zmluvy, zlúčenie kontaktov, prehliadač dokumentov · `70-hladanie` · `71-export` · `90-ovladanie-a-spustenie` (`bindView`, `boot`). |
+| `app/js/sekcie/*.js` | **Sekcie:** `prehlad`, `kalendar`, `ulohy`, `projekty`, `granty`, `podujatia` + `podujatie-…` (rozpočet a program, spolupráce, texty, fotky, záložky, poradie platieb), `financie`, `kontakty`, `nastavenia`, `zabezpecenie`. |
+| | **Všetky súbory v `app/js/` sú kusy jedného programu, nie samostatné skripty.** Plugin ich vloží do `app/index.html` na miesto riadkov `//@subor …` vnútri spoločného obalu `(function(){ "use strict"; … })()` – preto sa navzájom vidia a do súborov nepatrí vlastný obal ani `"use strict"`. Poradie v zozname v `index.html` je pôvodné poradie programu; nový súbor sa pridá novým riadkom `//@subor` (meno len malé písmená, číslice a pomlčky, nanajvýš jeden podpriečinok). |
 | `app/css/*.css` | **Vzhľad** – 7 súborov očíslovaných v poradí načítania (**poradie je dôležité**, neskoršie pravidlá prebíjajú skoršie): `00-zaklad` farby a základ · `10-menu-a-stranka` menu, hlavička, tlačidlá, panel · `20-prvky` súhrny, štítky, zoznamy, tabuľky, nástenka · `30-panely-a-okna` bočný panel, výbery, okná · `40-kalendar-a-detaily` kalendár, galéria, hlavné karty, záložky, kontakty, mobil · `50-zabezpecenie` · `60-texty-a-menu` texty podujatia, zbaľovanie menu. Zatiaľ sú rozdelené podľa poradia v pôvodnom súbore, nie podľa účelu. |
 | `app/shim.js` | „Most“ medzi aplikáciou a WordPressom: čítanie a ukladanie dát, zoznam používateľov, nahrávanie súborov, sťahovanie (export). Každých 8 sekúnd stiahne zmeny od kolegov. Prepojenie na Google Disk (`mcp`) je vypnuté. |
 | `ars-preuge-priestor.php` | Samotný plugin: roly a prístup, adresa `/priestor/`, databáza, nahrané súbory (chránené), náhľady albumov Google Fotiek, import/export dát v administrácii (*Ars Preuge → Import dát*). |
@@ -78,7 +80,7 @@ PROJEKT ──┬── GRANT ──────── rozpočtové položky ◄
 
 - Žiadne knižnice ani build – čistý JavaScript; po úprave stačí obnoviť stránku. Mimo WordPressu (otvorenie `app/index.html` priamo) program nefunguje – časti z `app/js/` skladá až plugin. (Len na náhľady PDF sa pri potrebe stiahne pdf.js.)
 - `ENT` – druhy záznamov a ich polia (podľa nich sa sám skladá bočný panel). `OPT` – zoznamy stavov s farbami. `S` – stav aplikácie (`S.d.<druh>` = dáta).
-- Každá obrazovka je funkcia `VIEWS.<názov>` (napr. `VIEWS.podujatie`), ktorá vráti HTML; `render()` prekreslí stránku, `bindView()` pripojí ovládanie.
+- Každá obrazovka je funkcia `VIEWS.<názov>` (napr. `VIEWS.podujatie` v `app/js/sekcie/podujatia.js`), ktorá vráti HTML; `render()` prekreslí stránku, `bindView()` (v `90-ovladanie-a-spustenie.js`) pripojí ovládanie polí na obrazovkách – pri novej sekcii treba doplniť aj tam.
 - Zápis: `add`, `upd`, `del`, `saveSettings`. Zmena sa hneď ukáže a uloží na pozadí.
 - Staré záznamy sa pri načítaní dopĺňajú/prevádzajú (`norm`, a pri kontaktoch a Zabezpečení automatické opravy po načítaní).
 - Texty v aplikácii sú po slovensky; názvy v kóde po slovensky bez diakritiky alebo anglicky.
@@ -86,8 +88,8 @@ PROJEKT ──┬── GRANT ──────── rozpočtové položky ◄
 ## Plán rozdelenia `app/index.html` (schválený postup, po krokoch)
 
 1. ✅ Štýly → `app/css/` (hotové, vzhľad overene rovnaký).
-2. ✅ Spoločný základ programu → `app/js/` (hotové, poskladaná stránka overene znak po znaku rovnaká). Spoločné kúsky, ktoré v pôvodnom súbore ležia medzi sekciami (dokumenty a nahrávanie, zmluvy, zlúčenie kontaktov, hľadanie, export, `bindView`), sa presunú v kroku 3 – presun mimo pôvodného poradia treba overiť zvlášť.
-3. Sekcie po jednej → `app/js/sekcie/` (od najmenšej – Nastavenia – po najväčšiu – Podujatia; podujatie sa rozdelí na viac súborov: texty, rozpočet, spolupráce, fotky, zabezpečenie).
+2. ✅ Spoločný základ programu → `app/js/` (hotové, poskladaná stránka overene znak po znaku rovnaká; vo WordPresse overené majiteľom).
+3. ✅ Sekcie → `app/js/sekcie/` a zvyšné spoločné kúsky → `app/js/` (hotové naraz, v pôvodnom poradí, poskladaná stránka znak po znaku rovnaká; preklikané všetky sekcie, detaily a záložky vo svetlom aj tmavom režime).
 4. Štýly preskupiť podľa účelu (farby, tlačidlá, karty, záložky, štítky, formuláre, sekcie) – podľa `DIZAJN.md`.
 
 Pravidlá rozdeľovania: plugin skladá súbory do jednej stránky, poradie je pevné. Po každom kroku sa poskladaná stránka porovná s pôvodnou (ideálne znak po znaku) a preklikajú sa sekcie v prehliadači.

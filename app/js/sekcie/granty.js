@@ -1,0 +1,104 @@
+/* ===== Sekcia Granty: zoznam a detail grantu (výzva, žiadosť, zmluva, rozpočet, úlohy, podujatia), doplnenie údajov o výzve.
+   Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/granty.js. Nie je to samostatný skript. ===== */
+/* ----- Granty ----- */
+const GCOLS=[["Príprava",["napad","priprava","pozastavene"]],["Podané",["podane"]],["Schválené",["schvalene"]],["Zrealizované",["zrealizovane"]],["Uzavreté",["vyuctovane","nepodporene"]]];
+function nextGrantDate(g){
+  const c=[["Uzávierka",g.submitTo,["napad","priprava"]],["Koniec realizácie",g.realTo,["schvalene"]],["Vyúčtovanie",g.settleDue,["schvalene","zrealizovane"]]];
+  for(const[l,d,st]of c)if(d&&st.includes(g.status))return[l,d];return null;
+}
+const GTABS=[["planovane","Plánované",["napad","priprava","pozastavene"]],["prebieha","Prebieha",["podane","schvalene"]],["zrealizovane","Zrealizované",["zrealizovane","vyuctovane"]],["nepodporene","Nepodporené",["nepodporene"]]];
+const GRADS=["linear-gradient(180deg,#8fd0d2,#e0726a)","linear-gradient(135deg,#2f5fa8 10%,#c2412f)","#efc06a","#df605a","linear-gradient(135deg,#5a4fd8,#e06a8c)","linear-gradient(165deg,#a8c3a6,#e2562f)","linear-gradient(135deg,#c7a7d8,#f1d9c9 60%,#8fc2c4)"];
+function gradFor(id){let h=0;for(const ch of String(id))h=(h*31+ch.charCodeAt(0))>>>0;return GRADS[h%GRADS.length];}
+function grantCard(g){
+  const u=coverUrl(g),amt=+g.approved||+g.requested||0;
+  return`<div class="gcard" data-open="grants:${esc(g.id)}" tabindex="0" role="link"><div class="gimg" style="background:${gradFor(g.id)}">${u?`<img src="${esc(u)}" alt="" loading="lazy" style="object-position:${esc(posOf(g))}">`:""}</div>
+  <div class="gbody"><b>${esc(g.name||"Grant")}</b>${provName(g)?`<div class="gl">${provIcon(g)}${esc(provName(g))}</div>`:""}${amt?`<div class="gl" style="color:var(--ink)">${eur(amt)}</div>`:""}</div></div>`;
+}
+VIEWS.granty=()=>{
+  const G=S.d.grants,tab=GTABS.find(t=>t[0]===S.gf.tab)||GTABS[1];
+  const list=G.filter(g=>tab[2].includes(g.status||"napad")).sort((a,b)=>(b.realFrom||b.submitTo||"").localeCompare(a.realFrom||a.submitTo||"")||(b.createdAt||0)-(a.createdAt||0));
+  const defs=esc(JSON.stringify({status:tab[2][0]}));
+  const head=`<div class="head"><h1>Granty</h1><div class="row"><div class="tabs"><button data-gmode="gallery" aria-pressed="${S.gf.mode!=="list"}">Galéria</button><button data-gmode="list" aria-pressed="${S.gf.mode==="list"}">Tabuľka</button></div><button class="btn pri" data-create="grants" data-defs='${defs}'>Nový grant</button></div></div>
+  <div class="ptabs" role="tablist">${GTABS.map(([k,l,sts])=>{const n=G.filter(g=>sts.includes(g.status||"napad")).length;return`<button role="tab" data-gtab="${k}" aria-selected="${tab[0]===k}">${l}${n?`<span>${n}</span>`:""}</button>`;}).join("")}</div>`;
+  if(S.gf.mode==="list")return head+`<div class="panel">${list.length?table([
+    ["Grant",g=>`<span class="cut">${esc(g.name||"Grant")}</span>`,"t"],["Poskytovateľ",g=>provIcon(g)+esc(provName(g))],["Stav",g=>chip("gstat",g.status)],["Projekt",g=>pdot(g.projectId)],
+    ["Žiadané",g=>g.requested?eur0(g.requested):"","num"],["Schválené",g=>g.approved?eur0(g.approved):"","num"],["Čerpané",g=>{const c=grantCalc(g);return c.sg?eur0(c.sg):"";},"num"],
+    ["Najbližší termín",g=>{const n=nextGrantDate(g);return n?`<span class="meta">${n[0]} </span>${dueHtml(n[1])}`:"";}]
+  ],list,g=>"grants:"+esc(g.id),`<td colspan="4">Spolu</td><td class="num">${eur0(sum(list,g=>g.requested))}</td><td class="num">${eur0(sum(list,g=>g.approved))}</td><td class="num">${eur0(sum(list,g=>grantCalc(g).sg))}</td><td></td>`):`<div class="empty">V tejto skupine nie sú žiadne granty.</div>`}</div>`;
+  return head+`<div class="gal">${list.map(grantCard).join("")}<button class="gnew" data-create="grants" data-defs='${defs}'>+ Nový grant</button></div>`;
+};
+VIEWS.grant=()=>{
+  const g=get("grants",S.id);if(!g)return`<div class="empty">Grant sa nenašiel.<br><button class="btn" data-go="granty">Späť na granty</button></div>`;
+  const c=grantCalc(g),p=get("projects",g.projectId),Ln=S.d.lines.filter(l=>l.grantId===g.id);
+  const T=S.d.tasks.filter(t=>t.grantId===g.id),E=related("grants",g,"events");
+  const def={grantId:g.id,projectId:g.projectId||""};const td=today();
+  const step=(label,d,doneSt)=>{const done=doneSt.includes(g.status);const n=daysTo(d);const cls=done?"done":d&&n<0?"bad":d&&n<=30?"now":"";
+    return`<div class="${cls}"><span>${label}</span><b>${d?fdate(d):"—"}</b>${d&&!done?`<span>${n<0?`<span class="late">pred ${-n} d</span>`:n===0?'<span class="late">dnes</span>':`o ${n} d`}</span>`:done?'<span>hotovo</span>':""}</div>`;};
+  const lt=Ln.map(l=>({l,c:lineCalc(l)}));
+  const unassigned=c.L.filter(x=>x.type!=="prijem"&&!x.lineId);
+  const cofinOk=c.cofinReq?c.sc>=c.cofinReq:true;
+  const cl=g.checklist||[];
+  const gtab=GRTABS.find(t=>t[0]===S.grtab)?S.grtab:"vyzva";
+  const gcnt={ulohy:T.filter(t=>!isDone(t)).length,rozpocet:Ln.length,podujatia:E.length};
+  const tbar=`<div class="ptabs ntabs" role="tablist" style="margin-top:6px">${GRTABS.map(([k,l])=>`<button role="tab" data-grtab="${k}" aria-selected="${gtab===k}">${l}</button>`).join("")}</div>`;
+  let body="";
+  if(gtab==="vyzva"){const TA=(f,l,ph,h)=>`<div class="panel"><h3 style="margin-bottom:6px">${l}</h3><textarea data-gf="${f}" placeholder="${ph}" style="width:100%;min-height:${h||120}px">${esc(g[f]||"")}</textarea></div>`;
+    body=`<div class="docslots">${docSlot("grants",g,"vyzva","Výzva","text výzvy, podmienky, prílohy")}</div>
+    <div class="panel" style="margin-top:20px"><div class="spread"><h2>Údaje o výzve</h2><span class="row" style="gap:6px"><button class="btn sm" data-callimp="${esc(g.id)}" title="Vložiť údaje o výzve">Doplniť údaje</button><button class="btn sm" data-peek="grants:${esc(g.id)}">Upraviť</button></span></div>
+      <div class="facts" style="margin-top:10px"><div><span>Poskytovateľ</span><b>${esc(provName(g)||"—")}</b></div><div><span>Program / výzva</span><b>${esc([g.callNo,g.program].filter(Boolean).join(" · ")||"—")}</b></div><div><span>Podávanie žiadostí</span><b>${g.callOpen?fdate(g.callOpen):"—"}${g.submitTo?" → "+fdate(g.submitTo):""}</b></div>
+        <div><span>Výška dotácie</span><b>${g.callMin||g.callMax?`${g.callMin?eur(g.callMin):"—"} – ${g.callMax?eur(g.callMax):"—"}`:"—"}</b></div><div><span>Spolufinancovanie</span><b>${esc(g.cofinPct||"—")}</b></div><div><span>Čerpanie od</span><b>${g.spendFrom?fdate(g.spendFrom):"—"}</b></div></div>
+      ${g.callUrl?`<div class="row" style="margin-top:12px"><a class="btn sm" href="${esc(/^https?:/.test(g.callUrl)?g.callUrl:"https://"+g.callUrl)}" target="_blank" rel="noopener">Otvoriť výzvu</a></div>`:""}</div>
+    <div class="grid2" style="margin-top:20px">${TA("callApplicants","Kto môže žiadať","Oprávnení žiadatelia…")}${TA("callPurpose","Na čo možno dotáciu použiť","Oprávnené aktivity a výdavky…")}</div>
+    <div class="grid2" style="margin-top:20px">${TA("callAttach","Povinné prílohy a podmienky","Prílohy, limity počtu žiadostí…")}${TA("callText","Poznámky k výzve","Kritériá hodnotenia, dôležité termíny…")}</div>`;}
+  else if(gtab==="ziadost")body=`<div class="docslots">${docSlot("grants",g,"ziadost","Žiadosť","podaná žiadosť, prílohy, rozpočet zo žiadosti")}</div>
+    <div class="panel" style="margin-top:20px"><div class="spread"><h2>Text žiadosti</h2>${g.formUrl?`<a class="btn sm" href="${esc(/^https?:/.test(g.formUrl)?g.formUrl:"https://"+g.formUrl)}" target="_blank" rel="noopener">Žiadosť / systém</a>`:""}</div><textarea id="g-text" placeholder="Popis projektu, ciele, zdôvodnenie, poznámky k žiadosti…" style="width:100%;min-height:260px;margin-top:8px">${esc(g.text||"")}</textarea></div>`;
+  else if(gtab==="grant")body=`<div class="docslots">${GDOCS.filter(x=>x[0]!=="ziadost").map(([k,l,h])=>docSlot("grants",g,k,l,h)).join("")}</div>
+    <div class="grid2" style="margin-top:20px"><div class="panel"><div class="spread"><h2>Postup</h2><span class="meta">${cl.filter(x=>x.d).length} / ${cl.length}</span></div>
+        <ul class="cl">${cl.map((x,i)=>`<li class="${x.d?"on":""}"><button class="check ${x.d?"on":""}" data-ck-toggle="grants:${esc(g.id)}" data-i="${i}" aria-label="Splnené"></button><span>${esc(x.t)}</span></li>`).join("")}</ul>
+        <input type="text" id="g-ck-add" placeholder="+ Pridať krok a Enter" style="width:100%;margin-top:6px"></div><div class="panel">${linkBlock("grants",g,"contacts")}</div></div>`;
+  else if(gtab==="ulohy")body=`<div class="panel"><div class="spread"><h2>Úlohy</h2><button class="btn sm" data-create="tasks" data-defs='${esc(JSON.stringify(def))}'>+ Úloha</button></div>
+        ${T.length?`<ul class="items">${T.sort((a,b)=>isDone(a)-isDone(b)||byDue(a,b)).map(taskLi).join("")}</ul>`:`<div class="empty">Žiadne úlohy.</div>`}</div>`;
+  else if(gtab==="rozpocet")body=`<div class="panel"><div class="spread"><h2>Rozpočet podľa položiek</h2><button class="btn sm" data-create="lines" data-defs='${esc(JSON.stringify({grantId:g.id}))}'>+ Položka</button></div>
+    ${lt.length?table([["Položka",x=>`<span class="cut">${esc(x.l.name||"Položka")}</span>`,"t"],["Celkové náklady",x=>x.l.total?eur(x.l.total):"","num"],["Z dotácie",x=>x.l.fromGrant?eur(x.l.fromGrant):"","num"],
+      ["Minuté z dotácie",x=>eur(x.c.sg),"num"],["Spolufin.",x=>x.c.sc?eur(x.c.sc):"","num"],["Ostáva z dotácie",x=>{const r=(+x.l.fromGrant||0)-x.c.sg;return`<span class="${r<0?"neg":""}">${eur(r)}</span>`;},"num"],
+      ["",x=>x.l.fromGrant?`<div style="min-width:90px">${bar(x.c.sg,+x.l.fromGrant,p&&p.color)}</div>`:""]],lt,x=>"lines:"+esc(x.l.id),
+      `<td>Spolu</td><td class="num">${eur(sum(Ln,l=>l.total))}</td><td class="num">${eur(sum(Ln,l=>l.fromGrant))}</td><td class="num">${eur(sum(lt,x=>x.c.sg))}</td><td class="num">${eur(sum(lt,x=>x.c.sc))}</td><td class="num">${eur(sum(Ln,l=>l.fromGrant)-sum(lt,x=>x.c.sg))}</td><td></td>`)
+      +(g.approved&&Math.abs(sum(Ln,l=>l.fromGrant)-c.appr)>0.009?`<p class="small warn" style="margin:10px 0 0">Súčet položiek z dotácie (${eur(sum(Ln,l=>l.fromGrant))}) nesedí so schválenou sumou (${eur(c.appr)}). Upravte rozpočet podľa zmluvy.</p>`:"")
+      :`<div class="empty">Prepíšte sem rozpočtové položky zo žiadosti alebo zmluvy. Ku každému výdavku potom priradíte položku a vidíte, koľko z nej ostáva.</div>`}
+    ${unassigned.length?`<p class="small warn" style="margin:10px 0 0">${unassigned.length} výdavkov (${eur(sum(unassigned,x=>x.amount))}) nemá priradenú rozpočtovú položku.</p>`:""}</div><div style="margin-top:20px"><div class="panel"><div class="spread"><h2>Výdavky a príjmy</h2><button class="btn sm" data-create="ledger" data-defs='${esc(JSON.stringify(def))}'>+ Platba</button></div>
+        ${c.L.length?`<ul class="items">${[...c.L].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(x=>`<li data-open="ledger:${esc(x.id)}"><span class="t">${esc(x.desc||"Platba")}<span class="meta"> ${x.lineId?"· "+esc(ttl("lines",get("lines",x.lineId))):""}${cofinG(x)?" · spolufin.":""}</span></span><span class="meta">${fdateS(x.date)||"plánované"}</span><span class="num ${x.type==="prijem"?"pos":"neg"}">${x.type==="prijem"?"+":"−"}${eur(x.amount)}</span></li>`).join("")}</ul>`:`<div class="empty">Zatiaľ žiadne platby.</div>`}</div></div>`;
+  else body=`<div class="panel"><div class="spread"><h2>Podujatia</h2><button class="btn sm" data-create="events" data-defs='${esc(JSON.stringify(def))}'>+ Podujatie</button></div>
+        ${E.length?`<ul class="items">${E.map(eventLi).join("")}</ul>`:`<div class="empty">Žiadne podujatia.</div>`}</div>`;
+  return`  ${coverUrl(g)?`<div class="pcw"><img class="pcover" src="${esc(coverUrl(g))}" alt="" style="object-position:${esc(posOf(g))}"><button class="btn pcedit" data-peek="grants:${esc(g.id)}">Upraviť</button></div>`:""}<section class="hero" style="--pc:${esc(p?p.color:OCHRE)}"><div class="spread" style="align-items:flex-start"><div><h1>${esc(g.name||"Grant")}</h1><p class="sub">${provIcon(g)}${[provName(g),g.program].filter(Boolean).map(esc).join(" · ")}${p?` · projekt <button class="btn ghost sm" data-go="projekt" data-id="${esc(p.id)}">${esc(p.name)}</button>`:""}</p></div>
+    <div class="row">${chip("gstat",g.status)}<button class="btn" data-peek="grants:${esc(g.id)}">Upraviť</button></div></div>
+    <div class="facts"><div><span>Žiadané</span><b>${g.requested?eur(g.requested):"—"}</b></div><div><span>Schválené</span><b>${g.approved?eur(g.approved):"—"}</b></div>
+      <div><span>Čerpané z dotácie</span><b>${eur(c.sg)}</b></div><div><span>Zostáva vyčerpať</span><b class="${c.rest<0?"neg":""}">${g.approved?eur(c.rest):"—"}</b></div>
+      <div><span>Spolufinancovanie</span><b class="${cofinOk?"":"warn"}">${eur(c.sc)}${c.cofinReq?` / ${eur(c.cofinReq)}`:""}</b></div><div><span>Prijaté od poskytovateľa</span><b class="pos">${eur(c.rec)}</b></div></div>
+    ${g.approved?`<div class="barline" style="margin-top:14px">${bar(c.sg,c.appr,p&&p.color,c.sc)}<span class="meta">čerpanie ${pct(c.sg,c.appr)} %</span></div>`:""}
+    <div class="tl">${step("Uzávierka žiadosti",g.submitTo,["podane","schvalene","zrealizovane","vyuctovane","nepodporene"])}${step("Začiatok realizácie",g.realFrom,["zrealizovane","vyuctovane"].concat(g.realFrom&&g.realFrom<=td?["schvalene"]:[]))}${step("Koniec realizácie",g.realTo,["zrealizovane","vyuctovane"])}${step("Vyúčtovanie",g.settleDue,["vyuctovane"])}</div>
+    <div class="row" style="margin-top:14px">${g.callUrl?`<a class="btn sm" href="${esc(/^https?:/.test(g.callUrl)?g.callUrl:"https://"+g.callUrl)}" target="_blank" rel="noopener">Výzva</a>`:""}${g.formUrl?`<a class="btn sm" href="${esc(/^https?:/.test(g.formUrl)?g.formUrl:"https://"+g.formUrl)}" target="_blank" rel="noopener">Žiadosť / systém</a>`:""}${folderId(g.driveFolder)?`<a class="btn sm" href="https://drive.google.com/drive/folders/${esc(folderId(g.driveFolder))}" target="_blank" rel="noopener">Priečinok na Disku</a>`:""}${dl?`<button class="btn sm" data-export="grant" data-id="${esc(g.id)}">Podklad k vyúčtovaniu (CSV)</button>`:""}</div>
+    ${g.note?`<p class="desc">${esc(g.note)}</p>`:""}</section>
+  ${tbar}${body}`;
+};
+
+/* všeobecný import údajov o výzve: vložený JSON (napr. od Claude) vyplní polia výzvy */
+const CALLF={callNo:"t",program:"t",callOpen:"d",submitTo:"d",callMin:"n",callMax:"n",cofinPct:"t",spendFrom:"d",callUrl:"t",callApplicants:"t",callPurpose:"t",callAttach:"t",callText:"t",realFrom:"d",realTo:"d",settleDue:"d",requested:"n",cofinReq:"n"};
+const CALLEX='{\n  "callNo": "Výzva č. 1/2027",\n  "program": "názov programu",\n  "callOpen": "2026-10-19",\n  "submitTo": "2026-11-16",\n  "callMin": 1000,\n  "callMax": 60000,\n  "cofinPct": "10 % z rozpočtu projektu",\n  "spendFrom": "2027-01-01",\n  "callApplicants": "kto môže žiadať",\n  "callPurpose": "na čo možno použiť",\n  "callAttach": "povinné prílohy",\n  "callText": "poznámky, kritériá"\n}';
+function callImport(id){
+  const g=get("grants",id);if(!g)return;const L=$("#layer2");
+  L.innerHTML=`<div class="scrim"><div class="modal" role="dialog" aria-modal="true" style="max-width:640px;width:92vw"><h3 style="margin:0 0 6px">Doplniť údaje o výzve</h3><p class="small" style="margin:0 0 8px">Pošlite Claude odkaz na výzvu alebo jej text a vložte sem údaje, ktoré vám vráti. Vyplnia sa len polia, ktoré sú v texte uvedené.</p><textarea id="ci-t" spellcheck="false" placeholder="${esc(CALLEX)}" style="width:100%;min-height:240px;font-family:ui-monospace,Menlo,monospace;font-size:13px"></textarea><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-a="0">Zrušiť</button><button class="btn pri" data-a="1">Doplniť</button></div></div></div>`;
+  const done=()=>{L.innerHTML="";};const t=$("#ci-t");t.focus();
+  L.querySelector('[data-a="0"]').onclick=done;
+  L.querySelector('[data-a="1"]').onclick=()=>{
+    let o;try{o=JSON.parse(t.value.trim().replace(/^```(?:json)?\s*|\s*```$/g,""));}catch(_){toast("Text nie je platný — vložte údaje v tvare, aký vidíte v ukážke.");return;}
+    if(!o||typeof o!=="object"||Array.isArray(o)){toast("Text nie je platný.");return;}
+    const patch={};Object.keys(CALLF).forEach(k=>{let v=o[k];if(v===undefined||v===null||v==="")return;
+      if(CALLF[k]==="n"){v=+String(v).replace(/\s/g,"").replace(",",".");if(!isFinite(v))return;}
+      else if(CALLF[k]==="d"){v=String(v).trim();if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return;}
+      else v=String(v);
+      patch[k]=v;});
+    if(!Object.keys(patch).length){toast("V texte som nenašiel žiadne známe polia.");return;}
+    done();upd("grants",id,patch);toast("Doplnených polí: "+Object.keys(patch).length+".");};
+}
+const GRTABS=[["vyzva","Výzva"],["ziadost","Žiadosť"],["grant","Zmluva"],["rozpocet","Rozpočet"],["ulohy","Úlohy"],["podujatia","Podujatia"]];
+const GDOCS=[["ziadost","Žiadosť","podaná žiadosť, prílohy, rozpočet zo žiadosti"],["zmluva","Zmluva","zmluva o poskytnutí dotácie, dodatky"],["vyuctovanie","Vyúčtovanie","vyúčtovanie, záverečná správa, doklady"]];
