@@ -148,6 +148,12 @@ function fInput(e,r,f){
   }
   return"";
 }
+/* rodné číslo (RRMMDD/XXXX) → dátum narodenia RRRR-MM-DD; ženy majú mesiac +50 (od 2004 aj +20/+70); neplatné → "" */
+function rcDate(rc){const m=String(rc||"").replace(/[\s\/]/g,"").match(/^(\d{2})(\d{2})(\d{2})(\d{3,4})$/);if(!m)return"";
+  let y=+m[1],mo=+m[2];const d=+m[3];if(mo>70)mo-=70;else if(mo>50)mo-=50;else if(mo>20)mo-=20;
+  y+=m[4].length===3?1900:(y<54?2000:1900);
+  const dt=new Date(Date.UTC(y,mo-1,d));if(dt.getUTCFullYear()!==y||dt.getUTCMonth()!==mo-1||dt.getUTCDate()!==d||dt>new Date())return"";
+  return`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
 function bindPart(root,e,r){
   root.querySelectorAll("[data-f]").forEach(inp=>{
     const k=inp.dataset.f;
@@ -164,6 +170,7 @@ function bindPart(root,e,r){
       if(k==="cofinGrantId")patch.cofin=false;
       if(k==="date"&&e==="ledger")patch.paid=!!v;
       if(k==="status"&&e==="tasks")patch.doneAt=v==="hotove"?Date.now():null;
+      if(k==="birthNo"&&e==="contacts"){const d=rcDate(v);if(d&&(!cur.birthDate||cur.birthDate===rcDate(cur.birthNo))){patch.birthDate=d;const bi=root.querySelector('[data-f="birthDate"]');if(bi)bi.value=d;}}
       const pr=upd(e,r.id,patch);if(k==="ctype"&&e==="contacts")Promise.resolve(pr).then(()=>drawerRefresh(true));
     });
     if(inp.id==="dw-title")inp.addEventListener("keydown",ev=>{if(ev.key==="Enter")inp.blur();});
