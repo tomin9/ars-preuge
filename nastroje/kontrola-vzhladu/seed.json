@@ -95,9 +95,14 @@
 ],
 "docs": [
 {
-"name": "zmluva.pdf",
+"name": "zmluva-FPU-2026.pdf",
 "url": "https://example.com/z.pdf",
 "kind": "zmluva"
+},
+{
+"name": "ziadost-FPU.pdf",
+"url": "https://example.com/zi.pdf",
+"kind": "ziadost"
 }
 ],
 "callApplicants": "OZ",
