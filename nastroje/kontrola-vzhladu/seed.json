@@ -133,7 +133,14 @@
 "body": ""
 }
 ],
-"note": "Zmluva č. 2026/0681 – dlhá poznámka, ktorá sa v karte nemá ukázať."
+"note": "Zmluva č. 2026/0681 – dlhá poznámka, ktorá sa v karte nemá ukázať.",
+"callPurpose": "- honoráre, technické zabezpečenie, propagácia\n- neoprávnené: alkohol",
+"callAttach": "- čestné vyhlásenie\n- rozpočet projektu",
+"callOpen": "2026-01-10",
+"callMin": 1000,
+"callMax": 60000,
+"cofinPct": "5 % z rozpočtu",
+"callUrl": "https://www.fpu.sk/vyzva"
 },
 "g2": {
 "name": "Mesto Prievidza",

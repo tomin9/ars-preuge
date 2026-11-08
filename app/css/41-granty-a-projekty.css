@@ -63,3 +63,17 @@
 .docslots .docslot .items li .meta{display:none}
 .docslots .docslot .items li .t{white-space:normal;overflow-wrap:anywhere}
 .evinfo.ginfo .facts{grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:12px 18px}
+/* záložka Výzva: vľavo údaje (¼, ako zoznam pri Textoch), vpravo časti výzvy (¾) */
+.gvl{gap:2px}
+.gvl .gvload{justify-content:center;margin:0 0 12px}
+.gvi{padding:9px 16px;border:1px solid transparent;border-radius:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.gvi span{font-size:13px;color:var(--muted)}
+.gvi b{font-size:15px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+.gvlinks{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0}
+.gvr{padding:0}
+.gvs{padding:20px 26px;border-top:1px solid var(--line)}
+.gvs:first-child{border-top:0}
+.gvs h3{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 8px}
+.gvs textarea{display:block;width:100%;box-sizing:border-box;border:1px solid transparent;background:transparent;padding:6px 8px;margin:0 -8px;font-size:15px;line-height:1.6;min-height:72px;resize:vertical;field-sizing:content}
+.gvs textarea:hover{background:var(--surface3)}
+.gvs textarea:focus{border-color:var(--line);background:var(--surface);outline:none}
