@@ -13,6 +13,7 @@ Súpis vznikol pri podrobnej prehliadke celého kódu (8. 11. 2026). Opravené b
 - [ ] 🔴 **A1. Bočný panel má dve podoby.** Kontakt a platba majú novú, peknú podobu (vzor): ikonové tlačidlá ✎ 🗑 × vpravo hore a karty s ikonou a nadpisom (Údaje, Platby, Financovanie). Projekt, grant, podujatie, úloha, rozpočtová položka a prvok programu majú starú podobu: nad obsahom sivý nápis druhu záznamu, textové tlačidlá „Zmazať“ a „Zavrieť“, polia v jednej dlhej mriežke a prepojenia ako sivé oddiely bez kariet.
   *Kde:* `openDrawer`, `dProps`, `dExtra`, `linksHtml` (časť bočného panela v `app/index.html`).
   *Ako:* všetky záznamy podľa kontaktu (DIZAJN 12) – ikonové tlačidlá, polia rozdelené do kariet s ikonou, prepojenia ako karty.
+  ✅ *Čiastočne vo verzii 1.68.0: bočný panel úlohy je v novej podobe (karty Termín a zodpovedný, Patrí k, Podúlohy, prepojenia, Komentáre; ikonové tlačidlá; prázdne polia ukáže ceruzka). Ostáva: rozpočtová položka, bod programu, rýchle panely grantu, podujatia a projektu.*
 
 - [ ] 🔴 **A2. Hlavička detailu je na troch stránkach trikrát inak.**
   - *Podujatie* (vzor): obrázok vnútri karty vľavo, stavový štítok a ceruzka vpravo hore.

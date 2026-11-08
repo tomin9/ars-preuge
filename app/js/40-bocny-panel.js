@@ -2,14 +2,16 @@
    Časť spoločného programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/40-bocny-panel.js. Nie je to samostatný skript. ===== */
 /* ================= drawer (record peek, Notion-like) ================= */
 let DW=null;
+const DW_NEW=e=>e==="ledger"||e==="contacts"||e==="tasks";  /* panely v novej podobe (vzor: kontakt) – ikonové tlačidlá, karty */
+const DW_EDIT=e=>e==="contacts"||e==="tasks";               /* ceruzka = zobraziť všetky polia */
 function openDrawer(e,id,isNew){
   DW={e,id,isNew:!!isNew,edit:!!isNew};closeSide();
   const host=$("#drawer");
-  host.innerHTML=`<div class="dscrim" data-dclose></div><aside class="drawer${e==="ledger"||e==="contacts"?" dw-narrow":""}" role="dialog" aria-modal="true" aria-label="${esc(ENT[e].one)}">
-    <div class="dtop${e==="ledger"||e==="contacts"?" dtop-ic":""}">${e==="ledger"||e==="contacts"?"":`<span class="kind">${esc(ENT[e].one)}</span>`}
+  host.innerHTML=`<div class="dscrim" data-dclose></div><aside class="drawer${DW_NEW(e)?" dw-narrow":""}${DW_EDIT(e)?" dw-ed":""}" role="dialog" aria-modal="true" aria-label="${esc(ENT[e].one)}">
+    <div class="dtop${DW_NEW(e)?" dtop-ic":""}">${DW_NEW(e)?"":`<span class="kind">${esc(ENT[e].one)}</span>`}
       ${e==="projects"||e==="grants"||e==="events"?`<button class="btn ghost sm" data-dpage>Otvoriť stránku</button>`:""}
-      ${e==="contacts"?`<button class="icb${isNew?" on":""}" data-dedit title="Upraviť – zobraziť všetky polia" aria-label="Upraviť"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>`:""}
-      ${e==="ledger"||e==="contacts"?`<button class="icb danger" data-ddel title="Zmazať" aria-label="Zmazať"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button><button class="icb" data-dclose title="Zavrieť" aria-label="Zavrieť"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`:`<button class="btn ghost sm danger" data-ddel>Zmazať</button><button class="btn ghost sm" data-dclose aria-label="Zavrieť">Zavrieť</button>`}</div>
+      ${DW_EDIT(e)?`<button class="icb${isNew?" on":""}" data-dedit title="Upraviť – zobraziť všetky polia" aria-label="Upraviť"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>`:""}
+      ${DW_NEW(e)?`<button class="icb danger" data-ddel title="Zmazať" aria-label="Zmazať"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button><button class="icb" data-dclose title="Zavrieť" aria-label="Zavrieť"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`:`<button class="btn ghost sm danger" data-ddel>Zmazať</button><button class="btn ghost sm" data-dclose aria-label="Zavrieť">Zavrieť</button>`}</div>
     <div class="dbody"><div id="dw-head"></div><div id="dw-props"></div><div id="dw-extra"></div></div></aside>`;
   host.hidden=false;
   host.querySelectorAll("[data-dclose]").forEach(b=>b.onclick=closeDrawer);
@@ -62,6 +64,8 @@ function dHead(e,r){
   return top+ttlIn;
 }
 const DI={
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>',
   main:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 8l9 5 9-5z"/><path d="m3 13 9 5 9-5"/></svg>',
   tag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></svg>',
   coins:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg>',
@@ -93,6 +97,15 @@ function dProps(e,r){
     return full?`<label class="full" for="f-${f.k}">${esc(lab(f))}</label><div class="pv full">${fInput(e,r,f)}</div>`
       :`<label for="f-${f.k}">${esc(lab(f))}</label><div class="pv">${fInput(e,r,f)}</div>`;};
   const rows=fl.map(mk).join("");
+  if(e==="tasks"){  /* úloha v podobe kontaktu: karty s ikonou; prázdne doplnkové polia sa ukážu až po kliknutí na ceruzku */
+    const ed=DW&&DW.edit,F=k=>ENT.tasks.fields.find(f=>f.k===k);
+    const rw=(keys,always)=>keys.map(F).filter(f=>f&&(always||ed||filled(f))).map(mk).join("");
+    const card=(ico,t,h)=>`<section class="dcard"><h3>${DI[ico]}${t}</h3><div class="props cprops" style="margin:0">${h}</div></section>`;
+    const pat=rw(["projectId","grantId","eventId","types","org","from"],false);
+    return card("cal","Termín a zodpovedný",rw(["status","assignee","due","priority"],true))
+      +(pat?card("tag","Patrí k",pat):`<section class="dcard"><h3>${DI.tag}Patrí k</h3><p class="meta" style="margin:0;white-space:normal">Úloha zatiaľ nepatrí k projektu, grantu ani podujatiu. Doplníte cez ceruzku vpravo hore.</p></section>`)
+      +`<section class="dcard note"><textarea aria-label="Poznámka" id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`;
+  }
   if(e==="contacts"){
     const tg=fl.filter(f=>TAGK.includes(f.k)).map(mk).join(""),dt=fl.filter(f=>!TAGK.includes(f.k)).map(mk).join("");
     const card=(ico,t,h,cls)=>h?`<section class="dcard${cls?" "+cls:""}"><h3>${DI[ico]}${t}</h3><div class="props cprops" style="margin:0">${h}</div></section>`:"";
@@ -212,18 +225,18 @@ function toggleCheck(key,i){
   const[e,id]=key.split(":");const cur=get(e,id);if(!cur)return;
   const a=(cur.checklist||[]).map(x=>({...x}));if(!a[i])return;a[i].d=!a[i].d;upd(e,id,{checklist:a});
 }
-function checklistHtml(e,r,title){
+function checklistHtml(e,r,title,asCard){
   const a=Array.isArray(r.checklist)?r.checklist:[];const n=a.filter(x=>x.d).length;
-  return`<div class="sec"><h3>${esc(title||"Kontrolný zoznam")}<span class="meta">${a.length?`${n} / ${a.length}`:""}</span></h3>
+  return`${asCard?`<section class="dcard"><h3>${DI.list}${esc(title||"Kontrolný zoznam")}<span class="meta" style="margin-left:auto;font-weight:400">${a.length?`${n} / ${a.length}`:""}</span></h3>`:`<div class="sec"><h3>${esc(title||"Kontrolný zoznam")}<span class="meta">${a.length?`${n} / ${a.length}`:""}</span></h3>`}
   <ul class="cl">${a.map((x,i)=>`<li class="${x.d?"on":""}"><button class="check ${x.d?"on":""}" data-ck-toggle="${e}:${esc(r.id)}" data-i="${i}" aria-label="Splnené"></button><span>${esc(x.t)}</span><button class="x" data-ck-del data-i="${i}" aria-label="Odstrániť">×</button></li>`).join("")}</ul>
-  <input type="text" id="ck-add" data-ck-add placeholder="+ Pridať bod a stlačiť Enter" style="width:100%;margin-top:6px"></div>`;
+  <input type="text" id="ck-add" data-ck-add placeholder="+ Pridať bod a stlačiť Enter" style="width:100%;margin-top:6px">${asCard?"</section>":"</div>"}`;
 }
-function commentsHtml(e,r){
+function commentsHtml(e,r,asCard){
   const list=S.d.comments.filter(c=>c.parent===e+":"+r.id).sort((a,b)=>(a.at||0)-(b.at||0));
-  return`<div class="sec"><h3>Komentáre<span class="meta">${list.length||""}</span></h3>
+  return`${asCard?`<section class="dcard"><h3>${DI.note}Komentáre<span class="meta" style="margin-left:auto;font-weight:400">${list.length||""}</span></h3>`:`<div class="sec"><h3>Komentáre<span class="meta">${list.length||""}</span></h3>`}
   ${list.map(c=>`<div class="cmt"><div class="h">${avatar(c.by)}<b>${esc(personName(c.by)||"Niekto")}</b><span>${rel(c.at)}</span>${c.by&&c.by===meId()?`<button class="btn ghost sm" style="margin-left:auto" data-cmt-del="${esc(c.id)}">Zmazať</button>`:""}</div><p>${esc(c.text)}</p></div>`).join("")}
   <textarea id="cmt-text" placeholder="Napíšte komentár pre tím…" style="margin-top:8px;min-height:60px"></textarea>
-  <div class="row" style="justify-content:flex-end;margin-top:6px"><button class="btn sm pri" data-cmt-send>Pridať komentár</button></div></div>`;
+  <div class="row" style="justify-content:flex-end;margin-top:6px"><button class="btn sm pri" data-cmt-send>Pridať komentár</button></div>${asCard?"</section>":"</div>"}`;
 }
 function miniList(title,e,rows,fn,addDefs){
   return`<div class="sec"><h3>${esc(title)}<span class="row" style="gap:6px"><span class="meta">${rows.length||""}</span>${addDefs?`<button class="btn ghost sm" data-create="${e}" data-defs='${esc(JSON.stringify(addDefs))}'>+ Pridať</button>`:""}</span></h3>

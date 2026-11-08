@@ -138,7 +138,7 @@ document.addEventListener("change",ev=>{
 });
 function dExtra(e,r){
   let h="";
-  if(e==="tasks")h+=checklistHtml(e,r,"Podúlohy");
+  if(e==="tasks")h+=checklistHtml(e,r,"Podúlohy",true);
   if(e==="contacts"){const ed=DW&&DW.edit;
     if(r.ctype&&r.ctype!=="osoba"){const P=S.d.contacts.filter(x=>x.id!==r.id&&orgList(x).includes(r.id)).sort((x,y)=>(x.name||"").localeCompare(y.name||"","sk"));
       h+=`<section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${LKI.contacts}Kontakty</span></h3>${P.length?`<ul class="items lk">${P.map(x=>`<li class="cpl" data-open="contacts:${esc(x.id)}"><span class="t">${esc(x.name||"Bez mena")}</span>${ed||orgFn(x,r.id)?`<input type="text" class="orgfn" list="fn-dl" data-orgfn="${esc(r.id)}" data-orgfnof="${esc(x.id)}" value="${esc(orgFn(x,r.id))}" placeholder="Funkcia" aria-label="Funkcia"${ed?"":" readonly tabindex=\"-1\""}>`:""}</li>`).join("")}</ul>`:""}${fnDl()}</section>`;}
@@ -147,10 +147,11 @@ function dExtra(e,r){
     if(ed&&!S.readOnly)h+=mergeBlock(r);}
   if(e==="ledger")h+=`<section class="dcard"><div class="ldocs">${LDOCS.map(([k,l])=>docRow("ledger",r,k,l)).join("")}</div></section>
     <section class="dcard note"><textarea aria-label="Poznámka" id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`;
-  if(MAIN.includes(e)&&e!=="contacts")h+=linksHtml(e,r);
+  if(e==="tasks")h+=MAIN.filter(t=>t!==e&&!linkFields(e,t).some(f=>f.t==="rel")).map(t=>lkCard(e,r,t)).join("");
+  else if(MAIN.includes(e)&&e!=="contacts")h+=linksHtml(e,r);
   if(e==="lines"){const c=lineCalc(r);h+=`<div class="sec"><div class="facts" style="margin:0"><div><span>Minuté z dotácie</span><b>${eur(c.sg)}</b></div><div><span>Ostáva z dotácie</span><b class="${(+r.fromGrant||0)-c.sg<0?"neg":""}">${eur((+r.fromGrant||0)-c.sg)}</b></div><div><span>Spolufinancovanie</span><b>${eur(c.sc)}</b></div></div></div>`;
     h+=miniList("Výdavky na položku","ledger",c.L,ledgerLi,{lineId:r.id,grantId:r.grantId||"",projectId:(get("grants",r.grantId)||{}).projectId||""});}
-  if(e!=="comments"&&(e!=="contacts"||(DW&&DW.edit)||S.d.comments.some(c=>c.parent===e+":"+r.id)))h+=commentsHtml(e,r);
+  if(e!=="comments"&&(e!=="contacts"||(DW&&DW.edit)||S.d.comments.some(c=>c.parent===e+":"+r.id)))h+=commentsHtml(e,r,e==="tasks");
   const meta=[r.createdAt?`Vytvorené ${rel(r.createdAt)}${r.createdBy?" · "+esc(personName(r.createdBy)):""}`:"",r.updatedAt&&r.updatedAt!==r.createdAt?`upravené ${rel(r.updatedAt)}${r.updatedBy?" · "+esc(personName(r.updatedBy)):""}`:""].filter(Boolean).join(", ");
   return h+(meta&&e!=="contacts"&&e!=="ledger"?`<p class="meta" style="margin-top:20px;white-space:normal">${meta}</p>`:"");
 }
