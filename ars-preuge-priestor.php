@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.83.0
+ * Version: 1.84.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.83.0');
+define('ARSP_VER', '1.84.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -355,6 +355,24 @@ add_action('rest_api_init', function () {
             $out = array('title' => $title, 'photos' => array_keys($ids), 'url' => $url);
             if ($out['photos']) set_transient($key, $out, 6 * HOUR_IN_SECONDS);
             return $out;
+        },
+    ));
+
+    /* Jedna fotka z Google Fotiek v plnej veľkosti cez server (na „Stiahnuť všetky“ – prehliadač by ju priamo nesmel čítať) */
+    register_rest_route('arsp/v1', '/photo', array(
+        'methods' => 'GET', 'permission_callback' => $perm,
+        'callback' => function (WP_REST_Request $r) {
+            $id = (string) $r->get_param('id');
+            if (!preg_match('#^[A-Za-z0-9_\-]{20,}$#', $id)) return new WP_Error('bad_id', 'Neplatná fotka.', array('status' => 400));
+            $res = wp_safe_remote_get('https://lh3.googleusercontent.com/pw/' . $id . '=d', array('timeout' => 60, 'redirection' => 3, 'limit_response_size' => 80 * 1024 * 1024));
+            if (is_wp_error($res) || (int) wp_remote_retrieve_response_code($res) >= 400) return new WP_Error('fetch_failed', 'Fotku sa nepodarilo stiahnuť.', array('status' => 502));
+            $type = (string) wp_remote_retrieve_header($res, 'content-type');
+            if (!preg_match('#^(image|video)/[a-z0-9.+-]+$#i', $type)) $type = 'application/octet-stream';
+            nocache_headers();
+            header('Content-Type: ' . $type);
+            header('X-Content-Type-Options: nosniff');
+            echo wp_remote_retrieve_body($res);
+            exit;
         },
     ));
 
