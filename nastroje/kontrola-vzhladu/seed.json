@@ -106,7 +106,33 @@
 }
 ],
 "callApplicants": "OZ",
-"shiftPct": 10
+"shiftPct": 10,
+"text": "Pôvodný text žiadosti zapísaný v starom poli.",
+"appSections": [
+{
+"id": "s1",
+"title": "Popis projektu",
+"hint": "Stručne opíšte projekt, jeho ciele a prínos (max. 2 000 znakov).",
+"limit": 2000,
+"body": "NOX:ART je svetelný festival na sídlisku Píly v Prievidzi…",
+"st": "rozpracovane"
+},
+{
+"id": "s2",
+"title": "Cieľové skupiny",
+"hint": "Komu je projekt určený a ako ich oslovíte.",
+"limit": 60,
+"body": "Obyvatelia sídliska, rodiny s deťmi, mladí ľudia a návštevníci mesta.",
+"st": "hotove"
+},
+{
+"id": "s3",
+"title": "Harmonogram",
+"hint": "",
+"limit": 1500,
+"body": ""
+}
+]
 },
 "g2": {
 "name": "Mesto Prievidza",
@@ -452,6 +478,12 @@
 "k1": {
 "parent": "tasks:t1",
 "text": "Treba to stihnúť.",
+"by": "wp_1",
+"at": 1762500000000
+},
+"k2": {
+"parent": "grants:g1~s1",
+"text": "Doplniť čísla z minulého ročníka.",
 "by": "wp_1",
 "at": 1762500000000
 }
