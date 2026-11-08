@@ -44,7 +44,7 @@ const DESK=[
  ['panel-uloha',async p=>{await esc(p);await go(p,'ulohy');await cl(p,'[data-tmode="list"]');await cl(p,'tr[data-open="tasks:t1"]');}],
  ['panel-platba',async p=>{await esc(p);await go(p,'financie');await cl(p,'[data-ftab="dennik"]');await cl(p,'tr[data-open="ledger:x3"]');}],
  ['panel-grant',async p=>{await esc(p);await go(p,'granty');await cl(p,'[data-gtab="prebieha"]');await cl(p,'[data-gmode="gallery"]');await cl(p,'.gcard[data-open="grants:g1"]');await cl(p,'[data-peek="grants:g1"]');}],
- ['panel-polozka',async p=>{await esc(p);await cl(p,'[data-grtab="rozpocet"]');await cl(p,'tr[data-open="lines:l1"]');}],
+ ['panel-polozka',async p=>{await esc(p);await cl(p,'[data-grtab="rozpocet"]');if(await p.$('tr[data-open="lines:l1"]'))await cl(p,'tr[data-open="lines:l1"]');else{await cl(p,'[data-gbline="l1"]');await cl(p,'button[data-open="lines:l1"]');}}],
  ['panel-podujatie',async p=>{await esc(p);await go(p,'podujatia');await cl(p,'[data-emode="gallery"]');await cl(p,'.gcard[data-open="events:e1"]');await cl(p,'[data-peek="events:e1"]');}],
  ['panel-program',async p=>{await esc(p);await cl(p,'[data-evtab="dramaturgia"]');await cl(p,'tr[data-open="prog:pr1"]');}],
  ['panel-projekt',async p=>{await esc(p);await go(p,'projekty');await cl(p,'[data-pm="gallery"]');await cl(p,'.gcard[data-open="projects:p1"]');await cl(p,'[data-peek="projects:p1"]');}],

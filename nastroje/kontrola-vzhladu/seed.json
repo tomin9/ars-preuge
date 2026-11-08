@@ -1,37 +1,460 @@
 {
-"projects":{"p1":{"name":"Nové sídlisko","color":"#2F4DB8","place":"Prievidza","desc":"Popis projektu"},"p2":{"name":"Galéria ulice","color":"#2B7A57"}},
-"contacts":{
- "c1":{"name":"Alexandra Mutala","ctype":"osoba","email":"a@example.com","phone":"0901 918 801","address":"Kpt. Nálepku 1, Trenčín","iban":"SK6809000000005172773900","idNo":"RC491461","tags":["dobrovolnik"],"orgIds":["c3"],"orgFn":{"c3":"kurátorka"},"projectIds":["p1"]},
- "c2":{"name":"Ján Technik","ctype":"osoba","phone":"0905 111 222","tags":["partner"]},
- "c3":{"name":"Galéria Bazovského","ctype":"organizacia","tags":["partner"],"email":"g@example.com","ico":"123"},
- "c4":{"name":"Firma s.r.o.","ctype":"firma","tags":["sponzor"]},
- "c5":{"name":"Rádio Prievidza","ctype":"media","tags":["mediapartner"]},
- "c6":{"name":"Fond na podporu umenia","ctype":"organizacia"}},
-"grants":{
- "g1":{"name":"FPU Kultúra 2026","status":"schvalene","providerId":"c6","projectId":"p1","program":"Program 1","requested":10000,"approved":8000,"submitTo":"2026-03-01","realFrom":"2026-04-01","realTo":"2026-12-31","settleDue":"2027-01-31","cofinReq":400,"checklist":[{"t":"Žiadosť podaná","d":true},{"t":"Zmluva podpísaná","d":false}],"docs":[{"name":"zmluva.pdf","url":"https://example.com/z.pdf","kind":"zmluva"}],"callApplicants":"OZ"},
- "g2":{"name":"Mesto Prievidza","status":"priprava","provider":"Mesto Prievidza","submitTo":"2026-11-20","requested":2000},
- "g3":{"name":"Starý grant","status":"vyuctovane","providerId":"c6","approved":3000}},
-"budgetLines":{"l1":{"grantId":"g1","name":"Honoráre","total":3000,"fromGrant":2500},"l2":{"grantId":"g1","name":"Technika","total":5500,"fromGrant":5500}},
-"events":{
- "e1":{"name":"NOX:ART","status":"prebieha","date":"2026-10-30","dateTo":"2026-10-31","time":"18.00","place":"Sídlisko Píly Prievidza","projectId":"p1","grantIds":["g1"],"driveFolder":"https://drive.google.com/drive/folders/1X6GGFoKP-tRzYyf0NX_s6ldxR6iAo_W2","note":"Svetelný festival","roles":{"c2":"tim","c1":"dobrovolnik"},"duties":{"c2":["Technika","Svetlo"]},"sections":["Technika","Propagácia"],"docs":[{"name":"rider.pdf","url":"https://example.com/r.pdf"}],"mkt":[{"t":"Plagát","d":true},{"t":"Facebook","d":false}],"texts":[{"id":"t0","title":"Anotácia","desc":"Krátke predstavenie","body":"Text anotácie.","st":"hotove"},{"id":"t1","title":"Sociálne siete","desc":"","body":""}],"dramaturgy":"Koncept"},
- "e2":{"name":"Prednáška o Novej Dubnici","status":"zrealizovane","date":"2025-12-17","projectId":"p2","visitors":40},
- "e3":{"name":"Nápad na koncert","status":"napad"}},
-"partnerships":{"pa1":{"eventId":"e1","contactId":"c3","state":"potvrdeny"},"pa2":{"eventId":"e1","contactId":"c4","state":"osloveny"}},
-"programItems":{"pr1":{"eventId":"e1","title":"Mesiac","kind":"dielo","section":"Objekty a svetelné inštalácie","author":"Autorka","prepId":"c2","guardFri":"c1","status":"riesi","needMat":"kábel"},"pr2":{"eventId":"e1","title":"Koncert","kind":"sprievodny","section":"Sprievodný program","day":"piatok","time":"19.00","status":"pripravene"}},
-"tasks":{
- "t1":{"title":"Objednať techniku","status":"tyzden","assignee":"wp_1","due":"2026-11-01","priority":"urgentne","projectId":"p1","eventId":"e1","types":["Produkcia"],"checklist":[{"t":"Svetlá","d":true},{"t":"Káble","d":false}]},
- "t2":{"title":"Napísať tlačovú správu","status":"inbox","due":"2026-11-20","grantId":"g1"},
- "t3":{"title":"Hotová vec","status":"hotove","doneAt":1762500000000},
- "t4":{"title":"Rozpracované vyúčtovanie","status":"rozpracovane","assignee":"~Peter","grantId":"g1","projectId":"p1"}},
-"transactions":{
- "x1":{"type":"vydavok","amount":150,"date":"2025-12-17","account":"banka","desc":"Prednáška o Novej Dubnici","contactId":"c1","eventId":"e2","projectId":"p2","category":"Honoráre","docNo":"V1"},
- "x2":{"type":"prijem","amount":8000,"date":"2026-05-02","account":"banka","desc":"Dotácia FPU","grantId":"g1","projectId":"p1","contactId":"c6"},
- "x3":{"type":"vydavok","amount":1200.5,"date":"2026-10-20","account":"banka","desc":"Prenájom techniky","grantId":"g1","lineId":"l2","eventId":"e1","projectId":"p1","category":"Technika","contactId":"c4","docs":[{"name":"faktura.pdf","url":"https://example.com/f.pdf","kind":"faktura"}]},
- "x4":{"type":"vydavok","amount":300,"account":"hotovost","desc":"Plánovaný honorár","eventId":"e1","category":"Propagácia","grantId":"g1","lineId":"l1"},
- "x5":{"type":"vydavok","amount":45,"date":"2026-10-25","account":"hotovost","desc":"Občerstvenie","paid":false,"state":"nevybavene","eventId":"e1"}},
-"zabezpecenie":{
- "z1":{"title":"Mesiac","author":"Autorka","ord":1,"stav":"rozpracovane","srcKind":"vo","srcPower":"230 V zo stĺpa","napajanie":"predlžovačka","technika":[{"nazov":"Kábel 20 m","ks":2,"typ":"pozicane","zdroj":"Ján Technik"}],"personal":[{"rola":"technik","kto":"Ján Technik","den":"2026-10-30","od":"16:00","do":"20:00"}],"ulohy":[{"text":"Kúpiť žiarovky","hotovo":false}]},
- "z2":{"title":"Svetelný objekt","ord":2,"stav":"potvrdene","srcKind":"bat"}},
-"comments":{"k1":{"parent":"tasks:t1","text":"Treba to stihnúť.","by":"wp_1","at":1762500000000}},
-"settings":{"main":{"openBank":1000,"openCash":100}}
+"projects": {
+"p1": {
+"name": "Nové sídlisko",
+"color": "#2F4DB8",
+"place": "Prievidza",
+"desc": "Popis projektu"
+},
+"p2": {
+"name": "Galéria ulice",
+"color": "#2B7A57"
+}
+},
+"contacts": {
+"c1": {
+"name": "Alexandra Mutala",
+"ctype": "osoba",
+"email": "a@example.com",
+"phone": "0901 918 801",
+"address": "Kpt. Nálepku 1, Trenčín",
+"iban": "SK6809000000005172773900",
+"idNo": "RC491461",
+"tags": [
+"dobrovolnik"
+],
+"orgIds": [
+"c3"
+],
+"orgFn": {
+"c3": "kurátorka"
+},
+"projectIds": [
+"p1"
+]
+},
+"c2": {
+"name": "Ján Technik",
+"ctype": "osoba",
+"phone": "0905 111 222",
+"tags": [
+"partner"
+]
+},
+"c3": {
+"name": "Galéria Bazovského",
+"ctype": "organizacia",
+"tags": [
+"partner"
+],
+"email": "g@example.com",
+"ico": "123"
+},
+"c4": {
+"name": "Firma s.r.o.",
+"ctype": "firma",
+"tags": [
+"sponzor"
+]
+},
+"c5": {
+"name": "Rádio Prievidza",
+"ctype": "media",
+"tags": [
+"mediapartner"
+]
+},
+"c6": {
+"name": "Fond na podporu umenia",
+"ctype": "organizacia"
+}
+},
+"grants": {
+"g1": {
+"name": "FPU Kultúra 2026",
+"status": "schvalene",
+"providerId": "c6",
+"projectId": "p1",
+"program": "Program 1",
+"requested": 10000,
+"approved": 8000,
+"submitTo": "2026-03-01",
+"realFrom": "2026-04-01",
+"realTo": "2026-12-31",
+"settleDue": "2027-01-31",
+"cofinReq": 400,
+"checklist": [
+{
+"t": "Žiadosť podaná",
+"d": true
+},
+{
+"t": "Zmluva podpísaná",
+"d": false
+}
+],
+"docs": [
+{
+"name": "zmluva.pdf",
+"url": "https://example.com/z.pdf",
+"kind": "zmluva"
+}
+],
+"callApplicants": "OZ",
+"shiftPct": 10
+},
+"g2": {
+"name": "Mesto Prievidza",
+"status": "priprava",
+"provider": "Mesto Prievidza",
+"submitTo": "2026-11-20",
+"requested": 2000
+},
+"g3": {
+"name": "Starý grant",
+"status": "vyuctovane",
+"providerId": "c6",
+"approved": 3000
+}
+},
+"budgetLines": {
+"l1": {
+"grantId": "g1",
+"name": "Honorár – kurátor",
+"category": "Honoráre",
+"total": 1500,
+"fromGrant": 1200,
+"ord": 1000
+},
+"l3": {
+"grantId": "g1",
+"name": "Honoráre – lektori",
+"category": "Honoráre",
+"total": 1500,
+"fromGrant": 1300,
+"ord": 1500
+},
+"l2": {
+"grantId": "g1",
+"name": "Prenájom techniky",
+"category": "Technické zabezpečenie",
+"total": 1000,
+"fromGrant": 1000,
+"ord": 2000
+},
+"l4": {
+"grantId": "g1",
+"name": "Doprava",
+"category": "Technické zabezpečenie",
+"total": 500,
+"fromGrant": 500,
+"ord": 2500
+},
+"l5": {
+"grantId": "g1",
+"name": "Plagáty a tlač",
+"category": "Propagácia",
+"total": 4000,
+"fromGrant": 4000,
+"ord": 3000
+}
+},
+"events": {
+"e1": {
+"name": "NOX:ART",
+"status": "prebieha",
+"date": "2026-10-30",
+"dateTo": "2026-10-31",
+"time": "18.00",
+"place": "Sídlisko Píly Prievidza",
+"projectId": "p1",
+"grantIds": [
+"g1"
+],
+"driveFolder": "https://drive.google.com/drive/folders/1X6GGFoKP-tRzYyf0NX_s6ldxR6iAo_W2",
+"note": "Svetelný festival",
+"roles": {
+"c2": "tim",
+"c1": "dobrovolnik"
+},
+"duties": {
+"c2": [
+"Technika",
+"Svetlo"
+]
+},
+"sections": [
+"Technika",
+"Propagácia"
+],
+"docs": [
+{
+"name": "rider.pdf",
+"url": "https://example.com/r.pdf"
+}
+],
+"mkt": [
+{
+"t": "Plagát",
+"d": true
+},
+{
+"t": "Facebook",
+"d": false
+}
+],
+"texts": [
+{
+"id": "t0",
+"title": "Anotácia",
+"desc": "Krátke predstavenie",
+"body": "Text anotácie.",
+"st": "hotove"
+},
+{
+"id": "t1",
+"title": "Sociálne siete",
+"desc": "",
+"body": ""
+}
+],
+"dramaturgy": "Koncept"
+},
+"e2": {
+"name": "Prednáška o Novej Dubnici",
+"status": "zrealizovane",
+"date": "2025-12-17",
+"projectId": "p2",
+"visitors": 40
+},
+"e3": {
+"name": "Nápad na koncert",
+"status": "napad"
+}
+},
+"partnerships": {
+"pa1": {
+"eventId": "e1",
+"contactId": "c3",
+"state": "potvrdeny"
+},
+"pa2": {
+"eventId": "e1",
+"contactId": "c4",
+"state": "osloveny"
+}
+},
+"programItems": {
+"pr1": {
+"eventId": "e1",
+"title": "Mesiac",
+"kind": "dielo",
+"section": "Objekty a svetelné inštalácie",
+"author": "Autorka",
+"prepId": "c2",
+"guardFri": "c1",
+"status": "riesi",
+"needMat": "kábel"
+},
+"pr2": {
+"eventId": "e1",
+"title": "Koncert",
+"kind": "sprievodny",
+"section": "Sprievodný program",
+"day": "piatok",
+"time": "19.00",
+"status": "pripravene"
+}
+},
+"tasks": {
+"t1": {
+"title": "Objednať techniku",
+"status": "tyzden",
+"assignee": "wp_1",
+"due": "2026-11-01",
+"priority": "urgentne",
+"projectId": "p1",
+"eventId": "e1",
+"types": [
+"Produkcia"
+],
+"checklist": [
+{
+"t": "Svetlá",
+"d": true
+},
+{
+"t": "Káble",
+"d": false
+}
+]
+},
+"t2": {
+"title": "Napísať tlačovú správu",
+"status": "inbox",
+"due": "2026-11-20",
+"grantId": "g1"
+},
+"t3": {
+"title": "Hotová vec",
+"status": "hotove",
+"doneAt": 1762500000000
+},
+"t4": {
+"title": "Rozpracované vyúčtovanie",
+"status": "rozpracovane",
+"assignee": "~Peter",
+"grantId": "g1",
+"projectId": "p1"
+}
+},
+"transactions": {
+"x1": {
+"type": "vydavok",
+"amount": 150,
+"date": "2025-12-17",
+"account": "banka",
+"desc": "Prednáška o Novej Dubnici",
+"contactId": "c1",
+"eventId": "e2",
+"projectId": "p2",
+"category": "Honoráre",
+"docNo": "V1"
+},
+"x2": {
+"type": "prijem",
+"amount": 8000,
+"date": "2026-05-02",
+"account": "banka",
+"desc": "Dotácia FPU",
+"grantId": "g1",
+"projectId": "p1",
+"contactId": "c6"
+},
+"x3": {
+"type": "vydavok",
+"amount": 1200.5,
+"date": "2026-10-20",
+"account": "banka",
+"desc": "Prenájom techniky",
+"grantId": "g1",
+"lineId": "l2",
+"eventId": "e1",
+"projectId": "p1",
+"category": "Technika",
+"contactId": "c4",
+"docs": [
+{
+"name": "faktura.pdf",
+"url": "https://example.com/f.pdf",
+"kind": "faktura"
+}
+]
+},
+"x4": {
+"type": "vydavok",
+"amount": 300,
+"account": "hotovost",
+"desc": "Plánovaný honorár",
+"eventId": "e1",
+"category": "Propagácia",
+"grantId": "g1",
+"lineId": "l1"
+},
+"x5": {
+"type": "vydavok",
+"amount": 45,
+"date": "2026-10-25",
+"account": "hotovost",
+"desc": "Občerstvenie",
+"paid": false,
+"state": "nevybavene",
+"eventId": "e1"
+},
+"x6": {
+"type": "vydavok",
+"amount": 420,
+"date": "2026-10-28",
+"account": "banka",
+"desc": "Doprava techniky",
+"grantId": "g1",
+"lineId": "l4",
+"eventId": "e1",
+"projectId": "p1",
+"docNo": "F-2026-31"
+},
+"x7": {
+"type": "vydavok",
+"amount": 80,
+"date": "2026-10-29",
+"account": "hotovost",
+"desc": "Parkovné",
+"grantId": "g1",
+"projectId": "p1"
+},
+"x8": {
+"type": "vydavok",
+"amount": 250,
+"date": "2026-09-10",
+"account": "banka",
+"desc": "Vlastný vklad – technika",
+"cofinGrantId": "g1",
+"lineId": "l2",
+"projectId": "p1"
+}
+},
+"zabezpecenie": {
+"z1": {
+"title": "Mesiac",
+"author": "Autorka",
+"ord": 1,
+"stav": "rozpracovane",
+"srcKind": "vo",
+"srcPower": "230 V zo stĺpa",
+"napajanie": "predlžovačka",
+"technika": [
+{
+"nazov": "Kábel 20 m",
+"ks": 2,
+"typ": "pozicane",
+"zdroj": "Ján Technik"
+}
+],
+"personal": [
+{
+"rola": "technik",
+"kto": "Ján Technik",
+"den": "2026-10-30",
+"od": "16:00",
+"do": "20:00"
+}
+],
+"ulohy": [
+{
+"text": "Kúpiť žiarovky",
+"hotovo": false
+}
+]
+},
+"z2": {
+"title": "Svetelný objekt",
+"ord": 2,
+"stav": "potvrdene",
+"srcKind": "bat"
+}
+},
+"comments": {
+"k1": {
+"parent": "tasks:t1",
+"text": "Treba to stihnúť.",
+"by": "wp_1",
+"at": 1762500000000
+}
+},
+"settings": {
+"main": {
+"openBank": 1000,
+"openCash": 100
+}
+}
 }
