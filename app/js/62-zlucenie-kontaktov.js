@@ -32,8 +32,7 @@ async function mergeContacts(keepId,dupId){
 }
 function mergeBlock(r){
   const opts=S.d.contacts.filter(c=>c.id!==r.id).sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk"));
-  return`<section class="dcard"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4v5a4 4 0 0 0 4 4h2a4 4 0 0 1 4 4v3M7 4 4 7m3-3 3 3M17 20l-3-3m3 3 3-3"/></svg>Zlúčiť s iným kontaktom</h3>
-  <p class="meta" style="white-space:normal;margin:0 0 8px">Vyberte duplicitný kontakt. Jeho údaje, platby a všetky väzby sa prenesú sem (prázdne polia sa doplnia) a vybraný kontakt sa zmaže.</p>
+  return`<section class="dcard"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4v5a4 4 0 0 0 4 4h2a4 4 0 0 1 4 4v3M7 4 4 7m3-3 3 3M17 20l-3-3m3 3 3-3"/></svg>Zlúčiť</h3>
   <div class="row" style="gap:8px;flex-wrap:nowrap"><select id="cm-sel" style="flex:1;min-width:0"><option value="">— vybrať kontakt —</option>${opts.map(c=>`<option value="${esc(c.id)}">${esc(c.name||"Bez mena")} · ${esc(optL("ctype",c.ctype||"osoba"))}</option>`).join("")}</select><button class="btn" id="cm-go" data-cmerge="${esc(r.id)}">Zlúčiť</button></div></section>`;
 }
 document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("[data-cmerge]");if(!b)return;
