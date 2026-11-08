@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.60.0
+ * Version: 1.61.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.60.0');
+define('ARSP_VER', '1.61.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -178,7 +178,7 @@ add_action('admin_post_arsp_import', function () {
 /* ---------------------------------------------------------------- routing */
 
 function arsp_rewrite() {
-    add_rewrite_rule('^' . ARSP_SLUG . '/?$', 'index.php?arsp_app=1', 'top');
+    add_rewrite_rule('^' . ARSP_SLUG . '(?:/[a-z0-9-]+)?/?$', 'index.php?arsp_app=1', 'top');
 }
 add_action('init', 'arsp_rewrite');
 
@@ -206,6 +206,7 @@ add_action('template_redirect', function () {
         'me'    => arsp_profile(wp_get_current_user()),
         'blob'  => home_url('/?arsp_blob='),
         'home'  => home_url('/'),
+        'base'  => get_option('permalink_structure') ? rtrim((string) wp_parse_url(arsp_app_url(), PHP_URL_PATH), '/') : '',
         'admin' => current_user_can('manage_options') ? admin_url() : '',
         'logout'=> wp_logout_url(home_url('/')),
     );
