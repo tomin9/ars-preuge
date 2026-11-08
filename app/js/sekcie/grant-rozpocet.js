@@ -13,18 +13,18 @@ function budgetCalc(g){
     const P=S.d.ledger.filter(x=>x.lineId===l.id&&x.type!=="prijem");
     const o={l,P,plan:Math.max(+l.total||0,+l.fromGrant||0),planG:+l.fromGrant||0,orig:l.origTotal!=null?+l.origTotal||0:null,origG:l.origFromGrant!=null?+l.origFromGrant||0:null,paid:0,planned:0,paidG:0,plannedG:0};
     P.forEach(x=>{const a=+x.amount||0,gr=!cofinG(x);if(gbPaid(x)){o.paid+=a;if(gr)o.paidG+=a;}else{o.planned+=a;if(gr)o.plannedG+=a;}});
-    o.act=o.paid+o.planned;o.actG=o.paidG+o.plannedG;o.rest=o.plan-o.act;return o;};
+    o.act=o.paid+o.planned;o.actG=o.paidG+o.plannedG;o.rest=Math.round((o.plan-o.act)*100)/100;return o;};
   const L=Ln.map(line);
   const order=[];L.forEach(x=>{const c=gbCat(x.l);if(!order.includes(c))order.push(c);});   /* poradie podľa položiek, prázdne nové kategórie na koniec */
   (g.budgetCats||[]).map(x=>String(x).trim()).filter(Boolean).forEach(c=>{if(!order.includes(c))order.push(c);});
   const add=(a,k)=>sum(a,x=>x[k]);
   const cats=order.map(name=>{const I=L.filter(x=>gbCat(x.l)===name);
     const c={name,I,plan:add(I,"plan"),planG:add(I,"planG"),paid:add(I,"paid"),planned:add(I,"planned"),paidG:add(I,"paidG"),plannedG:add(I,"plannedG"),
-      orig:I.some(x=>x.orig!=null)?sum(I,x=>x.orig??0):null};c.act=c.paid+c.planned;c.actG=c.paidG+c.plannedG;c.rest=c.plan-c.act;return c;}).filter(c=>c.I.length||c.name);
+      orig:I.some(x=>x.orig!=null)?sum(I,x=>x.orig??0):null};c.act=c.paid+c.planned;c.actG=c.paidG+c.plannedG;c.rest=Math.round((c.plan-c.act)*100)/100;return c;}).filter(c=>c.I.length||c.name);
   const un=S.d.ledger.filter(x=>x.type!=="prijem"&&(x.grantId===g.id||cofinG(x)===g.id)&&!ids.has(x.lineId));
   const T={plan:add(L,"plan"),planG:add(L,"planG"),paid:add(L,"paid"),planned:add(L,"planned"),paidG:add(L,"paidG"),plannedG:add(L,"plannedG"),orig:L.some(x=>x.orig!=null)?sum(L,x=>x.orig??0):null};
   T.unPaid=sum(un.filter(gbPaid),x=>x.amount);T.unPlanned=sum(un.filter(x=>!gbPaid(x)),x=>x.amount);
-  T.act=T.paid+T.planned+T.unPaid+T.unPlanned;T.rest=T.plan-T.act;
+  T.act=T.paid+T.planned+T.unPaid+T.unPlanned;T.rest=Math.round((T.plan-T.act)*100)/100;
   const inc=S.d.ledger.filter(x=>x.type==="prijem"&&x.grantId===g.id);
   return{Ln,L,cats,un,T,inc,pct:+g.shiftPct||0};
 }
@@ -56,7 +56,6 @@ function grantBudgetTab(g){  /* vzhľad ako Rozpočet podujatia → Granty: tabu
   const T=B.T,stT=nBad&&T.act<=T.plan+0.005?["bad",`${nBad} ${nBad===1?"kategória prekročená":nBad<5?"kategórie prekročené":"kategórií prekročených"}`]:gbState(T.act,T.plan,0,true);
   const cofinReq=+g.cofinReq||0,cofinAct=sum(S.d.ledger.filter(x=>x.type!=="prijem"&&cofinG(x)===g.id),x=>x.amount);
   const appr=+g.approved||0,planGsum=sum(B.L,x=>x.planG),cfSum=sum(B.L,cf);
-  const head=`<div class="strip"><div><b>${eur0(T.plan)}</b><span>rozpočet spolu${T.plan>planGsum+0.005&&planGsum?` · z toho dotácia ${eur0(planGsum)}`:""}</span></div><div><b>${eur0(T.paid+T.unPaid)}</b><span>zaplatené</span></div><div><b>${eur0(T.planned+T.unPlanned)}</b><span>plánované (ešte nezaplatené)</span></div><div><b class="${T.rest<-0.005?"neg":""}">${eur0(T.rest)}</b><span>zostáva</span></div>${cofinReq||cofinAct?`<div><b class="${cofinReq&&cofinAct<cofinReq-0.005?"warn":""}">${eur0(cofinAct)}${cofinReq?` / ${eur0(cofinReq)}`:""}</b><span>spolufinancovanie</span></div>`:""}</div>`;
   const tools=`<div class="spread gbtools"><label class="small muted">Povolený presun medzi kategóriami <input type="number" min="0" max="100" step="1" data-gbpct="${gid}" value="${B.pct||""}" placeholder="0" style="width:64px;padding:4px 8px"> %</label>
     <div class="row" style="gap:8px"><button class="btn sm" data-gbnewcat="${gid}">+ Kategória</button><button class="btn ghost sm" data-gborig="${gid}" title="Odfotí súčasný plán ako pôvodný rozpočet (zo zmluvy); neskoršie zmeny sa porovnajú s ním">${hasOrig?"Prepísať pôvodný rozpočet":"Uložiť ako pôvodný rozpočet"}</button></div></div>`;
   const warn=[];
@@ -82,7 +81,7 @@ function grantBudgetTab(g){  /* vzhľad ako Rozpočet podujatia → Granty: tabu
       ["Rozp. položka",x=>isInc(x)||!B.Ln.length?"":`<select class="lsel" data-lline="${esc(x.id)}" aria-label="Rozpočtová položka">${lopt(x)}</select>`],["Kategória",x=>x.category?`<span class="meta">${esc(x.category)}</span>`:""]],rows,x=>"ledger:"+esc(x.id))
     :`<div class="empty">Ku grantu zatiaľ nie sú platby. Pridajte novú alebo priraďte existujúcu z denníka.</div>`}
     ${avail.length?`<select class="linksel" data-gbaddpay="${gid}" style="margin-top:10px"><option value="">↗ Priradiť existujúcu platbu z denníka…</option>${avail.map(x=>`<option value="${esc(x.id)}">${esc(x.desc||"Platba")} · ${x.date?fdateS(x.date):"plánované"} · ${eur(x.amount)}</option>`).join("")}</select>`:""}</div>`;
-  return head+`<div class="glines gbbox">${tools}${tbl}${warn.length?`<p class="small muted" style="margin:6px 0 2px">${warn.map(esc).join(" ")}</p>`:""}</div>${pays}`;
+  return`<div class="glines gbbox">${tools}${tbl}${warn.length?`<p class="small muted" style="margin:6px 0 2px">${warn.map(esc).join(" ")}</p>`:""}</div>${pays}`;
 }
 /* ovládanie */
 document.addEventListener("click",async ev=>{const t=ev.target;if(!t.closest)return;let el;
