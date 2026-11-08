@@ -76,6 +76,7 @@ Súpis vznikol pri podrobnej prehliadke celého kódu (8. 11. 2026). Opravené b
 - [x] 🟡 **D2. Chybný text pri výbere viacerých záznamov:** keď nie je z čoho vyberať, vždy sa napíše „Zatiaľ žiadne projekty“ – aj keď sa vyberajú granty alebo podujatia. ✅ *opravené vo verzii 1.67.0.*
 - [ ] 🟡 **D3. Prázdne stavy bez návodu:** „Zatiaľ nič.“, „Žiadne úlohy.“, „Žiadne podujatia.“, „Zatiaľ nikto.“, „Žiadne platby.“ → veta „čo tu bude a ako to pridať“ (DIZAJN 13). Dobré príklady už sú (Úlohy, Dokumenty, rozpočet podujatia).
 - [ ] 🟡 **D4. Údaje združenia a meno štatutára sú napísané priamo v programe** (`ORG`, `CT_REP` = „Tomáš Pekár“ pre zmluvy). V Nastaveniach sa dajú len prečítať. → upravovateľné v Nastaveniach.
+- [ ] 🟡 **D6. Zlá gramatika v otázke pred zmazaním:** „Zmazať úloha „…“?“, „Zmazať platba…“ – druh záznamu je v 1. páde namiesto 4. (úlohu, platbu, rozpočtovú položku…). → doplniť do `ENT` tvar v 4. páde.
 - [ ] ⚪ **D5. Filter úloh „Ars Preuge aj KaSS“** a organizácie Ars / KaSS sú pevne v programe – ak pribudne ďalšia organizácia, treba zásah do kódu.
 
 ## E. Fungovanie (nie dizajn) – treba overiť a rozhodnúť
