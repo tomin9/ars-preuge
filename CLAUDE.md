@@ -13,75 +13,88 @@ Majiteľ repozitára nie je programátor – výsledky a problémy vysvetľuj po
 
 # Čo je táto aplikácia
 
-**Ars Preuge – pracovný priestor** je interná tímová aplikácia občianskeho združenia Ars Preuge (Prievidza). Tím v nej drží na jednom mieste projekty, granty, podujatia, úlohy, peniaze a kontakty. Beží ako **doplnok (plugin) vo WordPresse** na adrese `/priestor/`; pustí dnu len prihlásených členov (administrátor, redaktor, rola „Tím Ars Preuge“).
+**Ars Preuge – pracovný priestor** je interná tímová aplikácia občianskeho združenia Ars Preuge (Prievidza). Tím v nej drží na jednom mieste projekty, granty, podujatia, úlohy, peniaze a kontakty. Beží ako **doplnok (plugin) vo WordPresse** na adrese `/priestor/`. Pustí dnu len prihlásených s rolou administrátor, redaktor alebo „Tím Ars Preuge“; všetci, čo sa dostanú dnu, môžu upravovať.
 
 ## Z čoho sa skladá (súbory)
 
 | Súbor | Na čo slúži |
 |---|---|
-| `app/css/*.css` | **Vzhľad aplikácie** – 7 súborov očíslovaných v poradí načítania (poradie je dôležité). `00-zaklad` = farby a základ, `10` menu a stránka, `20` prvky, `30` panely a okná, `40` kalendár a detaily, `50` zabezpečenie, `60` texty a menu. Plugin ich pri otvorení vloží do stránky. |
-| `app/index.html` | **Správanie aplikácie** (programy) v jednom veľkom súbore (~2 400 riadkov); na začiatku odkazy na štýly. Zatiaľ sa rozdeľuje po krokoch (pozri návrh rozdelenia). |
-| `app/shim.js` | Malý „prekladač“: dáva aplikácii spôsob, ako čítať a ukladať dáta do WordPressu a nahrávať súbory. Pravidelne (každých 8 s) sťahuje zmeny od kolegov. |
-| `ars-preuge-priestor.php` | Samotný WordPress plugin: prístupové práva, adresa `/priestor/`, ukladanie dát do databázy, nahrávanie súborov, import/export dát v administrácii. |
-| `index.php`, `app/index.php` | Prázdne zámky (aby sa priečinky nedali listovať). Nemeniť. |
-| `README.md` | Krátky popis pre ľudí. |
+| `app/index.html` | **Správanie aplikácie** – všetky obrazovky a výpočty v jednom súbore (~2 400 riadkov čistého JavaScriptu). Na začiatku sú odkazy na štýly. Takmer všetky úpravy sú tu. |
+| `app/css/*.css` | **Vzhľad** – 7 súborov očíslovaných v poradí načítania (**poradie je dôležité**, neskoršie pravidlá prebíjajú skoršie): `00-zaklad` farby a základ · `10-menu-a-stranka` menu, hlavička, tlačidlá, panel · `20-prvky` súhrny, štítky, zoznamy, tabuľky, nástenka · `30-panely-a-okna` bočný panel, výbery, okná · `40-kalendar-a-detaily` kalendár, galéria, hlavné karty, záložky, kontakty, mobil · `50-zabezpecenie` · `60-texty-a-menu` texty podujatia, zbaľovanie menu. Zatiaľ sú rozdelené podľa poradia v pôvodnom súbore, nie podľa účelu. |
+| `app/shim.js` | „Most“ medzi aplikáciou a WordPressom: čítanie a ukladanie dát, zoznam používateľov, nahrávanie súborov, sťahovanie (export). Každých 8 sekúnd stiahne zmeny od kolegov. Prepojenie na Google Disk (`mcp`) je vypnuté. |
+| `ars-preuge-priestor.php` | Samotný plugin: roly a prístup, adresa `/priestor/`, databáza, nahrané súbory (chránené), náhľady albumov Google Fotiek, import/export dát v administrácii (*Ars Preuge → Import dát*). |
+| `index.php`, `app/index.php` | Prázdne zámky (aby sa priečinky nedali prezerať). Nemeniť. |
+| `README.md` · `DIZAJN.md` · `ZOZNAM-UPRAV.md` | Popis pre ľudí · jednotný dizajn · súpis toho, čo treba opraviť. |
 
-**Dôležité:** plugin pri otvorení aplikácie načíta `app/index.html`, na miesto odkazov `css/…` vloží obsah štýlov a **tesne pred prvý `<script>`** vloží nastavenia a `shim.js`. Pri akomkoľvek rozdeľovaní súboru sa toto musí zachovať (pozri `ZOZNAM-UPRAV.md` a návrh rozdelenia).
+**Ako sa stránka skladá:** plugin pri otvorení načíta `app/index.html`, na miesto odkazov `<link rel="stylesheet" href="css/…">` vloží obsah štýlov a **tesne pred prvý `<script>`** vloží nastavenia (`window.ARSP`: adresy, prihlásený používateľ) a `shim.js`. Pri akomkoľvek rozdeľovaní súborov sa toto musí zachovať.
 
-Dáta **nie sú v repozitári** (priečinok `data/` a `*.zip` sú vylúčené). Žijú v databáze WordPressu (tabuľka `wp_arsp_docs`), súbory v `wp-content/uploads/arsp/`. Preto sa pri úpravách nikdy nesmie meniť tvar uložených záznamov bez dohody (pozri „Pravidlá pri úpravách“).
+**Dáta nie sú v repozitári** (`data/` a `*.zip` sú vylúčené). Žijú v databáze WordPressu (tabuľka `wp_arsp_docs`, každý záznam = kolekcia + id + JSON), nahrané súbory v `wp-content/uploads/arsp/`. Kolekcie: `projects`, `grants`, `events`, `tasks`, `transactions` (platby), `budgetLines` (rozpočtové položky grantov), `contacts`, `partnerships` (spolupráce kontakt–podujatie), `programItems` (program podujatia), `zabezpecenie` (diela NOX:art), `zabdodavky` (dodávky techniky), `comments` a `settings/main` (spoločné nastavenia).
 
 ## Sekcie aplikácie
 
-Ľavé menu (na mobile dolná lišta + menu):
+Ľavé menu (na mobile dolná lišta Prehľad · Úlohy · Kalendár · Financie + Menu):
 
-1. **Prehľad** – úvodná stránka: stav banky a pokladne, moje otvorené úlohy, úlohy po termíne, najbližšie termíny, posledné zmeny v tíme.
-2. **Kalendár** – mesačný pohľad. Zbiera termíny z úloh, podujatí, grantov (uzávierka, koniec realizácie, vyúčtovanie) a koncov projektov.
-3. **Úlohy** – nástenka (Inbox → Tento týždeň → Rozpracované → Hotové) alebo zoznam; filtre podľa projektu, človeka, typu, organizácie.
-4. **Projekty** – zoznam projektov a detail projektu so záložkami Podujatia · Úlohy · Granty · Financie · Ľudia. Projekt má svoju farbu.
-5. **Granty** – galéria/tabuľka s kartami Plánované · Prebieha · Zrealizované · Nepodporené. Detail grantu: Výzva · Žiadosť · Zmluva · Rozpočet · Úlohy · Podujatia (vrátane generovania zmluvy o dielo a importu údajov z výzvy).
-6. **Podujatia** – galéria/tabuľka (Plánované · Prebieha · Zrealizované · Zrušené). Detail podujatia (**vzorová stránka dizajnu**) so záložkami Texty · Rozpočet · Úlohy · Granty · Dramaturgia · Marketing · Spolupráce · Dokumenty · Fotky · Zabezpečenie.
-   - **Zabezpečenie** je technický plán podujatia **NOX:art** po dielach (napájanie, technika, káble, ľudia s dňom a časom, dodávky). Zobrazuje sa len pri podujatí NOX:art a obsahuje aj súhrn za všetky diela.
-7. **Financie** – peňažný denník (príjmy a výdavky, banka/hotovosť), prehľad po projektoch a po kategóriách, filter podľa roku; rozpočtové položky grantov.
-8. **Kontakty** – záložky Osoby · Firmy · Organizácie · Média; roly (tím, umelec, partner, sponzor…), IBAN, spolupráce na podujatiach, zlučovanie duplicít.
-9. **Nastavenia** – údaje združenia, počiatočné zostatky, zoznam kategórií a typov úloh.
+1. **Prehľad** – „Ahoj, …“, súhrn (banka, pokladňa, moje úlohy, úlohy po termíne, granty v procese), moje úlohy, granty v realizácii s čerpaním, nevyplatené platby, termíny na mesiac, posledné zmeny v tíme.
+2. **Kalendár** – mesiac; zbiera dátumy podujatí, termíny úloh, uzávierky / koniec realizácie / vyúčtovanie grantov a konce projektov.
+3. **Úlohy** – nástenka Inbox → Tento týždeň → Rozpracované → Hotové (ťahaním sa mení stav) alebo zoznam; filtre projekt, človek, typ, organizácia (Ars Preuge / KaSS). Úloha má podúlohy a komentáre.
+4. **Projekty** – galéria/tabuľka. Detail projektu: záložky Podujatia · Úlohy · Granty · Financie (roky, denník, kategórie, podľa partnerov) · Ľudia. Projekt má farbu a titulný obrázok.
+5. **Granty** – skupiny Plánované · Prebieha · Zrealizované · Nepodporené, galéria/tabuľka. Detail: karta so sumami (žiadané, schválené, čerpané, spolufinancovanie) a časovou osou termínov; záložky **Výzva** (dokumenty, údaje o výzve, „Doplniť údaje“ vložením textu) · **Žiadosť** · **Zmluva** (dokumenty, postup krokov, kontakty) · **Rozpočet** (rozpočtové položky a čerpanie) · **Úlohy** · **Podujatia**; export podkladu k vyúčtovaniu (CSV).
+6. **Podujatia** – skupiny Plánované · Prebieha · Zrealizované · Zrušené, galéria/tabuľka. **Detail podujatia je vzor dizajnu.** Záložky:
+   - **Texty** – anotácia, texty na siete, tlačová správa… (zoznam vľavo, editor vpravo, stav textu, kopírovanie),
+   - **Rozpočet** – graf príjmov a výdavkov, platby podujatia rozdelené podľa častí programu alebo podľa grantov (s rozpočtovými položkami grantu),
+   - **Úlohy**, **Granty**,
+   - **Dramaturgia** – koncept, umelecké diela (kto pripravuje, kto stráži) a sprievodný program,
+   - **Marketing** – kontrolný zoznam propagácie a poznámky,
+   - **Spolupráce** – tím (s úlohami ľudí), partneri a sponzori (stav oslovenia), dobrovoľníci; sekcie sa dajú pridávať a presúvať,
+   - **Dokumenty**, **Fotky** (zdieľaný album Google Fotiek),
+   - **Zabezpečenie** – len pri podujatí s „nox“ v názve (NOX:art): technický plán po dielach – napájanie, technika a káble, ľudia s dňom a časom, otvorené úlohy, dodávky (kto čo požičal/daroval), súhrn a pohľad „podľa ľudí“.
+7. **Financie** – peňažný denník (banka a pokladňa, priebežné zostatky, poradové čísla), roky + „Plánované“, pohľady Denník · Projekty · Kategórie, filtre, export CSV. Platba v bočnom paneli má doklady (zmluva, faktúra, výpis) a **generátor zmluvy o dielo / autorskej zmluvy** (Word alebo tlač).
+8. **Kontakty** – Osoby · Firmy · Organizácie · Média, filtre podľa rolí, kopírovanie e-mailov. Kontakt v bočnom paneli: fotka/ikona, údaje, organizácie s funkciou, platby, spolupráce, logo, zlúčenie duplicít.
+9. **Nastavenia** – údaje združenia (len na čítanie), počiatočné zostatky, kategórie platieb, typy úloh.
 
-Okrem toho: **vyhľadávanie** (Ctrl+K), tlačidlo **+ Nové** (vytvorí záznam ľubovoľného druhu), **bočný panel** na rýchlu úpravu záznamu, export do CSV.
+Všade: **hľadanie** (lupa alebo Ctrl+K), **+ Nové** (úloha, podujatie, platba, grant, projekt, kontakt), **bočný panel** na rýchlu úpravu (malé záznamy sa otvárajú len v ňom; projekt, grant a podujatie majú vlastnú stránku), komentáre, adresa v prehliadači sa mení so sekciou (funguje Späť).
 
-## Ako spolu súvisia (kto na koho ukazuje)
+## Ako spolu súvisia
 
 ```
-            PROJEKT  ◄──────────── má farbu, združuje všetko ostatné
-           /  |   \  \
-      GRANT  PODUJATIE  ÚLOHA   PLATBA (peňažný denník)
-        │  \    │   \     │        │
-        │   \   │    \    └────────┤ platba môže ukazovať na projekt,
-   rozpočtové    │     \            │ grant, podujatie, rozpočtovú položku,
-    položky      │      \           │ úlohu aj kontakt
-        └────────┴───────┴──────► KONTAKT (osoba / firma / organizácia / médiá)
-                                   ▲ poskytovateľ grantu, dodávateľ, partner, tím
-   PODUJATIE ─► program (dramaturgia), spolupráce (kontakt + stav oslovenia),
-                dokumenty, fotky, [NOX:art] zabezpečenie a dodávky
+PROJEKT ──┬── GRANT ──────── rozpočtové položky ◄── PLATBA
+          │     │  └─ poskytovateľ = KONTAKT          │  └─ komu / od koho = KONTAKT
+          │     └── financuje ──► PODUJATIE ◄─────────┘
+          │                         ├─ spolupráce = KONTAKT + stav + rola
+          │                         ├─ program, texty, dokumenty, fotky
+          │                         └─ [NOX:art] zabezpečenie + dodávky
+          ├── ÚLOHA  (môže patriť aj ku grantu a podujatiu)
+          └── KONTAKT (ľudia projektu)
 ```
 
-- **Projekt** je zastrešenie: má podujatia, granty, úlohy, platby a ľudí.
-- **Grant** patrí k projektu, má poskytovateľa (kontakt), rozpočtové položky a termíny; môže financovať viac podujatí (a podujatie môže mať viac grantov).
-- **Platba** v denníku sa viaže na grant a jeho rozpočtovú položku, tak sa počíta čerpanie dotácie a spolufinancovanie.
-- **Úloha** môže patriť k projektu, grantu aj podujatiu súčasne; termíny z nej idú do kalendára a prehľadu.
-- Väzby sa zobrazujú **z oboch strán** (podujatie ukáže svoje granty a grant svoje podujatia) – v kóde to rieši pomocník `related()`.
-- Každý záznam má komentáre a zmeny sa ukazujú v „posledných zmenách“ na Prehľade.
+- **Projekt** zastrešuje podujatia, granty, úlohy, platby a ľudí.
+- **Grant** má poskytovateľa (kontakt), rozpočtové položky a termíny; jeden grant môže financovať viac podujatí a podujatie môže mať viac grantov.
+- **Platba** sa viaže na grant a jeho rozpočtovú položku (z toho sa počíta čerpanie a spolufinancovanie), na podujatie a jeho časť programu (kategória) a na kontakt.
+- **Úloha** môže patriť k projektu, grantu aj podujatiu; jej termín ide do kalendára a prehľadu.
+- Väzby sa ukazujú **z oboch strán** (podujatie vidí svoje granty, grant svoje podujatia) – v kóde to robí `related()`, prepájanie `link()`.
 
-## Ako je napísaný kód (stručne pre úpravy)
+## Ako je napísaný kód (pre úpravy)
 
-- Žiadny build ani knižnice – jeden súbor, čistý JavaScript. Po úprave stačí obnoviť stránku.
-- Zoznam druhov záznamov a ich polí je na jednom mieste (`ENT`), zoznam stavov a farieb štítkov v `OPT`.
-- Každá sekcia je jedna funkcia `VIEWS.<názov>` (napr. `VIEWS.podujatie`), ktorá vráti kus stránky.
-- Dáta sa čítajú z `S.d.<druh>`, píšu sa cez `add`, `upd`, `del`.
-- Texty v aplikácii sú **po slovensky**, názvy interných vecí v kóde sú slovensky bez diakritiky (`podujatie`, `ulohy`) alebo anglicky.
+- Žiadne knižnice ani build – čistý JavaScript; po úprave stačí obnoviť stránku. (Len na náhľady PDF sa pri potrebe stiahne pdf.js.)
+- `ENT` – druhy záznamov a ich polia (podľa nich sa sám skladá bočný panel). `OPT` – zoznamy stavov s farbami. `S` – stav aplikácie (`S.d.<druh>` = dáta).
+- Každá obrazovka je funkcia `VIEWS.<názov>` (napr. `VIEWS.podujatie`), ktorá vráti HTML; `render()` prekreslí stránku, `bindView()` pripojí ovládanie.
+- Zápis: `add`, `upd`, `del`, `saveSettings`. Zmena sa hneď ukáže a uloží na pozadí.
+- Staré záznamy sa pri načítaní dopĺňajú/prevádzajú (`norm`, a pri kontaktoch a Zabezpečení automatické opravy po načítaní).
+- Texty v aplikácii sú po slovensky; názvy v kóde po slovensky bez diakritiky alebo anglicky.
+
+## Plán rozdelenia `app/index.html` (schválený postup, po krokoch)
+
+1. ✅ Štýly → `app/css/` (hotové, vzhľad overene rovnaký).
+2. Spoločný základ programu → `app/js/`: nastavenia a zoznamy (`ENT`, `OPT`), pomocné funkcie, ukladanie dát a výpočty, kostra (menu, navigácia, hľadanie), bočný panel, prepojenia, dokumenty.
+3. Sekcie po jednej → `app/js/sekcie/` (od najmenšej – Nastavenia – po najväčšiu – Podujatia; podujatie sa rozdelí na viac súborov: texty, rozpočet, spolupráce, fotky, zabezpečenie).
+4. Štýly preskupiť podľa účelu (farby, tlačidlá, karty, záložky, štítky, formuláre, sekcie) – podľa `DIZAJN.md`.
+
+Pravidlá rozdeľovania: plugin skladá súbory do jednej stránky (ako pri štýloch), poradie súborov je pevné, po každom kroku sa porovná, že výsledok robí to isté.
 
 # Pravidlá pri úpravách
 
-1. **Dizajn:** všetko nové sa robí podľa `DIZAJN.md` (vzor = stránka podujatia). Nevymýšľať nové druhy tlačidiel, záložiek či kariet.
-2. **Zoznam úprav:** nájdené nedostatky a nápady na zlepšenie sa zapisujú do `ZOZNAM-UPRAV.md`; opravené sa tam odškrtnú.
-3. **Dáta:** nemeniť názvy polí ani zoznamy stavov (`OPT`), kým sa nerieši aj prevod existujúcich záznamov – inak sa v živých dátach tímu „stratia“.
-4. **Jedna vec naraz:** pri väčších zmenách (napr. rozdelenie súboru) najprv navrhnúť, počkať na súhlas majiteľa, až potom robiť.
-5. **Overenie:** po zmene sa overí, že aplikácia sa otvorí a príslušná sekcia funguje (svetlý aj tmavý režim, mobil aj počítač).
+1. **Dizajn:** všetko nové podľa `DIZAJN.md` (vzory: detail podujatia, Kontakty s bočným panelom). Nevymýšľať nové druhy tlačidiel, záložiek, kariet ani štítkov; farby len pomenované (`var(--…)`).
+2. **Zoznam úprav:** nájdené nedostatky sa zapisujú do `ZOZNAM-UPRAV.md`, opravené sa tam odškrtnú.
+3. **Dáta:** nemeniť názvy polí, kolekcií ani kľúče stavov v `OPT`, kým sa nerieši prevod existujúcich záznamov – inak sa v živých dátach tímu „stratia“.
+4. **Jedna vec naraz:** pri väčších zmenách najprv navrhnúť, počkať na súhlas majiteľa, až potom robiť.
+5. **Overenie:** po zmene overiť, že sa aplikácia otvorí bez chýb a sekcia funguje – svetlý aj tmavý režim, počítač aj mobil.
