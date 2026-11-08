@@ -56,10 +56,10 @@
 .aivv small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
 .aivtx{white-space:pre-wrap;overflow-wrap:anywhere}
 @media (max-width:760px){.aivrow{grid-template-columns:22px minmax(0,1fr)}.aivrow .aivv{grid-column:2}}
-/* termíny grantu na výšku (ako údaje pri podujatí) */
-.tl.tlv{grid-template-columns:1fr;gap:6px;margin-top:14px}
-.tl.tlv div{border-top:0;border-left:3px solid var(--line);padding:2px 0 2px 12px;display:grid;grid-template-columns:minmax(120px,170px) auto 1fr;gap:4px 12px;align-items:baseline}
-.tl.tlv div.done{border-left-color:var(--good)}.tl.tlv div.now{border-left-color:var(--accent)}.tl.tlv div.bad{border-left-color:var(--bad)}
-.tl.tlv span{font-size:12px}
+/* hlavná karta grantu: sumy v riadku pod názvom, termíny v riadku pri spodnom okraji */
+.evinfo.ginfo{display:flex;flex-direction:column}
+.evinfo.ginfo .tl{margin-top:auto;padding-top:18px;grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:760px){.evinfo.ginfo .tl{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .docslots .docslot .items li .meta{display:none}
 .docslots .docslot .items li .t{white-space:normal;overflow-wrap:anywhere}
+.evinfo.ginfo .facts{grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:12px 18px}
