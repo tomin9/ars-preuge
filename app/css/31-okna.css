@@ -7,6 +7,7 @@
 .docview canvas,.docview img{max-width:min(900px,100%);height:auto;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.4)}
 .docview .dvmsg{color:#fff;margin-top:12vh;text-align:center}
 .scrim{position:fixed;inset:0;background:var(--scrim);display:grid;place-items:start center;z-index:60;padding:12vh 16px 16px}
+.scrim.mid{place-items:center;padding:16px}   /* malé okno uprostred obrazovky (napr. pridanie albumu) */
 .modal{background:var(--surface);border-radius:14px;width:min(460px,100%);padding:20px 22px;border:1px solid var(--line);box-shadow:var(--pop)}
 .modal p{margin:0 0 16px}
 .pal{width:min(620px,100%);padding:0;overflow:hidden}

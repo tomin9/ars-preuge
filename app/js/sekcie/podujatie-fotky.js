@@ -57,7 +57,7 @@ document.addEventListener("click",async ev=>{const T=ev.target;if(!T.closest)ret
 });
 /* okno v strede: pridať album / zmeniť odkaz (prázdny odkaz = odobrať album z podujatia) */
 function phModal(eid,mode){const e=get("events",eid);if(!e)return;const cur=phCur(e),L=$("#layer2");
-  L.innerHTML=`<div class="scrim"><div class="modal" role="dialog" aria-modal="true" aria-label="${mode==="edit"?"Zmeniť odkaz na album":"Pridať album"}" style="max-width:520px"><h2 style="margin:0 0 6px">${mode==="edit"?"Zmeniť odkaz na album":"Pridať album"}</h2>
+  L.innerHTML=`<div class="scrim mid"><div class="modal" role="dialog" aria-modal="true" aria-label="${mode==="edit"?"Zmeniť odkaz na album":"Pridať album"}" style="max-width:520px"><h2 style="margin:0 0 6px">${mode==="edit"?"Zmeniť odkaz na album":"Pridať album"}</h2>
     <p class="small muted" style="margin:0 0 12px">Vložte odkaz na zdieľaný album z Google Fotiek.${mode==="edit"?" Prázdny odkaz album z podujatia odoberie (v Google Fotkách ostane).":""}</p>
     <input type="url" id="ph-url" value="${esc(mode==="edit"&&cur?cur.url:"")}" placeholder="https://photos.app.goo.gl/…" style="width:100%">
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-a="0">Zrušiť</button><button class="btn pri" data-a="ok">Uložiť</button></div></div></div>`;
