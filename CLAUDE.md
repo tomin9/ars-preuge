@@ -19,13 +19,14 @@ Majiteľ repozitára nie je programátor – výsledky a problémy vysvetľuj po
 
 | Súbor | Na čo slúži |
 |---|---|
-| `app/index.html` | **Celá aplikácia** – vzhľad (štýly) aj správanie (programy) v jednom veľkom súbore (~2 900 riadkov). Takmer všetky úpravy sú tu. |
+| `app/css/*.css` | **Vzhľad aplikácie** – 7 súborov očíslovaných v poradí načítania (poradie je dôležité). `00-zaklad` = farby a základ, `10` menu a stránka, `20` prvky, `30` panely a okná, `40` kalendár a detaily, `50` zabezpečenie, `60` texty a menu. Plugin ich pri otvorení vloží do stránky. |
+| `app/index.html` | **Správanie aplikácie** (programy) v jednom veľkom súbore (~2 400 riadkov); na začiatku odkazy na štýly. Zatiaľ sa rozdeľuje po krokoch (pozri návrh rozdelenia). |
 | `app/shim.js` | Malý „prekladač“: dáva aplikácii spôsob, ako čítať a ukladať dáta do WordPressu a nahrávať súbory. Pravidelne (každých 8 s) sťahuje zmeny od kolegov. |
 | `ars-preuge-priestor.php` | Samotný WordPress plugin: prístupové práva, adresa `/priestor/`, ukladanie dát do databázy, nahrávanie súborov, import/export dát v administrácii. |
 | `index.php`, `app/index.php` | Prázdne zámky (aby sa priečinky nedali listovať). Nemeniť. |
 | `README.md` | Krátky popis pre ľudí. |
 
-**Dôležité:** plugin pri otvorení aplikácie načíta `app/index.html` a **tesne pred prvý `<script>`** vloží nastavenia a `shim.js`. Pri akomkoľvek rozdeľovaní súboru sa toto musí zachovať (pozri `ZOZNAM-UPRAV.md` a návrh rozdelenia).
+**Dôležité:** plugin pri otvorení aplikácie načíta `app/index.html`, na miesto odkazov `css/…` vloží obsah štýlov a **tesne pred prvý `<script>`** vloží nastavenia a `shim.js`. Pri akomkoľvek rozdeľovaní súboru sa toto musí zachovať (pozri `ZOZNAM-UPRAV.md` a návrh rozdelenia).
 
 Dáta **nie sú v repozitári** (priečinok `data/` a `*.zip` sú vylúčené). Žijú v databáze WordPressu (tabuľka `wp_arsp_docs`), súbory v `wp-content/uploads/arsp/`. Preto sa pri úpravách nikdy nesmie meniť tvar uložených záznamov bez dohody (pozri „Pravidlá pri úpravách“).
 

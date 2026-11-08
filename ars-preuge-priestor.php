@@ -200,6 +200,11 @@ add_action('template_redirect', function () {
     header('Content-Type: text/html; charset=utf-8');
 
     $html = file_get_contents(ARSP_DIR . 'app/index.html');
+    // štýly sú rozdelené do app/css/*.css – vložia sa priamo do stránky na miesto odkazov (poradie sa zachová)
+    $html = preg_replace_callback('~<link rel="stylesheet" href="css/([a-z0-9-]+\.css)">~', function ($m) {
+        $f = ARSP_DIR . 'app/css/' . $m[1];
+        return is_readable($f) ? '<style>' . "\n" . file_get_contents($f) . '</style>' : '';
+    }, $html);
     $cfg = array(
         'rest'  => esc_url_raw(rest_url('arsp/v1/')),
         'nonce' => wp_create_nonce('wp_rest'),
