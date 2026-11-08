@@ -99,8 +99,9 @@ function arsp_claude_url_block($url) {
 
 /** Schéma údajov o výzve – zodpovedá poliam grantu v aplikácii. */
 function arsp_claude_call_schema() {
-    $s = array('anyOf' => array(array('type' => 'string'), array('type' => 'null')));
-    $d = array('anyOf' => array(array('type' => 'string', 'format' => 'date'), array('type' => 'null')));
+    /* API dovolí najviac 16 polí s „anyOf“/null – texty a dátumy sú preto vždy text (chýbajúci = ""), „nič“ (null) majú len sumy */
+    $s = array('type' => 'string');
+    $d = array('type' => 'string', 'description' => 'RRRR-MM-DD alebo prázdny text');
     $n = array('anyOf' => array(array('type' => 'number'), array('type' => 'null')));
     $p = array(
         'provider' => $s, 'program' => $s, 'callNo' => $s, 'callUrl' => $s,
@@ -113,7 +114,7 @@ function arsp_claude_call_schema() {
 
 function arsp_claude_call_system() {
     return "Pomáhaš občianskemu združeniu Ars Preuge (kultúra, Prievidza) spracovať grantové výzvy. Z výzvy vytiahni údaje do daných polí.\n"
-        . "- Vypĺňaj len to, čo vo výzve naozaj je. Ak údaj chýba alebo si nie si istý, daj null – nehádaj.\n"
+        . "- Vypĺňaj len to, čo vo výzve naozaj je. Ak údaj chýba alebo si nie si istý, daj prázdny text \"\" (pri sumách null) – nehádaj.\n"
         . "- Dátumy vo formáte RRRR-MM-DD. Sumy v eurách ako číslo (bez meny a medzier).\n"
         . "- provider: kto dotáciu poskytuje (napr. Fond na podporu umenia). program: názov programu/podprogramu. callNo: označenie výzvy.\n"
         . "- callOpen/submitTo: od kedy a do kedy sa podávajú žiadosti. spendFrom: od kedy možno čerpať (oprávnenosť výdavkov). realFrom/realTo: obdobie realizácie projektu. settleDue: termín vyúčtovania.\n"

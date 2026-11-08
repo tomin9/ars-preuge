@@ -40,7 +40,8 @@ function aivOpen(gid){
 function aivReview(gid,j,src,url,box,close){
   const g=get("grants",gid)||{},F=j.fields||{};
   if(url&&!F.callUrl&&!g.callUrl)F.callUrl=url;
-  const rows=AIV_F.filter(([k])=>F[k]!=null&&F[k]!=="").map(([k,l,t])=>{const cur=aivCur(g,k),same=String(cur)===String(F[k]),empty=cur===""||cur==null;
+  const okVal=(k,t)=>{const v=F[k];if(v==null||String(v).trim()==="")return false;if(t==="d")return/^\d{4}-\d{2}-\d{2}$/.test(String(v).trim());if(t==="n")return isFinite(+v);return true;};
+  const rows=AIV_F.filter(([k,,t])=>okVal(k,t)).map(([k,l,t])=>{const cur=aivCur(g,k),same=String(cur)===String(F[k]),empty=cur===""||cur==null;
     const note=k==="provider"&&g.providerId?"poskytovateľ je prepojený s kontaktom – nezmení sa":"";
     return{k,l,t,cur,nv:F[k],same,empty,note};});
   const u=j.usage||{},cost=((+u.input_tokens||0)*4+(+u.output_tokens||0)*20)/1e6;
