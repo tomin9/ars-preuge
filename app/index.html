@@ -1610,7 +1610,7 @@ VIEWS.grant=()=>{
   let body="";
   if(gtab==="vyzva"){const TA=(f,l,ph,h)=>`<div class="panel"><h3 style="margin-bottom:6px">${l}</h3><textarea data-gf="${f}" placeholder="${ph}" style="width:100%;min-height:${h||120}px">${esc(g[f]||"")}</textarea></div>`;
     body=`<div class="docslots">${docSlot("grants",g,"vyzva","Výzva","text výzvy, podmienky, prílohy")}</div>
-    <div class="panel" style="margin-top:20px"><div class="spread"><h2>Údaje o výzve</h2><span class="row" style="gap:6px"><button class="btn sm" data-fpu24="${esc(g.id)}" title="Doplní prázdne polia podľa podprogramu 2.4 Fondu na podporu umenia">Doplniť z FPU 2.4</button><button class="btn sm" data-peek="grants:${esc(g.id)}">Upraviť</button></span></div>
+    <div class="panel" style="margin-top:20px"><div class="spread"><h2>Údaje o výzve</h2><span class="row" style="gap:6px"><button class="btn sm" data-callimp="${esc(g.id)}" title="Vložiť údaje o výzve">Doplniť údaje</button><button class="btn sm" data-peek="grants:${esc(g.id)}">Upraviť</button></span></div>
       <div class="facts" style="margin-top:10px"><div><span>Poskytovateľ</span><b>${esc(provName(g)||"—")}</b></div><div><span>Program / výzva</span><b>${esc([g.callNo,g.program].filter(Boolean).join(" · ")||"—")}</b></div><div><span>Podávanie žiadostí</span><b>${g.callOpen?fdate(g.callOpen):"—"}${g.submitTo?" → "+fdate(g.submitTo):""}</b></div>
         <div><span>Výška dotácie</span><b>${g.callMin||g.callMax?`${g.callMin?eur(g.callMin):"—"} – ${g.callMax?eur(g.callMax):"—"}`:"—"}</b></div><div><span>Spolufinancovanie</span><b>${esc(g.cofinPct||"—")}</b></div><div><span>Čerpanie od</span><b>${g.spendFrom?fdate(g.spendFrom):"—"}</b></div></div>
       ${g.callUrl?`<div class="row" style="margin-top:12px"><a class="btn sm" href="${esc(/^https?:/.test(g.callUrl)?g.callUrl:"https://"+g.callUrl)}" target="_blank" rel="noopener">Otvoriť výzvu</a></div>`:""}</div>
@@ -1647,16 +1647,25 @@ VIEWS.grant=()=>{
   ${tbar}${body}`;
 };
 
-/* predvyplnenie podľa podprogramu 2.4 Fondu na podporu umenia (www.fpu.sk) – dopĺňa len prázdne polia */
-function fpu24(id){const g=get("grants",id);if(!g)return;
-  const P={program:"2.4 Podpora prehliadok, festivalov, súťaží, výstav a koncertov",callNo:"Výzva č. 1/2027",callOpen:"2026-10-19",submitTo:"2026-11-16",callMin:1000,callMax:60000,spendFrom:"2027-01-01",
-    cofinPct:"10 % z rozpočtu projektu (20 % ak je žiadateľ v zriaďovateľskej pôsobnosti)",callUrl:"https://www.fpu.sk/sk/podpora/2-4-festivaly-vystavy-sutaze-vytvarne-umenie/",
-    callApplicants:"Subjekty, ktoré preukázateľne pôsobia v danej oblasti a majú oprávnenie na činnosti, ktoré plánujú realizovať (napr. občianske združenia, nadácie, neziskové organizácie). Jeden žiadateľ môže podať v podprograme dve žiadosti.",
-    callPurpose:"Realizácia samostatnej výstavy, kolektívnej výstavy, salónu, festivalu alebo súťaže v oblasti výtvarného a vizuálneho umenia.",
-    callAttach:"Pri súťaži: štatút súťaže. Pri výstave, salóne a festivale: kurátorský koncept. Pri site-specific diele: skica."};
-  const patch={};Object.keys(P).forEach(k=>{if(g[k]===undefined||g[k]===null||g[k]==="")patch[k]=P[k];});
-  if(!Object.keys(patch).length){toast("Všetky polia sú už vyplnené.");return;}
-  upd("grants",id,patch);toast("Doplnené podľa FPU 2.4 – overte v texte výzvy.");}
+/* všeobecný import údajov o výzve: vložený JSON (napr. od Claude) vyplní polia výzvy */
+const CALLF={callNo:"t",program:"t",callOpen:"d",submitTo:"d",callMin:"n",callMax:"n",cofinPct:"t",spendFrom:"d",callUrl:"t",callApplicants:"t",callPurpose:"t",callAttach:"t",callText:"t",realFrom:"d",realTo:"d",settleDue:"d",requested:"n",cofinReq:"n"};
+const CALLEX='{\n  "callNo": "Výzva č. 1/2027",\n  "program": "názov programu",\n  "callOpen": "2026-10-19",\n  "submitTo": "2026-11-16",\n  "callMin": 1000,\n  "callMax": 60000,\n  "cofinPct": "10 % z rozpočtu projektu",\n  "spendFrom": "2027-01-01",\n  "callApplicants": "kto môže žiadať",\n  "callPurpose": "na čo možno použiť",\n  "callAttach": "povinné prílohy",\n  "callText": "poznámky, kritériá"\n}';
+function callImport(id){
+  const g=get("grants",id);if(!g)return;const L=$("#layer2");
+  L.innerHTML=`<div class="scrim"><div class="modal" role="dialog" aria-modal="true" style="max-width:640px;width:92vw"><h3 style="margin:0 0 6px">Doplniť údaje o výzve</h3><p class="small" style="margin:0 0 8px">Pošlite Claude odkaz na výzvu alebo jej text a vložte sem údaje, ktoré vám vráti. Vyplnia sa len polia, ktoré sú v texte uvedené.</p><textarea id="ci-t" spellcheck="false" placeholder="${esc(CALLEX)}" style="width:100%;min-height:240px;font-family:ui-monospace,Menlo,monospace;font-size:13px"></textarea><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" data-a="0">Zrušiť</button><button class="btn pri" data-a="1">Doplniť</button></div></div></div>`;
+  const done=()=>{L.innerHTML="";};const t=$("#ci-t");t.focus();
+  L.querySelector('[data-a="0"]').onclick=done;
+  L.querySelector('[data-a="1"]').onclick=()=>{
+    let o;try{o=JSON.parse(t.value.trim().replace(/^```(?:json)?\s*|\s*```$/g,""));}catch(_){toast("Text nie je platný — vložte údaje v tvare, aký vidíte v ukážke.");return;}
+    if(!o||typeof o!=="object"||Array.isArray(o)){toast("Text nie je platný.");return;}
+    const patch={};Object.keys(CALLF).forEach(k=>{let v=o[k];if(v===undefined||v===null||v==="")return;
+      if(CALLF[k]==="n"){v=+String(v).replace(/\s/g,"").replace(",",".");if(!isFinite(v))return;}
+      else if(CALLF[k]==="d"){v=String(v).trim();if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return;}
+      else v=String(v);
+      patch[k]=v;});
+    if(!Object.keys(patch).length){toast("V texte som nenašiel žiadne známe polia.");return;}
+    done();upd("grants",id,patch);toast("Doplnených polí: "+Object.keys(patch).length+".");};
+}
 const GRTABS=[["vyzva","Výzva"],["ziadost","Žiadosť"],["grant","Zmluva"],["rozpocet","Rozpočet"],["ulohy","Úlohy"],["podujatia","Podujatia"]];
 const GDOCS=[["ziadost","Žiadosť","podaná žiadosť, prílohy, rozpočet zo žiadosti"],["zmluva","Zmluva","zmluva o poskytnutí dotácie, dodatky"],["vyuctovanie","Vyúčtovanie","vyúčtovanie, záverečná správa, doklady"]];
 function docHref(d){return d.asset?ARSP_BLOB+d.asset:(/^https?:/.test(d.url||"")?d.url:"https://"+(d.url||""));}
@@ -2821,7 +2830,7 @@ function bindView(){
   v.querySelectorAll("[data-tmode]").forEach(b=>b.onclick=()=>{S.tf.mode=b.dataset.tmode;render();});
   v.querySelectorAll("[data-gmode]").forEach(b=>b.onclick=()=>{S.gf.mode=b.dataset.gmode;render();});
   v.querySelectorAll("[data-grtab]").forEach(b=>b.onclick=()=>{S.grtab=b.dataset.grtab;render();});
-  on("#g-text","change",e=>upd("grants",S.id,{text:e.target.value}));v.querySelectorAll("[data-gf]").forEach(t=>t.onchange=()=>upd("grants",S.id,{[t.dataset.gf]:t.value}));v.querySelectorAll("[data-fpu24]").forEach(b=>b.onclick=()=>fpu24(b.dataset.fpu24));
+  on("#g-text","change",e=>upd("grants",S.id,{text:e.target.value}));v.querySelectorAll("[data-gf]").forEach(t=>t.onchange=()=>upd("grants",S.id,{[t.dataset.gf]:t.value}));v.querySelectorAll("[data-callimp]").forEach(b=>b.onclick=()=>callImport(b.dataset.callimp));
   v.querySelectorAll("[data-evtab]").forEach(b=>b.onclick=()=>{S.evtab=b.dataset.evtab;render();});
   {const ev=S.view==="podujatie"&&get("events",S.id);if(ev){
     const setEv=d=>upd("events",ev.id,d);
