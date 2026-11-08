@@ -52,7 +52,11 @@ table.lt td.t{display:flex;gap:8px;align-items:baseline;min-width:0}
 .tgrip:hover{opacity:1}
 .txcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;align-items:start}
 .txbody{min-height:96px;resize:vertical}
-.phbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.phbar{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px}
+.phtabs{margin:0;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.ptabs button.phadd{font-weight:500;font-size:14px;padding:5px 12px;border:1px dashed var(--line);border-radius:999px}
+.ptabs button.phadd:hover{background:none;color:var(--accent);border-color:var(--accent)}
+.phform{margin-bottom:14px}
 .phgrid{display:flex;flex-wrap:wrap;gap:6px}
 .phgrid::after{content:"";flex-grow:1e9}
 .phi{all:unset;cursor:zoom-in;display:block;--r:1.5;flex:calc(var(--r)*1000) 1 calc(var(--r)*200px);max-width:100%;border-radius:6px;overflow:hidden;background:var(--surface2)}
