@@ -90,9 +90,9 @@ function grantCallTab(g){
       ${it("Realizácia",g.realFrom||g.realTo?`${g.realFrom?fdate(g.realFrom):"—"} → ${g.realTo?fdate(g.realTo):"—"}`:"")}${it("Vyúčtovanie do",g.settleDue?fdate(g.settleDue):"")}</div></div>`;}
   else{const[f,l,ph]=GV_SEC.find(x=>x[0]===sel);
     main=`<div class="panel txmain"><div class="txhead"><div style="min-width:0;flex:1">${kick}<div class="txtitle" style="font-size:28px;font-weight:600">${l}</div></div>
-      <div class="row" style="flex:none;gap:8px"><button type="button" class="btn" data-gvcopy="${f}">${TXI.copy} Kopírovať</button></div></div>
+      </div>
       <div class="txbar">${dot(String(g[f]||"").trim())}<span style="margin-right:auto;margin-left:-4px">${String(g[f]||"").trim()?"Vyplnené":"Prázdne"}</span><span>Z výzvy – dopĺňa sa aj cez „Načítať výzvu“</span></div>
-      <textarea class="txbody" data-gf="${f}" placeholder="${ph}">${esc(g[f]||"")}</textarea>
+      <div class="txw"><textarea class="txbody" data-gf="${f}" placeholder="${ph}">${esc(g[f]||"")}</textarea><button type="button" class="tplus txcp" data-gvcopy="${f}" title="Kopírovať text" aria-label="Kopírovať text">${TXI.copy}</button></div>
       <div class="txfoot" id="txstat">${txStat(g[f])}</div></div>`;}
   return`<div class="txm"><div class="txlist">${list}</div>${main}</div>`;
 }

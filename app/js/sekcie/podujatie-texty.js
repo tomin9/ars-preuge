@@ -15,9 +15,9 @@ function textyTab(e){
   let main='<div class="panel txmain" style="display:flex;align-items:center;justify-content:center;color:var(--muted);min-height:200px">Zatiaľ žiadne texty.</div>';
   if(sel){const t=sel,st=txSt(t),sc=(TXST.find(x=>x[0]===st)||TXST[0])[2],k=`${id}|${esc(t.id)}`;
     main=`<div class="panel txmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Texty / ${esc(e.name||"Podujatie")}</div><input type="text" class="txtitle" value="${esc(t.title)}" data-txt="${k}|title" aria-label="Názov textu" maxlength="60"></div>
-      <div class="row" style="flex:none;gap:8px"><button type="button" class="btn" data-txcopy="${k}">${TXI.copy} Kopírovať</button><button type="button" class="tplus tdel" data-txdel="${k}" title="Odstrániť text" aria-label="Odstrániť text">${TI.del}</button></div></div>
+      <div class="row" style="flex:none;gap:8px"><button type="button" class="tplus tdel" data-txdel="${k}" title="Odstrániť text" aria-label="Odstrániť text">${TI.del}</button></div></div>
       <div class="txbar"><label class="txst"><i class="txdot" style="background:${sc}"></i><select data-txt="${k}|st" aria-label="Stav textu">${TXST.map(([v,l])=>`<option value="${v}"${v===st?" selected":""}>${l}</option>`).join("")}</select></label><input type="text" class="txdesc" value="${esc(t.desc||"")}" data-txt="${k}|desc" placeholder="Krátky popis…" maxlength="80" aria-label="Popis textu"></div>
-      <textarea class="txbody" data-txt="${k}|body" placeholder="Napíšte text…">${esc(t.body||"")}</textarea>
+      <div class="txw"><textarea class="txbody" data-txt="${k}|body" placeholder="Napíšte text…">${esc(t.body||"")}</textarea><button type="button" class="tplus txcp" data-txcopy="${k}" title="Kopírovať text" aria-label="Kopírovať text">${TXI.copy}</button></div>
       <div class="txfoot" id="txstat">${txStat(t.body)}</div></div>`;}
   return`<div class="txm"><div class="txlist">${list}<button type="button" class="txi txadd" data-txadd="${id}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať text</b></span></button></div>${main}</div>`;
 }
