@@ -104,7 +104,7 @@ Systémové písmo zariadenia (na Macu San Francisco, na Windows Segoe UI). Nes�
 3. Obsah záložky.
 
 ### Zoznam + editor (vzor: Texty podujatia)
-Vľavo (⅓) zoznam položiek: ikona, názov 16 px, pod ním sivý podtitul, vpravo bodka stavu; vybraná položka = „vybraná položka“. Posledný riadok „+ Pridať …“ bez rámika. Vpravo (⅔) karta: malý nadpis veľkými písmenami, veľký názov, vpravo hore tlačidlo s ikonou a textom („Kopírovať“) a ikonové tlačidlo kôš; pod tým stavový riadok (bodka + stav, vpravo popis); potom veľké pole na písanie; dole sivá päta (počet slov).
+Vľavo (¼ – rovnako široko ako obrázok v hlavnej karte, editor začína pod jeho hranou) zoznam položiek: ikona, názov 16 px, pod ním sivý podtitul, vpravo bodka stavu; vybraná položka = „vybraná položka“. Posledný riadok „+ Pridať …“ bez rámika. Vpravo (¾) karta: malý nadpis veľkými písmenami, veľký názov, vpravo hore tlačidlo s ikonou a textom („Kopírovať“) a ikonové tlačidlo kôš; pod tým stavový riadok (bodka + stav, vpravo popis); potom veľké pole na písanie; dole sivá päta (počet slov).
 
 ## 5. Tlačidlá
 

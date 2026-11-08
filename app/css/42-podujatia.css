@@ -84,7 +84,7 @@ input[type=text].secname[readonly]{cursor:default;pointer-events:none}
 table.prog td{padding:4px 6px}
 table.prog input,table.prog select{width:100%;border-color:transparent;background:transparent}
 table.prog input:hover,table.prog input:focus,table.prog select:hover{border-color:var(--line);background:var(--surface)}
-.txm{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:0;align-items:start}
+.txm{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,3fr);gap:0;align-items:start}
 .txlist{display:flex;flex-direction:column;gap:4px;padding-right:24px;padding-top:0}
 .txlh{font-weight:600;color:var(--muted);padding:6px 12px 8px;font-size:14px}
 .txlh .cnt{background:var(--line);border-radius:6px;padding:1px 8px;margin-left:6px;font-size:13px}
