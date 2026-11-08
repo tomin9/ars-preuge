@@ -23,6 +23,7 @@ tr.addln td{border-bottom:0;padding-top:6px;padding-bottom:6px}
 .icb{all:unset;cursor:pointer;width:34px;height:34px;display:grid;place-items:center;border-radius:8px;background:rgba(18,20,26,.55);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .icb:hover{background:rgba(18,20,26,.8)}
 .icb:focus-within,.icb:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.dtop-ic .icb:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .icb svg{width:17px;height:17px}
 .tplus.on{background:var(--accent-soft);color:var(--accent)}
 .tdel:hover{color:var(--bad)}

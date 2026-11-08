@@ -53,9 +53,7 @@ async function driveUpload(f,tp,title,kind,parent){
   const id=p.id||(p.file&&p.file.id)||"";const url=p.viewUrl||p.webViewLink||p.alternateLink||(id?`https://drive.google.com/file/d/${id}/view`:"");
   if(!url)throw{code:"no_url",message:"Disk nevrátil odkaz na súbor."};return{url,driveId:id,drive:true};
 }
-const driveErr=er=>{const c=er&&er.code;console.warn("[drive] error",er);if(c==="no_mcp")return"Google Disk nie je v tomto zobrazení dostupný. Otvor aplikáciu v claude.ai prihlásený a povoľ jej Google Drive (menu Povolenia pri artefakte).";
-  const M={server_not_connected:"Google Drive nie je pripojený v claude.ai (Nastavenia → Konektory).",needs_reauth:"Google Drive treba znova prihlásiť v claude.ai (Nastavenia → Konektory).",not_in_manifest:"Prístup k Google Disku pre túto stránku nie je povolený (menu Povolenia pri artefakte).",approval_required:"Nahratie na Disk čaká na tvoje povolenie – skús znova a potvrď.",not_granted:"Táto stránka nemá povolený Google Disk.",capability_disabled:"Google Disk sa v tomto zobrazení nedá použiť.",server_unavailable:"Google Disk teraz neodpovedá – skús o chvíľu.",selection_required:"V claude.ai máš viac Google Drive konektorov – vyber jeden.",blocked_by_policy:"Nahrávanie na Disk blokuje nastavenie organizácie."};
-  return (M[c]||"Na Google Disk sa nepodarilo nahrať.")+(c&&!M[c]?` [${c}${er.message?": "+String(er.message).slice(0,140):""}]`:"");};
+const driveErr=er=>{console.warn("[drive] error",er);return"Google Disk nie je prepojený s pracovným priestorom.";};
 async function uploadDoc(f,meta){
   meta=meta||{};const ext=(f.name.split(".").pop()||"").toLowerCase();const tp=f.type||MIME[ext]||"application/octet-stream";
   const r=meta.en&&meta.id?get(meta.en,meta.id):null;const pre=r&&r.date?r.date+" ":"";const title=(pre+f.name).slice(0,180);

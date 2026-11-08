@@ -74,8 +74,8 @@ function render(){
   const ae=document.activeElement,fid=ae&&v.contains(ae)&&ae.id?ae.id:null,sel=fid&&ae.selectionStart!=null?[ae.selectionStart,ae.selectionEnd]:null;
   const fval=fid&&ae.dataset&&ae.dataset.zb!==undefined&&ae.type!=="checkbox"?ae.value:null;
   if(S.loading){v.innerHTML=`<div class="empty">Načítavam dáta tímu…</div>`;return;}
-  const notice=!S.live?`<div class="notice">Táto verzia neukladá dáta – po zatvorení sa stratia. Otvorte publikovanú aplikáciu prihlásený do claude.ai, aby ste pracovali so zdieľanými dátami tímu.</div>`
-    :(S.readOnly?`<div class="notice">Máte prístup len na čítanie. Ak potrebujete upravovať, požiadajte správcu o úroveň Prispievateľ.</div>`:"");
+  const notice=!S.live?`<div class="notice">Aplikácia sa nespojila s databázou – zmeny sa neuložia. Obnovte stránku; ak to nepomôže, odhláste sa a znova prihláste do WordPressu.</div>`
+    :(S.readOnly?`<div class="notice">Máte prístup len na čítanie. Ak potrebujete upravovať, požiadajte správcu webu o rolu „Tím Ars Preuge“.</div>`:"");
   if(!S.ctFix&&!S.readOnly&&S.live){S.ctFix=true;const miss=S.d.contacts.filter(c=>!c.ctype),vol=S.d.contacts.filter(c=>c.tags==null&&(c.volunteer===true||(c.volunteer==null&&c.role==="dobrovolnik"))),orgm=S.d.contacts.filter(c=>c.orgId&&c.orgIds==null),orgByName=(()=>{const k=v=>String(v||"").trim().replace(/\s+/g," ").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""),m={};S.d.contacts.filter(c=>c.ctype&&c.ctype!=="osoba").forEach(c=>{const a=k(c.name);if(a)(m[a]=m[a]||[]).push(c.id);});return S.d.contacts.filter(c=>c.org&&!orgList(c).length).map(c=>({c,ids:m[k(c.org)]||[]})).filter(x=>x.ids.length===1);})();if(miss.length||vol.length||orgm.length||orgByName.length)setTimeout(()=>{orgByName.forEach(({c,ids})=>upd("contacts",c.id,{orgIds:ids,org:""}));orgm.forEach(c=>upd("contacts",c.id,{orgIds:[c.orgId],orgId:""}));miss.forEach(c=>upd("contacts",c.id,{ctype:"osoba"}));vol.forEach(c=>upd("contacts",c.id,{tags:["dobrovolnik"],volunteer:null}));},0);}
   const f=VIEWS[S.view]||VIEWS.prehlad;
   v.innerHTML=navBar()+notice+f();

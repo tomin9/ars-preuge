@@ -4,7 +4,9 @@ pairs=json.load(open(sys.argv[3])) if len(sys.argv)>3 else []
 def parse(s): 
     d={}
     for kv in s.split(';'):
-        if ':' in kv:k,v=kv.split(':',1);d[k]=v
+        if ':' in kv:
+            k,v=kv.split(':',1)
+            if not k.startswith('--'): d[k]=v   # pomenované farby (--…) prehliadač vypisuje nestále – samotný vzhľad sa porovnáva cez skutočné vlastnosti
     return d
 diffs=collections.Counter();examples={};mis=[]
 for st in A['states']:
@@ -13,9 +15,9 @@ for st in A['states']:
     for path in a:
         if path in b and a[path]!=b[path]:
             pa,pb=parse(a[path]),parse(b[path])
-            for k in pa:
-                if pa[k]!=pb.get(k):
-                    diffs[k]+=1;examples.setdefault(k,[]).append((st,path[-80:],pa[k][:60],pb.get(k,'')[:60]))
+            for k in set(pa)|set(pb):
+                if pa.get(k)!=pb.get(k):
+                    diffs[k]+=1;examples.setdefault(k,[]).append((st,path[-80:],pa.get(k,'')[:60],pb.get(k,'')[:60]))
 print("stavov",len(A['states']),"rozdielne štruktúry:",mis[:10])
 print("rozdiely vo vlastnostiach:",sum(diffs.values()))
 for k,n in diffs.most_common(40):

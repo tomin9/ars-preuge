@@ -14,3 +14,9 @@ python3 nastroje/kontrola-vzhladu/compare.py /tmp/pred.json /tmp/po.json   # „
 ```
 
 Pri zámernej zmene dizajnu porovnanie ukáže, ktoré prvky a vlastnosti sa zmenili – tak sa dá skontrolovať, že sa nezmenilo nič navyše. Test zároveň hlási chyby aplikácie a kroky, ktoré sa nepodarilo vykonať. `build.py` skladá stránku rovnako ako plugin; ak sa zmení skladanie v `ars-preuge-priestor.php`, treba ho upraviť aj tu.
+
+Obrázok obrazovky s testovacími údajmi (napr. na ukážku pred schválením zmeny):
+
+```bash
+node nastroje/kontrola-vzhladu/obrazok.js /tmp/po.html /tmp/obrazok.png tmavý go:podujatia 'click:.gcard[data-open="events:e1"]'
+```

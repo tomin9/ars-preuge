@@ -4,7 +4,7 @@ Sem sa zapisuje všetko, čo treba v aplikácii opraviť alebo zjednotiť. Pri k
 
 **Dôležitosť:** 🔴 vidno na prvý pohľad alebo to robí chyby · 🟡 nesúlad, ktorý si všimne pozorný používateľ · ⚪ upratovanie, navonok nevidno.
 
-Súpis vznikol pri podrobnej prehliadke celého kódu (8. 11. 2026). **Zatiaľ nič nie je opravené.**
+Súpis vznikol pri podrobnej prehliadke celého kódu (8. 11. 2026). Opravené body sú odškrtnuté s číslom verzie.
 
 ---
 
@@ -25,7 +25,7 @@ Súpis vznikol pri podrobnej prehliadke celého kódu (8. 11. 2026). **Zatiaľ n
 
 - [ ] 🟡 **A4. Ručne písané farby v štýloch** (nemenia sa v tmavom režime): prekročený pruh rozpočtu `.lbar.over` a stav `.lst` (`#C2372E`, `#C08A12`), kôš v bočnom paneli pri prechode `#E5484D` (ďalšia, tretia červená), počet filtrov `.fcount` biely `#fff`, okraj pri presúvaní záložky `#3B5BD9`.
 
-- [ ] 🟡 **A5. Neexistujúca farba `var(--text)`** pri odkazoch v tabuľkách (`.rlink:hover`) – správne `--ink`.
+- [x] 🟡 **A5. Neexistujúca farba `var(--text)`** pri odkazoch v tabuľkách (`.rlink:hover`) – správne `--ink`. ✅ *opravené vo verzii 1.67.0.*
 
 ## B. Dizajn – záložky, štítky, tlačidlá
 
@@ -55,25 +55,25 @@ Súpis vznikol pri podrobnej prehliadke celého kódu (8. 11. 2026). **Zatiaľ n
 
 - [ ] 🟡 **C1. 24 rôznych veľkostí písma** (8,5 až 54 px; napr. 12 · 12,5 · 13 · 13,5 · 14 · 14,5). → stupnica DIZAJN 2. Konkrétne: meno v bočnom paneli kontaktu 24 px vs. nadpis textu 28 px; veľké čísla 27 px (stupnica 24).
 - [ ] 🟡 **C2. Deväť rôznych zaoblení** (2, 4, 6, 7, 8, 9, 10, 12, 14 px, plus `99px` aj `999px` pre okrúhle). → 4 / 8 / 12 / okrúhle.
-- [ ] 🟡 **C3. Zoznam textov podujatia začína 70 px nižšie** ako editor vedľa (`.txlist` má pevné odsadenie zhora). Na obrazovke je nad prvou položkou prázdne miesto. → zarovnať s nadpisom editora inak (alebo bez odsadenia).
+- [x] 🟡 **C3. Zoznam textov podujatia začína 70 px nižšie** ako editor vedľa (`.txlist` má pevné odsadenie zhora). Na obrazovke je nad prvou položkou prázdne miesto. → zarovnať s nadpisom editora inak (alebo bez odsadenia). ✅ *opravené vo verzii 1.67.0.*
 - [ ] 🟡 **C4. Sumy v súhrnoch nejednotne:** Prehľad ukazuje zostatky bez centov, Financie s centami; výdavky sú v súhrne Financií čierne, v súhrne projektu červené. → súhrny bez centov, výdavky vždy červené.
 - [ ] 🟡 **C5. Podnadpis pod hlavným nadpisom raz je, raz nie je.** Majú ho Prehľad, Kalendár, Úlohy, Projekty, Financie, Nastavenia („Peňažný denník Ars Preuge“, „12 projektov združenia“…); nemajú ho Granty, Podujatia a Kontakty. → rozhodnúť jedno (vzorové Kontakty sú bez neho).
 - [ ] 🟡 **C6. Projekt – záložka Ľudia** ukazuje ľudí ako kartičky v galérii bez obrázka; inde (Kontakty, bočný panel) sú ľudia v tabuľke/zozname s ikonou. → zoznam ako v Kontaktoch.
 - [ ] ⚪ **C7. Asi 160 miest so vzhľadom zapísaným priamo v prvku** (`style="…"`), napr. rovnaký nadpis karty `display:flex;justify-content:space-between…` je skopírovaný 6×, odstupy nadpisov panelov 6 / 8 / 10 / 12 px. → nahradiť pomenovanými štýlmi.
 - [ ] ⚪ **C8. Zbytočné nastavenia písma:** šírka písma (`wdth`) pri nadpisoch a číslach sa hneď ruší pravidlom `body * {…normal!important}`; v hlavičke je príprava na Google Fonts, ktoré sa nesťahujú. → odstrániť.
-- [ ] 🟡 **C10. Ikonové tlačidlá v bočnom paneli (✎ 🗑 ×) majú pri ovládaní klávesnicou bielu obrysovú čiaru** – na svetlom pozadí ju nevidno, takže človek s klávesnicou nevie, kde je. Pravidlo pre tlačidlá na obrázku (`.icb:focus-visible`, biely obrys) sa uplatní aj na tieto. → v paneli modrý obrys ako všade inde.
+- [x] 🟡 **C10. Ikonové tlačidlá v bočnom paneli (✎ 🗑 ×) majú pri ovládaní klávesnicou bielu obrysovú čiaru** – na svetlom pozadí ju nevidno, takže človek s klávesnicou nevie, kde je. Pravidlo pre tlačidlá na obrázku (`.icb:focus-visible`, biely obrys) sa uplatní aj na tieto. → v paneli modrý obrys ako všade inde. ✅ *opravené vo verzii 1.67.0.*
 - [ ] ⚪ **C11. Obmedzenie šírky stĺpca Popis v denníku Financií sa neuplatní** (`td.ldsc{max-width:200px}` prebije všeobecné `td.t{max-width:340px}`). Rozhodnúť, ktorá šírka je správna, a jedno pravidlo zmazať.
 - [ ] ⚪ **C9. Nepoužívané štýly** (nikde v programe sa nepoužívajú): `addln`, `addrow`, `bgbal`, `bgm`, `crumb`, `cthead`, `dutyin`, `kbd`, `orgchips`, `pd`, `pdc`, `plist`, `provlist`, `txcols`, `txlh`, `zb-bad`, `zb-sgrid`; tiež `.brand b` a `.brand span` (prebíjajú ich iné pravidlá). → zmazať.
 
 ## D. Texty v aplikácii
 
-- [ ] 🔴 **D1. Zastarané texty o claude.ai** (aplikácia bola pôvodne pre claude.ai, teraz beží vo WordPresse):
+- [x] 🔴 **D1. Zastarané texty o claude.ai** (aplikácia bola pôvodne pre claude.ai, teraz beží vo WordPresse):
   - oznámenie „Táto verzia neukladá dáta… otvorte publikovanú aplikáciu prihlásený do claude.ai“,
   - „Máte prístup len na čítanie… požiadajte správcu o úroveň Prispievateľ“,
   - Nastavenia → Prístup tímu: „zdieľate cez tlačidlo zdieľania… Prispievateľ / Divák… v claude.ai“,
   - chyby pri Google Disku: „nie je pripojený v claude.ai (Nastavenia → Konektory)“ (dnes sa neukážu, pozri E1).
-  *Správne:* prístup sa riadi vo WordPresse (rola „Tím Ars Preuge“, administrátor, redaktor).
-- [ ] 🟡 **D2. Chybný text pri výbere viacerých záznamov:** keď nie je z čoho vyberať, vždy sa napíše „Zatiaľ žiadne projekty“ – aj keď sa vyberajú granty alebo podujatia.
+  *Správne:* prístup sa riadi vo WordPresse (rola „Tím Ars Preuge“, administrátor, redaktor). ✅ *opravené vo verzii 1.67.0 – texty hovoria o WordPresse, v Nastaveniach je návod a odkaz na používateľov.*
+- [x] 🟡 **D2. Chybný text pri výbere viacerých záznamov:** keď nie je z čoho vyberať, vždy sa napíše „Zatiaľ žiadne projekty“ – aj keď sa vyberajú granty alebo podujatia. ✅ *opravené vo verzii 1.67.0.*
 - [ ] 🟡 **D3. Prázdne stavy bez návodu:** „Zatiaľ nič.“, „Žiadne úlohy.“, „Žiadne podujatia.“, „Zatiaľ nikto.“, „Žiadne platby.“ → veta „čo tu bude a ako to pridať“ (DIZAJN 13). Dobré príklady už sú (Úlohy, Dokumenty, rozpočet podujatia).
 - [ ] 🟡 **D4. Údaje združenia a meno štatutára sú napísané priamo v programe** (`ORG`, `CT_REP` = „Tomáš Pekár“ pre zmluvy). V Nastaveniach sa dajú len prečítať. → upravovateľné v Nastaveniach.
 - [ ] ⚪ **D5. Filter úloh „Ars Preuge aj KaSS“** a organizácie Ars / KaSS sú pevne v programe – ak pribudne ďalšia organizácia, treba zásah do kódu.
