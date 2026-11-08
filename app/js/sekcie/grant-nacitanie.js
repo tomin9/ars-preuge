@@ -57,3 +57,41 @@ function aivReview(gid,j,src,url,box,close){
     close();await upd("grants",gid,p);toast("Uložené údaje: "+Object.keys(p).length+".");};
 }
 document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest("[data-aivyzva]");if(b){ev.preventDefault();aivOpen(b.dataset.aivyzva);}});
+/* ===== Záložka Výzva – vzhľad ako Texty podujatia: vľavo (¼) zoznam častí výzvy, vpravo (¾) vybraná časť.
+   Texty sa ukladajú do tých istých polí ako doteraz (callApplicants, callPurpose, callAttach, callText); údaje o výzve sa upravujú ceruzkou v hlavnej karte. ===== */
+const GV_SEC=[["callApplicants","Kto môže žiadať","Oprávnení žiadatelia…",1],["callPurpose","Na čo možno dotáciu použiť","Oprávnené aktivity a výdavky…",2],["callAttach","Povinné prílohy a podmienky","Prílohy, limity počtu žiadostí…",2],["callText","Poznámky k výzve","Kritériá hodnotenia, dôležité termíny…",0]];
+const GV_IC='<path d="M9 5h10M9 12h10M9 19h10"/><circle cx="4.5" cy="5" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="19" r="1"/>';
+S._gvsel=S._gvsel||{};
+function grantCallTab(g){
+  const gid=esc(g.id),sel=S._gvsel[g.id]&&GV_SEC.some(x=>x[0]===S._gvsel[g.id])?S._gvsel[g.id]:"udaje";
+  const url=g.callUrl?(/^https?:/.test(g.callUrl)?g.callUrl:"https://"+g.callUrl):"";
+  const svg=p=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  const dot=f=>`<i class="txdot" style="background:${f?GREEN:GRAY}" title="${f?"Vyplnené":"Prázdne"}"></i>`;
+  const filled=[g.callOpen,g.submitTo,g.callMin,g.callMax,g.cofinPct,g.spendFrom].some(Boolean);
+  const item=(k,ic,t,sub,f)=>`<button type="button" class="txi${sel===k?" on":""}" data-gvsel="${gid}|${k}">${svg(ic)}<span class="txt"><b>${t}</b><small>${sub}</small></span>${dot(f)}</button>`;
+  const list=item("udaje",GV_IC,"Údaje o výzve","termíny, sumy, spolufinancovanie",filled)
+    +GV_SEC.map(([f,l,,i])=>{const n=String(g[f]||"").length;return item(f,TXI.ic[i],l,n?`${n.toLocaleString("sk-SK")} znakov`:"zatiaľ prázdne",n>0);}).join("")
+    +`<button type="button" class="txi txadd" data-aivyzva="${gid}" title="Claude prečíta výzvu (odkaz alebo PDF) a navrhne údaje">${svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>')}<span class="txt"><b>Načítať výzvu</b></span></button>`
+    +`<button type="button" class="txi txadd" style="margin-top:0" data-callimp="${gid}" title="Vložiť údaje o výzve ručne (text od Claude)">${svg('<path d="M12 5v14M5 12h14"/>')}<span class="txt"><b>Vložiť ručne</b></span></button>`;
+  const kick=`<div class="kick">Výzva / ${esc(g.name||"Grant")}</div>`;
+  let main;
+  if(sel==="udaje"){const it=(l,v)=>`<div class="gvi"><span>${l}</span><b>${v||'<span class="muted">—</span>'}</b></div>`;
+    main=`<div class="panel txmain"><div class="txhead"><div style="min-width:0;flex:1">${kick}<div class="txtitle" style="font-size:28px;font-weight:600">Údaje o výzve</div></div>
+      ${url?`<div class="row" style="flex:none;gap:8px"><a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Otvoriť výzvu ↗</a></div>`:""}</div>
+      <div class="txbar"><span class="meta">Upravujú sa ceruzkou v hlavnej karte grantu alebo cez „Načítať výzvu“.</span></div>
+      <div class="gvgrid">${it("Podávanie žiadostí",g.callOpen||g.submitTo?`${g.callOpen?fdate(g.callOpen):"—"} → ${g.submitTo?fdate(g.submitTo):"—"}`:"")}
+      ${it("Výška dotácie",g.callMin||g.callMax?`${g.callMin?eur(g.callMin):"—"} – ${g.callMax?eur(g.callMax):"—"}`:"")}
+      ${it("Spolufinancovanie",esc(g.cofinPct||""))}${it("Čerpanie od",g.spendFrom?fdate(g.spendFrom):"")}
+      ${it("Realizácia",g.realFrom||g.realTo?`${g.realFrom?fdate(g.realFrom):"—"} → ${g.realTo?fdate(g.realTo):"—"}`:"")}${it("Vyúčtovanie do",g.settleDue?fdate(g.settleDue):"")}</div></div>`;}
+  else{const[f,l,ph]=GV_SEC.find(x=>x[0]===sel);
+    main=`<div class="panel txmain"><div class="txhead"><div style="min-width:0;flex:1">${kick}<div class="txtitle" style="font-size:28px;font-weight:600">${l}</div></div>
+      <div class="row" style="flex:none;gap:8px"><button type="button" class="btn" data-gvcopy="${f}">${TXI.copy} Kopírovať</button></div></div>
+      <div class="txbar">${dot(String(g[f]||"").trim())}<span style="margin-right:auto;margin-left:-4px">${String(g[f]||"").trim()?"Vyplnené":"Prázdne"}</span><span>Z výzvy – dopĺňa sa aj cez „Načítať výzvu“</span></div>
+      <textarea class="txbody" data-gf="${f}" placeholder="${ph}">${esc(g[f]||"")}</textarea>
+      <div class="txfoot" id="txstat">${txStat(g[f])}</div></div>`;}
+  return`<div class="txm"><div class="txlist">${list}</div>${main}</div>`;
+}
+document.addEventListener("click",async ev=>{const t=ev.target;if(!t.closest)return;let el;
+  if((el=t.closest("[data-gvsel]"))){const[gid,k]=el.dataset.gvsel.split("|");S._gvsel[gid]=k;render();return;}
+  if((el=t.closest("[data-gvcopy]"))){const ta=document.querySelector(`textarea[data-gf="${el.dataset.gvcopy}"]`);try{await navigator.clipboard.writeText(ta?ta.value:"");toast("Text skopírovaný.");}catch(_){toast("Kopírovanie sa nepodarilo.");}}
+});

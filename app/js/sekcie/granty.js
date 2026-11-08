@@ -42,18 +42,7 @@ VIEWS.grant=()=>{
   const gcnt={ulohy:T.filter(t=>!isDone(t)).length,rozpocet:Ln.length,podujatia:E.length};
   const tbar=`<div class="ptabs ntabs" role="tablist" style="margin-top:6px">${GRTABS.map(([k,l])=>`<button role="tab" data-grtab="${k}" aria-selected="${gtab===k}">${l}</button>`).join("")}</div>`;
   let body="";
-  if(gtab==="vyzva"){  /* vľavo (¼) údaje o výzve ako zoznam pri Textoch, vpravo (¾) jednotlivé časti výzvy */
-    const it=(l,v)=>`<div class="gvi"><span>${l}</span><b>${v||'<span class="muted">—</span>'}</b></div>`;
-    const sec=(f,l,ph)=>`<section class="gvs"><h3>${l}</h3><textarea data-gf="${f}" placeholder="${ph}" rows="4">${esc(g[f]||"")}</textarea></section>`;
-    const url=g.callUrl?(/^https?:/.test(g.callUrl)?g.callUrl:"https://"+g.callUrl):"";
-    body=`<div class="txm gvm"><div class="txlist gvl">
-      <button class="btn pri gvload" data-aivyzva="${esc(g.id)}" title="Claude prečíta výzvu (odkaz alebo PDF) a navrhne údaje">Načítať výzvu</button>
-      ${it("Poskytovateľ",esc(provName(g)))}${it("Program / výzva",esc([g.callNo,g.program].filter(Boolean).join(" · ")))}
-      ${it("Podávanie žiadostí",g.callOpen||g.submitTo?`${g.callOpen?fdate(g.callOpen):"—"} → ${g.submitTo?fdate(g.submitTo):"—"}`:"")}
-      ${it("Výška dotácie",g.callMin||g.callMax?`${g.callMin?eur(g.callMin):"—"} – ${g.callMax?eur(g.callMax):"—"}`:"")}
-      ${it("Spolufinancovanie",esc(g.cofinPct||""))}${it("Čerpanie od",g.spendFrom?fdate(g.spendFrom):"")}
-      <div class="gvlinks">${url?`<a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">Otvoriť výzvu ↗</a>`:""}<button class="btn ghost sm" data-callimp="${esc(g.id)}" title="Vložiť údaje o výzve ručne (text od Claude)">Vložiť ručne</button></div></div>
-      <div class="panel txmain gvr">${sec("callApplicants","Kto môže žiadať","Oprávnení žiadatelia…")}${sec("callPurpose","Na čo možno dotáciu použiť","Oprávnené aktivity a výdavky…")}${sec("callAttach","Povinné prílohy a podmienky","Prílohy, limity počtu žiadostí…")}${sec("callText","Poznámky k výzve","Kritériá hodnotenia, dôležité termíny…")}</div></div>`;}
+  if(gtab==="vyzva")body=grantCallTab(g);  /* vzhľad ako Texty podujatia – grant-nacitanie.js */
   else if(gtab==="ziadost")body=grantAppTab(g);
   else if(gtab==="ulohy")body=`<div class="panel"><div class="spread"><h2>Úlohy</h2><button class="btn sm" data-create="tasks" data-defs='${esc(JSON.stringify(def))}'>+ Úloha</button></div>
         ${T.length?`<ul class="items">${T.sort((a,b)=>isDone(a)-isDone(b)||byDue(a,b)).map(taskLi).join("")}</ul>`:`<div class="empty">Ku grantu zatiaľ nie sú úlohy. Pridajte napríklad vyúčtovanie, záverečnú správu alebo zverejnenie loga poskytovateľa.</div>`}</div>
