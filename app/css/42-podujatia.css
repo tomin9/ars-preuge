@@ -53,7 +53,9 @@ table.lt td.t{display:flex;gap:8px;align-items:baseline;min-width:0}
 .txcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;align-items:start}
 .txbody{min-height:96px;resize:vertical}
 .phbar{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px}
-.phtabs{margin:0;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.phtabs{margin:0;flex-wrap:wrap}
+.phic .tplus{width:34px;height:34px}
+.phic .tplus.busy{opacity:.5;cursor:progress}
 .ptabs button.phadd{font-weight:500;font-size:14px;padding:5px 12px;border:1px dashed var(--line);border-radius:999px}
 .ptabs button.phadd:hover{background:none;color:var(--accent);border-color:var(--accent)}
 .phform{margin-bottom:14px}

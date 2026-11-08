@@ -16,8 +16,9 @@ function fotkyTab(e){
   if(!A.length)return form("add","");
   A.forEach(a=>{if(!S._ph[a.url])phFetch(a.url,false).then(()=>{const t=document.querySelector(`[data-phtab="${CSS.escape(a.id)}"]`);if(t&&S.view==="podujatie"&&S.id===e.id)t.outerHTML=phTabBtn(e,a,A,cur);}).catch(()=>{});});
   setTimeout(()=>phLoad(e.id,false),0);
-  return`<div class="phbar"><div class="row" style="gap:8px;flex-wrap:wrap"><a class="btn ghost" href="${esc(cur.url)}" target="_blank" rel="noopener">Otvoriť v Google Fotkách</a><button class="btn ghost" data-phall="${eid}" title="Stiahne všetky fotky albumu v plnej veľkosti do jedného ZIP súboru">Stiahnuť všetky</button><button class="btn ghost" data-phrefresh="${eid}">Obnoviť</button><button class="btn ghost" data-phchange="${eid}">Zmeniť odkaz</button></div>
-    <div class="ptabs phtabs" role="tablist">${A.length>1?A.map(a=>phTabBtn(e,a,A,cur)).join(""):""}<button type="button" class="phadd" data-phadd="${eid}">+ Pridať album</button></div></div>
+  const IC={dl:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',rf:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>',ed:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',gp:'<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M12 12V3.2A4.4 4.4 0 0 0 7.6 7.6V12z" fill="#EA4335"/><path d="M12 12h8.8A4.4 4.4 0 0 0 16.4 7.6H12z" fill="#FBBC04"/><path d="M12 12v8.8a4.4 4.4 0 0 0 4.4-4.4V12z" fill="#34A853"/><path d="M12 12H3.2a4.4 4.4 0 0 0 4.4 4.4H12z" fill="#4285F4"/></svg>'};
+  return`<div class="phbar"><div class="ptabs phtabs" role="tablist">${A.length>1?A.map(a=>phTabBtn(e,a,A,cur)).join(""):""}<button type="button" class="phadd" data-phadd="${eid}">+ Pridať album</button></div>
+    <div class="row phic" style="gap:2px"><a class="tplus" href="${esc(cur.url)}" target="_blank" rel="noopener" title="Otvoriť v Google Fotkách" aria-label="Otvoriť v Google Fotkách">${IC.gp}</a><button class="tplus" data-phall="${eid}" title="Stiahnuť všetky fotky albumu (ZIP)" aria-label="Stiahnuť všetky fotky">${IC.dl}</button><button class="tplus" data-phrefresh="${eid}" title="Obnoviť fotky z albumu" aria-label="Obnoviť">${IC.rf}</button><button class="tplus" data-phchange="${eid}" title="Zmeniť odkaz na album" aria-label="Zmeniť odkaz na album">${IC.ed}</button></div></div>
     ${F?form(F.mode,F.mode==="edit"?cur.url:""):""}<div id="ph-box" class="phbox"><div class="empty">Načítavam fotky…</div></div>`;
 }
 function phTabBtn(e,a,A,cur){const d=S._ph[a.url],n=d&&d.photos?d.photos.length:0;
@@ -81,19 +82,19 @@ function zipBlob(files){  /* files: [{name, data:Uint8Array}] → Blob (ZIP, met
 async function phDownloadAll(eid,btn){
   const e=get("events",eid),a=e&&phCur(e),d=a&&S._ph[a.url];const L=(d&&d.photos)||[];if(!L.length){toast("Najprv sa musia načítať fotky.");return;}
   if(!await ask(`Stiahnuť všetkých ${L.length} fotiek v plnej veľkosti do jedného ZIP súboru? Pri veľkom albume to môže trvať niekoľko minút – stránku nezatvárajte.`,"Stiahnuť"))return;
-  const lbl=btn.textContent;btn.disabled=true;const out=new Array(L.length);let done=0,bad=0,i=0;
+  const lbl=btn.innerHTML;btn.disabled=true;btn.classList.add('busy');const out=new Array(L.length);let done=0,bad=0,i=0;
   const ext=t=>/png/.test(t)?"png":/heic|heif/.test(t)?"heic":/gif/.test(t)?"gif":/webp/.test(t)?"webp":/mp4/.test(t)?"mp4":/quicktime/.test(t)?"mov":"jpg";
   const base=String((d.title||e.name||"fotky")).replace(/[\\/:*?"<>|]+/g,"_").trim().slice(0,80)||"fotky";
   const work=async()=>{while(i<L.length){const k=i++;
     try{const r=await fetch(ARSP.rest+"photo?id="+encodeURIComponent(L[k]),{headers:{"X-WP-Nonce":ARSP.nonce},credentials:"same-origin"});if(!r.ok)throw 0;
       const t=r.headers.get("content-type")||"";out[k]={name:`${base}-${String(k+1).padStart(3,"0")}.${ext(t)}`,data:new Uint8Array(await r.arrayBuffer())};}
     catch(_){bad++;}
-    done++;btn.textContent=`Sťahujem ${done} / ${L.length}…`;}};
+    done++;toast(`Sťahujem fotky ${done} / ${L.length}…`,60000);}};
   try{await Promise.all([work(),work(),work(),work()]);
     const files=out.filter(Boolean);if(!files.length){toast("Fotky sa nepodarilo stiahnuť.",6000);return;}
     const a=document.createElement("a");a.href=URL.createObjectURL(zipBlob(files));a.download=(base.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"")||"fotky")+".zip";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);
     toast(bad?`Stiahnuté ${files.length} fotiek, ${bad} sa nepodarilo.`:`Stiahnutých ${files.length} fotiek.`,6000);}
-  finally{btn.disabled=false;btn.textContent=lbl;}
+  finally{btn.disabled=false;btn.classList.remove('busy');btn.innerHTML=lbl;}
 }
 document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest("[data-phall]");if(b){ev.preventDefault();if(!b.disabled)phDownloadAll(b.dataset.phall,b);}});
 document.addEventListener("load",ev=>{const im=ev.target;if(!im||im.tagName!=="IMG"||!im.dataset||!im.dataset.phid||!im.naturalHeight)return;
