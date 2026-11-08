@@ -61,6 +61,8 @@ Súpis vznikol pri podrobnej prehliadke celého kódu (8. 11. 2026). **Zatiaľ n
 - [ ] 🟡 **C6. Projekt – záložka Ľudia** ukazuje ľudí ako kartičky v galérii bez obrázka; inde (Kontakty, bočný panel) sú ľudia v tabuľke/zozname s ikonou. → zoznam ako v Kontaktoch.
 - [ ] ⚪ **C7. Asi 160 miest so vzhľadom zapísaným priamo v prvku** (`style="…"`), napr. rovnaký nadpis karty `display:flex;justify-content:space-between…` je skopírovaný 6×, odstupy nadpisov panelov 6 / 8 / 10 / 12 px. → nahradiť pomenovanými štýlmi.
 - [ ] ⚪ **C8. Zbytočné nastavenia písma:** šírka písma (`wdth`) pri nadpisoch a číslach sa hneď ruší pravidlom `body * {…normal!important}`; v hlavičke je príprava na Google Fonts, ktoré sa nesťahujú. → odstrániť.
+- [ ] 🟡 **C10. Ikonové tlačidlá v bočnom paneli (✎ 🗑 ×) majú pri ovládaní klávesnicou bielu obrysovú čiaru** – na svetlom pozadí ju nevidno, takže človek s klávesnicou nevie, kde je. Pravidlo pre tlačidlá na obrázku (`.icb:focus-visible`, biely obrys) sa uplatní aj na tieto. → v paneli modrý obrys ako všade inde.
+- [ ] ⚪ **C11. Obmedzenie šírky stĺpca Popis v denníku Financií sa neuplatní** (`td.ldsc{max-width:200px}` prebije všeobecné `td.t{max-width:340px}`). Rozhodnúť, ktorá šírka je správna, a jedno pravidlo zmazať.
 - [ ] ⚪ **C9. Nepoužívané štýly** (nikde v programe sa nepoužívajú): `addln`, `addrow`, `bgbal`, `bgm`, `crumb`, `cthead`, `dutyin`, `kbd`, `orgchips`, `pd`, `pdc`, `plist`, `provlist`, `txcols`, `txlh`, `zb-bad`, `zb-sgrid`; tiež `.brand b` a `.brand span` (prebíjajú ich iné pravidlá). → zmazať.
 
 ## D. Texty v aplikácii

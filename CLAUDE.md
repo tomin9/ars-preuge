@@ -23,11 +23,12 @@ Majiteľ repozitára nie je programátor – výsledky a problémy vysvetľuj po
 | `app/js/*.js` | **Spoločné časti programu:** `00-nastavenia` (stavy, polia, farby štítkov) · `10-pomocnici` (dátumy, sumy, štítky, bublina, okno s otázkou) · `20-data-a-vypocty` (ukladanie, načítanie, zostatky, čerpanie) · `30-kostra` (navigácia, menu, vykreslenie) · `40-bocny-panel` · `50-prepojenia-a-zoznamy` (+ zoznam obrazoviek `VIEWS`) · `60–64` dokumenty, zmluvy, zlúčenie kontaktov, prehliadač dokumentov · `70-hladanie` · `71-export` · `90-ovladanie-a-spustenie` (`bindView`, `boot`). |
 | `app/js/sekcie/*.js` | **Sekcie:** `prehlad`, `kalendar`, `ulohy`, `projekty`, `granty`, `podujatia` + `podujatie-…` (rozpočet a program, spolupráce, texty, fotky, záložky, poradie platieb), `financie`, `kontakty`, `nastavenia`, `zabezpecenie`. |
 | | **Všetky súbory v `app/js/` sú kusy jedného programu, nie samostatné skripty.** Plugin ich vloží do `app/index.html` na miesto riadkov `//@subor …` vnútri spoločného obalu `(function(){ "use strict"; … })()` – preto sa navzájom vidia a do súborov nepatrí vlastný obal ani `"use strict"`. Poradie v zozname v `index.html` je pôvodné poradie programu; nový súbor sa pridá novým riadkom `//@subor` (meno len malé písmená, číslice a pomlčky, nanajvýš jeden podpriečinok). |
-| `app/css/*.css` | **Vzhľad** – 7 súborov očíslovaných v poradí načítania (**poradie je dôležité**, neskoršie pravidlá prebíjajú skoršie): `00-zaklad` farby a základ · `10-menu-a-stranka` menu, hlavička, tlačidlá, panel · `20-prvky` súhrny, štítky, zoznamy, tabuľky, nástenka · `30-panely-a-okna` bočný panel, výbery, okná · `40-kalendar-a-detaily` kalendár, galéria, hlavné karty, záložky, kontakty, mobil · `50-zabezpecenie` · `60-texty-a-menu` texty podujatia, zbaľovanie menu. Zatiaľ sú rozdelené podľa poradia v pôvodnom súbore, nie podľa účelu. |
+| `app/css/*.css` | **Vzhľad**, rozdelený podľa účelu (zodpovedá kapitolám `DIZAJN.md`): `00-farby` · `01-zaklad` (písmo, nadpisy, pomocné triedy) · `10-rozlozenie` (menu, hlavička, horná a dolná lišta) · `20-tlacidla` · `21-karty` · `22-zalozky` · `23-stitky` · `24-formulare` · `25-zoznamy-a-tabulky` · `30-bocny-panel` · `31-okna` · sekcie `40-kalendar`, `41-granty-a-projekty`, `42-podujatia`, `43-kontakty`, `44-financie`, `50-zabezpecenie`. Úpravy pre mobil sú v tom istom súbore ako pravidlo, ktoré upravujú. **Poradie súborov (podľa čísla) a poradie pravidiel v nich je dôležité** – neskoršie pravidlo prebije skoršie; pri presúvaní pravidiel medzi súbormi treba overiť, že sa vzhľad nezmenil. |
 | `app/shim.js` | „Most“ medzi aplikáciou a WordPressom: čítanie a ukladanie dát, zoznam používateľov, nahrávanie súborov, sťahovanie (export). Každých 8 sekúnd stiahne zmeny od kolegov. Prepojenie na Google Disk (`mcp`) je vypnuté. |
 | `ars-preuge-priestor.php` | Samotný plugin: roly a prístup, adresa `/priestor/`, databáza, nahrané súbory (chránené), náhľady albumov Google Fotiek, import/export dát v administrácii (*Ars Preuge → Import dát*). |
 | `index.php`, `app/index.php` | Prázdne zámky (aby sa priečinky nedali prezerať). Nemeniť. |
 | `README.md` · `DIZAJN.md` · `ZOZNAM-UPRAV.md` | Popis pre ľudí · jednotný dizajn · súpis toho, čo treba opraviť. |
+| `nastroje/kontrola-vzhladu/` | Test: aplikácia s testovacími údajmi, 136 obrazoviek, porovnanie vzhľadu každého prvku pred a po úprave (návod v `README.md` tam). Nie je súčasťou pluginu. |
 
 **Ako sa stránka skladá:** plugin pri otvorení načíta `app/index.html`, na miesto odkazov `<link rel="stylesheet" href="css/…">` vloží obsah štýlov, na miesto riadkov `//@subor js/…` obsah častí programu a **tesne pred prvý `<script>`** vloží nastavenia (`window.ARSP`: adresy, prihlásený používateľ) a `shim.js`. Pri akomkoľvek rozdeľovaní súborov sa toto musí zachovať.
 
@@ -85,14 +86,14 @@ PROJEKT ──┬── GRANT ──────── rozpočtové položky ◄
 - Staré záznamy sa pri načítaní dopĺňajú/prevádzajú (`norm`, a pri kontaktoch a Zabezpečení automatické opravy po načítaní).
 - Texty v aplikácii sú po slovensky; názvy v kóde po slovensky bez diakritiky alebo anglicky.
 
-## Plán rozdelenia `app/index.html` (schválený postup, po krokoch)
+## Rozdelenie `app/index.html` (hotové)
 
 1. ✅ Štýly → `app/css/` (hotové, vzhľad overene rovnaký).
 2. ✅ Spoločný základ programu → `app/js/` (hotové, poskladaná stránka overene znak po znaku rovnaká; vo WordPresse overené majiteľom).
 3. ✅ Sekcie → `app/js/sekcie/` a zvyšné spoločné kúsky → `app/js/` (hotové naraz, v pôvodnom poradí, poskladaná stránka znak po znaku rovnaká; preklikané všetky sekcie, detaily a záložky vo svetlom aj tmavom režime).
-4. Štýly preskupiť podľa účelu (farby, tlačidlá, karty, záložky, štítky, formuláre, sekcie) – podľa `DIZAJN.md`.
+4. ✅ Štýly preskupené podľa účelu (17 súborov podľa `DIZAJN.md`). Overené porovnaním vzhľadu každého prvku na 136 obrazovkách a stavoch (svetlý/tmavý režim, počítač/mobil) – 0 rozdielov. Pravidlá, ktoré by sa po presune pobili, ostali spolu v pôvodnom poradí.
 
-Pravidlá rozdeľovania: plugin skladá súbory do jednej stránky, poradie je pevné. Po každom kroku sa poskladaná stránka porovná s pôvodnou (ideálne znak po znaku) a preklikajú sa sekcie v prehliadači.
+Rozdelenie je hotové. Pravidlo do budúcna: plugin skladá súbory do jednej stránky v pevnom poradí; pri väčších presunoch sa poskladaná stránka porovná s pôvodnou a preklikajú sa sekcie v prehliadači (svetlý aj tmavý režim, počítač aj mobil).
 
 # Pravidlá pri úpravách
 
@@ -100,4 +101,5 @@ Pravidlá rozdeľovania: plugin skladá súbory do jednej stránky, poradie je p
 2. **Zoznam úprav:** nájdené nedostatky sa zapisujú do `ZOZNAM-UPRAV.md`, opravené sa tam odškrtnú.
 3. **Dáta:** nemeniť názvy polí, kolekcií ani kľúče stavov v `OPT`, kým sa nerieši prevod existujúcich záznamov – inak sa v živých dátach tímu „stratia“.
 4. **Jedna vec naraz:** pri väčších zmenách najprv navrhnúť, počkať na súhlas majiteľa, až potom robiť.
-5. **Overenie:** po zmene overiť, že sa aplikácia otvorí bez chýb a sekcia funguje – svetlý aj tmavý režim, počítač aj mobil.
+5. **Overenie:** po zmene overiť, že sa aplikácia otvorí bez chýb a sekcia funguje – svetlý aj tmavý režim, počítač aj mobil. Na to slúži `nastroje/kontrola-vzhladu/` (pri úpravách, ktoré nemajú meniť vzhľad, musí ukázať 0 rozdielov).
+6. **Verzia:** pri každej zmene, ktorá ide do WordPressu, zvýšiť číslo verzie v `ars-preuge-priestor.php` (`Version` a `ARSP_VER`).

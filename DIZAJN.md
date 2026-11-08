@@ -5,7 +5,7 @@ Toto je jednotný dizajn aplikácie. Vychádza z toho, čo v aplikácii už je, 
 1. **Detail podujatia** (napr. Podujatia / NOX:ART, záložka Texty) – vzor pre **detail záznamu**.
 2. **Kontakty s otvoreným bočným panelom** – vzor pre **zoznam** a **bočný panel**.
 
-Keď sa robí nová obrazovka alebo sa upravuje stará, má vyzerať ako tieto dve. Pri každom pravidle je uvedené, ako sa prvok volá v kóde (názov v `zátvorke`), aby sa dal nájsť. Čo zatiaľ v aplikácii nesedí, je zapísané v `ZOZNAM-UPRAV.md`.
+Keď sa robí nová obrazovka alebo sa upravuje stará, má vyzerať ako tieto dve. Pri každom pravidle je uvedené, ako sa prvok volá v kóde (názov v `zátvorke`), aby sa dal nájsť. Štýly sú v `app/css/` rozdelené podľa kapitol tohto dokumentu (`20-tlacidla.css` = časť 5, `22-zalozky.css` = časť 8 atď.). Čo zatiaľ v aplikácii nesedí, je zapísané v `ZOZNAM-UPRAV.md`.
 
 ---
 
@@ -20,7 +20,7 @@ Keď sa robí nová obrazovka alebo sa upravuje stará, má vyzerať ako tieto d
 
 ## 1. Farby
 
-Aplikácia má **svetlý aj tmavý režim** (podľa nastavenia zariadenia). Každá farba má dve hodnoty, preto sa v kóde **vždy píše pomenovaná farba** (`var(--accent)`), nikdy „holá“ (`#2F4DB8`). Definované sú v `app/css/00-zaklad.css`.
+Aplikácia má **svetlý aj tmavý režim** (podľa nastavenia zariadenia). Každá farba má dve hodnoty, preto sa v kóde **vždy píše pomenovaná farba** (`var(--accent)`), nikdy „holá“ (`#2F4DB8`). Definované sú v `app/css/00-farby.css`.
 
 ### Plochy a text
 

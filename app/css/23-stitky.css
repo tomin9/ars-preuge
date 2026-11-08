@@ -1,0 +1,25 @@
+/* ===== Štítky: stav (chip), rola/filter (tg), bodky – DIZAJN 9 ===== */
+.dot{width:9px;height:9px;border-radius:2px;flex:none;display:inline-block}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:1px 9px 1px 7px;border-radius:99px;background:var(--surface2);white-space:nowrap;line-height:1.6}
+.chip i{width:7px;height:7px;border-radius:50%;flex:none}
+.chip.out{background:transparent;border:1px solid var(--line)}
+.late{color:var(--bad);font-weight:600}
+.dot.pos{background:var(--good)}
+.dot.neg{background:var(--bad)}
+.dot.pl{opacity:.38}
+.tagcard .oc,.tagcard .tg{padding:6px 14px}
+.sem{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;cursor:pointer}
+.sem:hover{background:var(--surface3)}
+.sem i{width:10px;height:10px;border-radius:50%;background:var(--sc,#8A8F98)}
+.sem select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.tg.add{all:unset;box-sizing:border-box;border:1px dashed var(--line);border-radius:999px;padding:3px 12px;font-size:13px;color:var(--muted);width:92px;background:transparent}
+.tg.add:focus{border-color:var(--accent);color:var(--ink);width:140px}
+.tg.add::placeholder{color:var(--muted)}
+.htags{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0}
+.htags .tg{cursor:default}
+.tg.sm{padding:1px 10px;font-size:12px}
+.tg{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--tc,var(--line));border-radius:999px;padding:3px 10px;font-size:13px;line-height:1.3;color:var(--ink);background:color-mix(in srgb,var(--tc,#888) 16%,transparent)}
+.tg{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;border:1px solid var(--tc,var(--line));border-radius:999px;padding:3px 12px;font-size:13px;color:var(--ink);background:color-mix(in srgb,var(--tc,#888) 18%,transparent)}
+.tg[aria-pressed="false"]{background:transparent;border-style:dashed;border-color:var(--line);color:var(--muted)}
+.tg[aria-pressed="false"]:hover{border-color:var(--tc);color:var(--ink)}
+.txdot{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block}

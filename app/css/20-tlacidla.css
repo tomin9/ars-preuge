@@ -1,0 +1,32 @@
+/* ===== Tlačidlá: hlavné, bežné, tiché, malé, ikonové – DIZAJN 5 ===== */
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--surface);padding:7px 13px;border-radius:8px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--surface2)}
+.btn.sm{padding:4px 9px;font-size:13px}
+.btn.danger{color:var(--bad)}
+.addic{all:unset;cursor:pointer;display:inline-grid;place-items:center;width:18px;height:18px;margin-left:6px;border-radius:5px;font-size:15px;font-weight:600;line-height:1;color:var(--muted);vertical-align:-3px}
+.addic:hover{background:var(--accent-soft);color:var(--accent)}
+.addrow{all:unset;cursor:pointer;color:var(--muted);font-size:13.5px;padding:2px 0}
+.addrow:hover{color:var(--accent)}
+tr.addln td{border-bottom:0;padding-top:6px;padding-bottom:6px}
+.dtop-ic .icb{all:unset;cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--muted)}
+.dtop-ic .icb:hover{background:var(--surface3);color:var(--ink)}
+.dtop-ic .icb.danger:hover{color:#E5484D}
+.dtop-ic .icb.on{background:var(--accent-soft);color:var(--accent)}
+.evedit{all:unset;box-sizing:border-box;cursor:pointer;width:34px;height:34px;border:1px solid var(--line);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted)}
+.evedit:hover{background:var(--surface3);color:var(--ink)}
+.pcedit{position:absolute;top:12px;right:12px;background:rgba(18,20,26,.55);color:#fff;border-color:rgba(255,255,255,.3);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.pcedit:hover{background:rgba(18,20,26,.75);border-color:rgba(255,255,255,.6)}
+.icb{all:unset;cursor:pointer;width:34px;height:34px;display:grid;place-items:center;border-radius:8px;background:rgba(18,20,26,.55);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.icb:hover{background:rgba(18,20,26,.8)}
+.icb:focus-within,.icb:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.icb svg{width:17px;height:17px}
+.tplus.on{background:var(--accent-soft);color:var(--accent)}
+.tdel:hover{color:var(--bad)}
+.tplus{all:unset;box-sizing:border-box;position:relative;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;font-weight:400}
+.tplus:hover{background:var(--surface3);color:var(--ink)}
+.tplus select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+button.lnk{border:0;background:transparent;color:var(--accent);cursor:pointer;font-size:12.5px;padding:2px 0}

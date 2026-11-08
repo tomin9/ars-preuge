@@ -1,0 +1,35 @@
+/* ===== Základ: písmo, nadpisy, odkazy, pomocné triedy (riadok, mriežka, sivý text, sumy) – DIZAJN 2, 3 ===== */
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI Variable","Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+[hidden]{display:none!important}
+.kbd{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:4px}
+h1{font-size:38px;line-height:1.12;margin:0;font-weight:700;letter-spacing:-.02em}
+body *{font-variation-settings:normal!important}
+h2{font-size:18px;margin:0;font-weight:700;font-variation-settings:"wdth" 85}
+h3{font-size:15px;margin:0;font-weight:700}
+.sub{color:var(--muted);margin:6px 0 0;font-size:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid3{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
+.stack>*+*{margin-top:20px}
+.grid2>*,.grid3>*,.stack{min-width:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.pos{color:var(--good)}
+.neg{color:var(--bad)}
+.warn{color:var(--ochre)}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.meta{font-size:13px;color:var(--muted);white-space:nowrap}
+.cut{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.desc{white-space:pre-wrap;margin:14px 0 0;max-width:75ch}
+@media (max-width:980px){
+  .grid2,.grid3{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  h1{font-size:31px}
+}

@@ -1,0 +1,62 @@
+/* ===== Zoznamy, tabuľky, pruhy postupu, kontrolné zoznamy, komentáre – DIZAJN 10 ===== */
+.items{list-style:none;margin:0;padding:0}
+.items li{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);cursor:pointer;min-width:0}
+.items li:first-child{border-top:0}
+.items li:hover .t{color:var(--accent)}
+.items .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.pdc{width:22px;padding-left:2px;padding-right:10px}
+.tw{overflow-x:auto;margin:0 -20px;padding:0 20px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+tr.unl td{color:var(--muted)}
+td.ldsc{max-width:200px}
+td.rhc{width:14px;padding-left:0;padding-right:0}
+.rh{display:inline-block;cursor:grab;color:var(--muted);opacity:.35;font-size:14px;line-height:1;padding:4px 2px;touch-action:none;user-select:none}
+tr:hover .rh{opacity:.9}
+tr.rdrag td{opacity:.45}
+tr.rdrop-t td{box-shadow:inset 0 2px 0 var(--accent)}
+tr.rdrop-b td{box-shadow:inset 0 -2px 0 var(--accent)}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:12.5px;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tr[data-open]{cursor:pointer}
+tr[data-open]:hover td{background:var(--surface3)}
+.rlink{cursor:pointer;border-radius:4px}
+.rlink:hover{text-decoration:underline;text-underline-offset:3px;color:var(--text)}
+td.t{font-weight:600;max-width:340px}
+tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0}
+.bar{height:8px;border-radius:2px;background:var(--surface2);overflow:hidden;position:relative;min-width:70px;flex:1}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--accent)}
+.bar i.b2{background:var(--ochre);opacity:.8}
+.bar i.over{background:var(--bad)!important}
+.barline{display:flex;align-items:center;gap:10px}
+.cl{list-style:none;margin:0;padding:0}
+.cl li{display:flex;align-items:center;gap:10px;padding:5px 0}
+.cl li span{flex:1}
+.cl li.on span{text-decoration:line-through;color:var(--muted)}
+.cl li .x{all:unset;cursor:pointer;color:var(--muted);padding:0 4px;visibility:hidden}
+.cl li:hover .x{visibility:visible}
+.lk li .x{all:unset;cursor:pointer;color:var(--muted);padding:0 6px;font-size:16px;visibility:hidden}
+.lk li:hover .x,.lk li .x:focus-visible{visibility:visible}
+@media (hover:none){
+  .lk li .x{visibility:visible}
+}
+.cmt{padding:8px 0;border-top:1px solid var(--line)}
+.cmt:first-child{border-top:0}
+.cmt .h{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.cmt .h b{color:var(--ink);font-weight:600}
+.cmt p{margin:4px 0 0;white-space:pre-wrap}
+.feed li{cursor:pointer}
+.items.lk li.clg{display:grid;grid-template-columns:calc(25% + 11px) minmax(0,1fr) auto 22px;align-items:center;gap:0;padding:3px 0;font-size:13px;color:var(--muted);min-height:22px}
+.items.lk li.clg .meta,.items.lk li.clg .t{font-size:13px;color:var(--muted)}
+.items.lk li.clg .num{font-size:13px;text-align:right;padding-left:10px;white-space:nowrap}
+.items.lk li.clg:hover .t{color:var(--ink)}
+.items li.dragging{opacity:.4}
+.items li.rowdrop{box-shadow:inset 0 2px 0 var(--accent)}
+.items li.teamnew{cursor:default}
+.items.lk li.cpl{padding:3px 0;min-height:22px;font-size:13px}
+.items.lk li.cpl .t{font-size:13px;color:var(--muted)}
+.items.lk li.cpl:hover .t{color:var(--ink)}
+.items.lk li.cpl .orgfn{flex:none;width:48%;text-align:left}
+.drow{display:flex;align-items:center;gap:6px;min-width:0}
+.drow .cut{min-width:0;flex:0 1 auto}
+.clip{flex:none;font-size:12px;opacity:.7;line-height:1}

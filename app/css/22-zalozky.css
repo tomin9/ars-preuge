@@ -1,0 +1,30 @@
+/* ===== Záložky a prepínače – DIZAJN 8 ===== */
+.ptabs.ntabs{gap:14px;border-bottom:1px solid var(--line);padding-bottom:0;margin-bottom:22px;overflow-y:hidden}
+.ptabs.ntabs button{font-size:16px;font-weight:400;color:var(--muted);padding:10px 12px 12px;background:none;border-radius:0;position:relative}
+.ptabs.ntabs button[aria-selected="true"]::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:3px;border-radius:2px;background:var(--accent)}
+.ptabs.ntabs button:hover{color:var(--ink);background:none}
+.ptabs.ntabs button[aria-selected="true"]{background:none;color:var(--ink);font-weight:600}
+.tabs{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.tabs button{all:unset;cursor:pointer;padding:6px 12px;font-size:14px;color:var(--muted)}
+.tabs button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.ptabs.evbtabs button{font-size:14px;font-weight:400;padding:6px 12px;border-radius:8px;color:var(--muted)}
+.ptabs.evbtabs button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.ptabs.evbtabs button:hover{color:var(--ink)}
+.ptabs.evbtabs button[aria-selected="true"]:hover{color:var(--accent)}
+.seg{display:flex;width:100%}
+.seg button{flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px}
+.ptabs{display:flex;gap:4px;align-items:center;margin-bottom:18px;overflow-x:auto;padding-bottom:2px}
+.ptabs button{all:unset;cursor:pointer;padding:6px 12px;border-radius:8px;font-weight:600;color:var(--muted);display:flex;gap:6px;align-items:center;white-space:nowrap}
+.ptabs button:hover{color:var(--ink);background:var(--surface3)}
+.ptabs button[aria-selected="true"]{background:var(--surface2);color:var(--ink)}
+.ptabs button span{font-weight:500;font-size:12px;color:var(--muted)}
+.ptabs-r{margin-left:auto;padding-left:12px}
+.seg.segi button{gap:6px}
+.ctt{margin-bottom:6px}
+.ctt .seg{display:flex;width:100%}
+.ctt .seg button{flex:1;padding:8px 10px}
+.seg.segi svg{width:16px;height:16px;flex:none}
+.ptabs button[data-evbdrag]{touch-action:pan-x;-webkit-touch-callout:none}
+.ptabs button.dragging{opacity:.4}
+.ptabs button.dropl{box-shadow:inset 3px 0 0 var(--accent,#3B5BD9)}
+.ptabs button.dropr{box-shadow:inset -3px 0 0 var(--accent,#3B5BD9)}

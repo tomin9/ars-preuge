@@ -1,3 +1,4 @@
+/* ===== Farby (pomenované farby pre svetlý a tmavý režim) – DIZAJN 1 ===== */
 :root{
   --bg:#F1F2EE; --surface:#FFFFFF; --surface2:#E8EAE4; --surface3:#F6F7F4; --ink:#1C222C; --muted:#5B6371;
   --line:#D6D9D1; --accent:#2F4DB8; --accent-soft:#E3E8F8; --accent-ink:#FFFFFF;
@@ -6,21 +7,15 @@
   color-scheme:light; box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
   --bg:#14171D; --surface:#1C2028; --surface2:#272C36; --surface3:#191C23; --ink:#E5E8EE; --muted:#9AA2B1;
   --line:#323845; --accent:#8FA5FF; --accent-soft:#252D4A; --accent-ink:#0E1220;
   --ochre:#E0B44A; --good:#5CC28F; --bad:#F2867C; --bad-soft:#3A2224; --scrim:rgba(0,0,0,.55);
-  --shadow:none; --pop:0 12px 32px rgba(0,0,0,.5); color-scheme:dark;}}
+  --shadow:none; --pop:0 12px 32px rgba(0,0,0,.5); color-scheme:dark;}
+}
 :root[data-theme="dark"]{
   --bg:#14171D; --surface:#1C2028; --surface2:#272C36; --surface3:#191C23; --ink:#E5E8EE; --muted:#9AA2B1;
   --line:#323845; --accent:#8FA5FF; --accent-soft:#252D4A; --accent-ink:#0E1220;
   --ochre:#E0B44A; --good:#5CC28F; --bad:#F2867C; --bad-soft:#3A2224; --scrim:rgba(0,0,0,.55);
   --shadow:none; --pop:0 12px 32px rgba(0,0,0,.5); color-scheme:dark;}
-*,*::before,*::after{box-sizing:inherit}
-html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI Variable","Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-button,input,select,textarea{font:inherit;color:inherit}
-a{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
-[hidden]{display:none!important}
-.app{display:grid;grid-template-columns:200px 1fr;height:100%}

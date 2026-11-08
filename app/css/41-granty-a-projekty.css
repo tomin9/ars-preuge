@@ -1,0 +1,10 @@
+/* ===== Grant a projekt: časová os termínov, vlastnosti projektu ===== */
+.tl{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:16px}
+.tl div{border-top:3px solid var(--line);padding-top:8px}
+.tl div.done{border-color:var(--good)}
+.tl div.now{border-color:var(--accent)}
+.tl div.bad{border-color:var(--bad)}
+.tl span{display:block;font-size:12px;color:var(--muted)}
+.tl b{font-weight:600}
+.pprops{display:grid;grid-template-columns:170px 1fr;gap:10px 16px;max-width:760px}
+.pprops .pl{color:var(--muted);font-size:14px}

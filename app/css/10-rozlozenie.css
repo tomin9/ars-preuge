@@ -1,0 +1,89 @@
+/* ===== Rozloženie: ľavé menu, hlavička stránky, horná lišta s cestou, dolná lišta na mobile – DIZAJN 4 ===== */
+.app{display:grid;grid-template-columns:200px 1fr;height:100%}
+.side{background:var(--bg);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:30px 12px 12px}
+.brand .bmark{flex:none;width:42px;height:42px;border:1.5px solid var(--line);border-radius:12px;display:grid;place-items:center}
+.brand .btxt{min-width:0;display:flex;flex-direction:column;gap:1px}
+.brand .btxt b{font-size:15px;font-weight:700;line-height:1.2;white-space:nowrap}
+.brand .btxt span{font-size:12px;color:var(--muted);white-space:nowrap}
+.brand b{display:block;font-size:23px;font-weight:800;font-variation-settings:"wdth" 68;line-height:1}
+.brand span{font-size:13px;color:var(--muted)}
+.side .sidetools{margin-top:12px}
+.sidetools .btn.srch{flex:none;width:42px;padding:7px 0}
+.brand .logo{width:24px;height:auto;display:block;filter:invert(1)}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .brand .logo{filter:none}
+}
+:root[data-theme="dark"] .brand .logo{filter:none}
+.sidetools{display:flex;gap:6px;padding:4px 12px 10px}
+.sidetools .btn{flex:1;justify-content:center;padding:7px 8px}
+.nav{display:flex;flex-direction:column;padding:0 10px;gap:1px}
+.nav .sep{height:1px;background:var(--line);margin:8px 10px}
+.nav button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;padding:9px 12px;border:1px solid transparent;border-radius:12px;color:var(--muted);font-weight:500}
+.nav button:hover{background:var(--surface2);color:var(--ink)}
+.nav button[aria-current="page"]{background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-color:color-mix(in srgb,var(--accent) 35%,var(--line));color:var(--accent);font-weight:600}
+.nav button .n{margin-left:auto;font-size:12px;font-variant-numeric:tabular-nums}
+.nav svg{width:18px;height:18px;flex:none}
+.side h4{font-size:12px;font-weight:600;color:var(--muted);margin:18px 20px 6px}
+.plist{padding:0 10px 12px;display:flex;flex-direction:column;gap:1px}
+.plist button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:5px 10px;border-radius:7px;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plist button:hover{background:var(--surface2)}
+.plist button[aria-current="page"]{background:var(--surface2);font-weight:600}
+.side .who{margin-top:auto;padding:12px 20px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.av{width:24px;height:24px;border-radius:50%;flex:none;object-fit:cover;background:var(--surface2)}
+.av.sm{width:18px;height:18px}
+main{overflow:auto;min-height:0;position:relative}
+.wrap{--pr:max(72px,calc((100vw - 200px - 1320px)/2));--pl:var(--pr);margin:0;padding:28px var(--pr) 90px var(--pl)}
+.app.sidecolp .wrap{--pr:max(72px,calc((100vw - 64px - 1320px)/2))}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.navbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;margin:-28px calc(-1*var(--pr)) 18px calc(-1*var(--pl));padding:10px var(--pr) 10px var(--pl);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px)}
+.navbar::after{content:"";position:absolute;left:24px;right:24px;bottom:0;height:1px;background:var(--line)}
+.nb-back{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;color:var(--muted);background:transparent}
+.nb-back:hover{background:var(--surface3);color:var(--ink)}
+.nb-back[disabled]{opacity:.4;cursor:default}
+.nb-path{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);min-width:0;overflow:hidden;white-space:nowrap}
+.nb-path button{all:unset;cursor:pointer}
+.nb-path button:hover{color:var(--ink)}
+.nb-path b{font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis}
+@media (max-width:760px){
+  .navbar{margin:-18px -14px 14px;padding:8px 14px}
+}
+.crumb{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--muted);margin-bottom:10px}
+.crumb button{all:unset;cursor:pointer;color:var(--muted)}
+.crumb button:hover{color:var(--ink)}
+.ptitle{margin:0 0 18px}
+.bottom{display:none}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;inset:0 auto 0 0;width:min(300px,86vw);z-index:50;transform:translateX(-102%);transition:transform .18s ease;padding-top:env(safe-area-inset-top,0px)}
+  .side.open{transform:none;box-shadow:var(--pop)}
+  .wrap{--pr:14px;--pl:14px;padding:18px 14px 110px}
+  .bottom{display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:5px 4px calc(5px + env(safe-area-inset-bottom,0px));z-index:30}
+  .bottom button{all:unset;flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;color:var(--muted);padding:5px 0;cursor:pointer}
+  .bottom button[aria-current="page"]{color:var(--accent);font-weight:650}
+  .bottom svg{width:22px;height:22px}
+}
+@media (prefers-reduced-motion:reduce){
+  .side{transition:none}
+}
+.sidecol{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;margin:8px 10px 6px;padding:9px 12px;border-radius:12px;color:var(--muted);font-weight:500;font-size:14px}
+.sidecol:hover{background:var(--surface2);color:var(--ink)}
+.sidecol:focus-visible{outline:2px solid var(--accent)}
+.sidecol svg{flex:none}
+.side .who{margin-top:0}
+.sidecol{margin-top:auto}
+@media(min-width:761px){
+  .app.sidecolp{grid-template-columns:64px 1fr}
+  .sidecolp .brand{padding:30px 0 12px;justify-content:center}
+  .sidecolp .brand .btxt,.sidecolp .nl,.sidecolp .nav button .n,.sidecolp .who span{display:none}
+  .sidecolp .sidetools{flex-direction:column;align-items:center;padding:4px 8px 10px}
+  .sidecolp .sidetools .btn.srch,.sidecolp .sidetools .btn.pri{width:40px;padding:7px 0;flex:none}
+  .sidecolp .nav{padding:0 8px}
+  .sidecolp .nav button{justify-content:center;padding:9px 0}
+  .sidecolp .sidecol{justify-content:center;margin:auto 8px 6px;padding:9px 0}
+  .sidecolp .who{justify-content:center;padding:12px 0}
+  .sidecolp .nav .sep{margin:8px 6px}
+}
+@media(max-width:760px){
+  .sidecol{display:none}
+}

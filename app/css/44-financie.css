@@ -1,0 +1,8 @@
+/* ===== Sekcia Financie: denník, filter ===== */
+.ldg td{white-space:nowrap}
+.ldg td.lgr>span,.ldg td.lct>*{display:inline-block;max-width:140px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+.ldg td.ldsc .cut{max-width:170px}
+td.ldsc .cut{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fbtn{position:relative;display:inline-flex;align-items:center;gap:6px;padding:7px 10px}
+.fbtn.on{background:var(--accent-soft);color:var(--accent)}
+.fcount{font-size:11px;font-weight:700;background:var(--accent);color:#fff;border-radius:9px;padding:0 6px;line-height:16px}

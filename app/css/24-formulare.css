@@ -1,0 +1,53 @@
+/* ===== Formuláre: polia, výbery, našepkávanie, zaškrtnutie, mriežka vlastností – DIZAJN 11 ===== */
+input{font:inherit;color:inherit}
+select{font:inherit;color:inherit}
+textarea{font:inherit;color:inherit}
+.check{all:unset;cursor:pointer;width:17px;height:17px;border:1.5px solid var(--muted);border-radius:5px;flex:none;display:grid;place-items:center}
+.check.on{background:var(--good);border-color:var(--good)}
+.check.pd{width:14px;height:14px;border-radius:4px;border-width:1.5px}
+.check.pd.on{background:var(--accent);border-color:var(--accent)}
+.check.pd.on::after{width:4px;height:7px}
+.check.on::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+select.lsel{max-width:180px;padding:3px 6px;font-size:13px;border-color:transparent;background:transparent}
+select.lsel:hover,select.lsel:focus{border-color:var(--line);background:var(--surface)}
+select,input[type=text],input[type=number],input[type=date],input[type=search],input[type=email],input[type=url],input[type=tel],textarea{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:14px;max-width:100%}
+textarea{width:100%;min-height:80px;resize:vertical;line-height:1.45}
+.props{display:grid;grid-template-columns:150px 1fr;gap:2px 10px;align-items:center;margin-bottom:18px}
+.props>label{font-size:13px;color:var(--muted);padding:5px 0}
+.props .pv{min-width:0}
+.props .pv>input,.props .pv>select,.props .pv>textarea{width:100%;border-color:transparent;background:transparent}
+.props .pv>input:hover,.props .pv>select:hover,.props .pv>textarea:hover{background:var(--surface3)}
+.props .pv>input:focus,.props .pv>select:focus,.props .pv>textarea:focus{border-color:var(--line);background:var(--surface)}
+.props .full{grid-column:1/-1}
+.urlrow{display:flex;gap:4px;align-items:center}
+.urlrow input{flex:1;border-color:transparent;background:transparent}
+.urlrow input:hover{background:var(--surface3)}
+.mchips{display:flex;flex-wrap:wrap;gap:5px;padding:4px 0}
+.mchips button{all:unset;cursor:pointer;font-size:12.5px;padding:1px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.mchips button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent);font-weight:600}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.dgrid.g2{grid-template-columns:1fr 1fr}
+.dgrid .wide{grid-column:1/-1}
+.dfld>label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+.dfld input:not([type=checkbox]),.dfld select,.dfld textarea{width:100%}
+.dgrid.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.dgrid{align-items:end}
+.picker{position:relative}
+.picker input{width:100%}
+.menu{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:var(--surface);border:1px solid var(--line);border-radius:9px;z-index:5;max-height:240px;overflow:auto;box-shadow:var(--pop)}
+.menu button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:7px 12px;width:100%;box-sizing:border-box;font-size:14px}
+.menu button:hover,.menu button:focus,.menu button.hl{background:var(--surface2)}
+.chosen{display:flex;align-items:center;gap:8px;padding:5px 10px;font-size:14px;border-radius:8px}
+.chosen:hover{background:var(--surface3)}
+.chosen button{all:unset;cursor:pointer;margin-left:auto;color:var(--muted);font-size:13px}
+.combo{position:relative;width:100%}
+.combo-in{width:100%}
+.combo-list{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:60;max-height:280px;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--pop);padding:4px}
+.combo-list button{all:unset;box-sizing:border-box;display:flex;align-items:center;width:100%;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:14px}
+.combo-list button:hover,.combo-list button.hl{background:var(--surface3)}
+.combo-list button.sel{font-weight:600}
+.combo-list button.new{color:var(--accent,#3B5BD9);font-weight:600}
+.linksel{margin-top:14px;color:var(--muted);max-width:340px;width:100%}
+@media (max-width:760px){
+  .props{grid-template-columns:120px 1fr}
+}

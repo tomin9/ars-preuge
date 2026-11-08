@@ -1,0 +1,5 @@
+/* ===== Sekcia Kontakty: lišta so záložkami, hľadaním a filtrami ===== */
+.ctbar{display:flex;align-items:center;justify-content:space-between;gap:12px 16px;flex-wrap:wrap;margin-bottom:18px}
+.ctools{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
+.ctools input[type=search]{min-width:230px}
+.ctagbar{display:flex;gap:6px;margin:-6px 0 14px 2px}
