@@ -63,16 +63,17 @@ const GV_SEC=[["callApplicants","Kto môže žiadať","Oprávnení žiadatelia�
 const GV_IC='<path d="M9 5h10M9 12h10M9 19h10"/><circle cx="4.5" cy="5" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="19" r="1"/>';
 S._gvsel=S._gvsel||{};
 function grantCallTab(g){
-  const gid=esc(g.id),sel=S._gvsel[g.id]&&GV_SEC.some(x=>x[0]===S._gvsel[g.id])?S._gvsel[g.id]:"udaje";
+  const gid=esc(g.id),sel=S._gvsel[g.id]&&GV_SEC.some(([f])=>String(g[f]||"").trim())&&GV_SEC.some(x=>x[0]===S._gvsel[g.id])?S._gvsel[g.id]:"udaje";
   const url=g.callUrl?(/^https?:/.test(g.callUrl)?g.callUrl:"https://"+g.callUrl):"";
   const svg=p=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
   const dot=f=>`<i class="txdot" style="background:${f?GREEN:GRAY}" title="${f?"Vyplnené":"Prázdne"}"></i>`;
   const filled=[g.callOpen,g.submitTo,g.callMin,g.callMax,g.cofinPct,g.spendFrom].some(Boolean);
   const item=(k,ic,t,sub,f)=>`<button type="button" class="txi${sel===k?" on":""}" data-gvsel="${gid}|${k}">${svg(ic)}<span class="txt"><b>${t}</b><small>${sub}</small></span>${dot(f)}</button>`;
+  const fresh=!GV_SEC.some(([f])=>String(g[f]||"").trim());  /* nový grant: len Údaje o výzve a Načítať výzvu, časti pribudnú po načítaní */
   const list=item("udaje",GV_IC,"Údaje o výzve","termíny, sumy, spolufinancovanie",filled)
-    +GV_SEC.map(([f,l,,i])=>{const n=String(g[f]||"").length;return item(f,TXI.ic[i],l,n?`${n.toLocaleString("sk-SK")} znakov`:"zatiaľ prázdne",n>0);}).join("")
+    +(fresh?"":GV_SEC.map(([f,l,,i])=>{const n=String(g[f]||"").length;return item(f,TXI.ic[i],l,n?`${n.toLocaleString("sk-SK")} znakov`:"zatiaľ prázdne",n>0);}).join(""))
     +`<button type="button" class="txi txadd" data-aivyzva="${gid}" title="Claude prečíta výzvu (odkaz alebo PDF) a navrhne údaje">${svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>')}<span class="txt"><b>Načítať výzvu</b></span></button>`
-    +`<button type="button" class="txi txadd" style="margin-top:0" data-callimp="${gid}" title="Vložiť údaje o výzve ručne (text od Claude)">${svg('<path d="M12 5v14M5 12h14"/>')}<span class="txt"><b>Vložiť ručne</b></span></button>`;
+    +(fresh?"":`<button type="button" class="txi txadd" style="margin-top:0" data-callimp="${gid}" title="Vložiť údaje o výzve ručne (text od Claude)">${svg('<path d="M12 5v14M5 12h14"/>')}<span class="txt"><b>Vložiť ručne</b></span></button>`);
   const kick=`<div class="kick">Výzva / ${esc(g.name||"Grant")}</div>`;
   let main;
   if(sel==="udaje"){const it=(l,v)=>`<div class="gvi"><span>${l}</span><b>${v||'<span class="muted">—</span>'}</b></div>`;
