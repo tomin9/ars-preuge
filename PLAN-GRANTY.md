@@ -25,9 +25,27 @@ Rozhovor s majiteľom o záložkách grantu (november 2026). Zapisuje sa, čo je
 - ❌ Stiahnutie celej žiadosti ako Word/PDF netreba.
 - ❓ Povinné prílohy: majiteľ nevie → zatiaľ ukázať zoznam príloh z výzvy ako nepovinný kontrolný zoznam (s možnosťou priložiť súbor); rozhodne sa, keď ho uvidí.
 
+## Záložka Zmluva – zrušiť (dohodnuté)
+
+- Majiteľ záložku nepotrebuje. Predtým mal pri grante **tri PDF: Žiadosť, Zmluva, Vyúčtovanie** a to mu vyhovovalo.
+- Návrh: tri dokumenty ako malé náhľady **priamo v hlavnej karte grantu** (otvoriť / nahrať, ak chýba). Žiadosť sa použije aj v záložke Žiadosť na načítanie formulára. „Postup“ a „Ľudia a kontakty“ zo záložky Zmluva – rozhodnúť, či niekam presunúť alebo zrušiť.
+
+## Záložka Rozpočet – návrh (čaká na odpovede)
+
+Majiteľ potrebuje: **plánovaný rozpočet** (zo žiadosti/zmluvy) → **kategórie** → **položky** s plánovanou sumou → **skutočné výdavky** (platby z denníka priradené k položke). Treba dodržať súčet každej kategórie aj celkovú sumu; snažia sa držať pôvodného plánu.
+
+- Tabuľka po kategóriách: Plán · Zaplatené · Plánované (v denníku bez dátumu) · Zostáva · pruh · stav. Pri položke rozbaliteľný zoznam platieb, priradenie existujúcej / zápis novej platby priamo odtiaľ.
+- Varovania: kategória nad plánom = červená; položka nad plánom v rámci kategórie = okrová; celková suma v súčte aj v hlavnej karte. Nezaradené platby osobitne.
+- Zaplatené a plánované osobitne (opraví E7).
+- Rozdelenie z dotácie / vlastné zdroje pri položke ostáva, súčty osobitne.
+- Plán sa naplní zo žiadosti (dohodnuté pri Žiadosti), dá sa upraviť ručne.
+- Rozpočet podujatia použije tie isté kategórie a položky grantu.
+- Dáta: rozpočtová položka (`budgetLines`) dostane nové pole **kategória** (a poradie); existujúce položky bez kategórie pôjdu do „Bez kategórie“ – nič sa nepremenúva.
+- Otázky: limity poskytovateľa (napr. presun medzi kategóriami do X %)? pôvodný aj upravený rozpočet? jedna platba do viacerých položiek? kategórie podľa poskytovateľa, alebo vlastné stále?
+
 ## Ďalšie záložky – na prebratie
 
-- Zmluva · Rozpočet · Úlohy · Podujatia · hlavná karta grantu.
+- Úlohy · Podujatia · hlavná karta grantu.
 
 ## Zistené chyby (zapísať aj do ZOZNAM-UPRAV.md)
 
