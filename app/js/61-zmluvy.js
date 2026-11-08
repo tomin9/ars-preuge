@@ -2,13 +2,15 @@
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/61-zmluvy.js. Nie je to samostatný skript. ===== */
 /* ===== Generátor zmlúv o dielo (Občiansky zákonník / Autorský zákon) ===== */
 const CT_REP="Tomáš Pekár";
+/* meno s titulmi do zmluvy: „Mgr. art. Jana Nová, PhD.“ (v tabuľkách sa tituly neukazujú) */
+function ctFull(c){const n=[c.titleBefore,c.name].map(x=>String(x||"").trim()).filter(Boolean).join(" "),a=String(c.titleAfter||"").trim();return a?n+", "+a:n;}
 function ctEur(n){return(Number(n)||0).toLocaleString("sk-SK",{minimumFractionDigits:2,maximumFractionDigits:2})+" EUR";}
 function ctCss(){return`body{font-family:"Times New Roman",serif;font-size:11.5pt;line-height:1.35;color:#000}h1{text-align:center;font-size:15pt;margin:0 0 6pt}.c2{text-align:center;font-weight:bold;font-size:11.5pt;margin:0 0 4pt}h2{text-align:center;font-size:11.5pt;margin:16pt 0 6pt}p{margin:0 0 5pt;text-align:justify}table.st td{vertical-align:top;padding:0 0 1pt}table.st td.l{width:105pt;font-weight:bold}table.sg{width:100%;margin-top:34pt}table.sg td{width:50%;text-align:center;padding-top:34pt}ol{margin:0;padding-left:20pt}li{margin-bottom:4pt;text-align:justify}`;}
 function ctParty(kind,c,o){
   const row=(l,v)=>v?`${l}${esc(v)}<br>`:"";
   const lab=kind==="oz"?"Zhotoviteľ:":"Autor:",short=kind==="oz"?"zhotoviteľ":"autor";
   return`<table class="st"><tr><td class="l">Objednávateľ:</td><td>Názov: ${esc(ORG.name)}<br>So sídlom: ${esc(ORG.seat)}<br>Zastúpená: ${esc(CT_REP)}<br>IČO: ${esc(ORG.ico)}<br>DIČ: ${esc(ORG.dic)}<br>(ďalej ako „objednávateľ“)</td></tr></table><p>a</p>
-  <table class="st"><tr><td class="l">${lab}</td><td>${row("Názov / meno a priezvisko: ",c.legalName||c.name)}${row((c.ctype&&c.ctype!=="osoba")?"Sídlo: ":"Bydlisko: ",c.address)}${o.ids?row("Číslo OP: ",c.idNo)+row("Rodné č.: ",c.birthNo):""}${row("IBAN: ",fmtIban(c.iban))}(ďalej ako „${short}“)</td></tr></table>`;
+  <table class="st"><tr><td class="l">${lab}</td><td>${row("Názov / meno a priezvisko: ",c.legalName||ctFull(c))}${row((c.ctype&&c.ctype!=="osoba")?"Sídlo: ":"Bydlisko: ",c.address)}${o.ids?row("Číslo OP: ",c.idNo)+row("Rodné č.: ",c.birthNo):""}${row("IBAN: ",fmtIban(c.iban))}(ďalej ako „${short}“)</td></tr></table>`;
 }
 function ctSign(o,short){return`<p style="margin-top:30pt">V ${esc(o.place)} dňa ${esc(fdate(o.signDate))}</p><table class="sg"><tr><td>______________________<br>objednávateľ</td><td>______________________<br>${short}</td></tr></table>`;}
 function ctDoc(kind,c,o){
@@ -44,7 +46,7 @@ function ctModal(lid){
   const miss=[["address",(c.ctype&&c.ctype!=="osoba")?"sídlo":"bydlisko"],["iban","IBAN"]].filter(([k])=>!c[k]).map(x=>x[1]);
   L.innerHTML=`<div class="scrim"><div class="modal ctm" role="dialog" aria-modal="true" aria-label="Vytvoriť zmluvu"><h2 style="margin:0 0 12px">Vytvoriť zmluvu</h2>
   <div class="dfld"><label>Typ zmluvy</label><div class="tabs seg" role="group"><button type="button" data-ctk="oz" aria-pressed="true">Občiansky zákonník</button><button type="button" data-ctk="az" aria-pressed="false">Autorský zákon</button></div></div>
-  <p class="meta" style="white-space:normal;margin:10px 0">${c.name?`Zhotoviteľ / autor: <b>${esc(c.name)}</b> (z kontaktu „Komu / od koho“).`:`<span class="neg">Platba nemá vybraný kontakt „Komu / od koho“.</span>`}${miss.length?` <span class="neg">V kontakte chýba: ${esc(miss.join(", "))}.</span>`:""}</p>
+  <p class="meta" style="white-space:normal;margin:10px 0">${c.name?`Zhotoviteľ / autor: <b>${esc(ctFull(c))}</b> (z kontaktu „Komu / od koho“).`:`<span class="neg">Platba nemá vybraný kontakt „Komu / od koho“.</span>`}${miss.length?` <span class="neg">V kontakte chýba: ${esc(miss.join(", "))}.</span>`:""}</p>
   <div class="dfld"><label for="ct-subj">Predmet zmluvy (čo sa zhotovuje)</label><textarea id="ct-subj" rows="2" placeholder="napr. Prednáška s názvom …" style="width:100%"></textarea></div>
   <div class="dgrid g2" style="margin-top:10px"><div class="dfld wide"><label for="ct-ev">Na podujatie</label><input type="text" id="ct-ev" value="${v(ev&&ev.name)}" placeholder="názov podujatia"></div>
   <div class="dfld"><label for="ct-amt">Odmena (€)</label><input type="text" inputmode="decimal" id="ct-amt" value="${v(r.amount!=null?String(r.amount).replace(".",","):"")}"></div>
