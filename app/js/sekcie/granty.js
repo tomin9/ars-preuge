@@ -68,7 +68,7 @@ VIEWS.grant=()=>{
       ${c.cofinReq||c.sc?`<div><span>Spolufinancovanie</span><b class="${cofinOk?"":"warn"}">${eur(c.sc)}${c.cofinReq?` / ${eur(c.cofinReq)}`:""}</b></div>`:""}${c.rec?`<div><span title="Prijaté od poskytovateľa">Prijaté</span><b class="pos">${eur(c.rec)}</b></div>`:""}</div>
     ${g.approved?`<div class="barline" style="margin-top:14px">${bar(c.paidG,c.appr,p&&p.color,c.planG)}<span class="meta">zaplatené ${pct(c.paidG,c.appr)} %${c.planG?` · s plánovanými ${pct(c.paidG+c.planG,c.appr)} %`:""}</span></div>`:""}
     ${g.formUrl||folderId(g.driveFolder)?`<div class="row" style="margin-top:14px">${g.formUrl?`<a class="btn sm" href="${esc(/^https?:/.test(g.formUrl)?g.formUrl:"https://"+g.formUrl)}" target="_blank" rel="noopener">Žiadosť / systém</a>`:""}${folderId(g.driveFolder)?`<a class="btn sm" href="https://drive.google.com/drive/folders/${esc(folderId(g.driveFolder))}" target="_blank" rel="noopener">Priečinok na Disku</a>`:""}</div>`:""}
-    ${g.note?`<p class="desc">${esc(g.note)}</p>`:""}
+    <!-- poznámka grantu sa v karte neukazuje (je v bočnom paneli cez ceruzku) -->
     <div class="tl">${step("Uzávierka žiadosti",g.submitTo,["podane","schvalene","zrealizovane","vyuctovane","nepodporene"])}${step("Začiatok realizácie",g.realFrom,["zrealizovane","vyuctovane"].concat(g.realFrom&&g.realFrom<=td?["schvalene"]:[]))}${step("Koniec realizácie",g.realTo,["zrealizovane","vyuctovane"])}${step("Vyúčtovanie",g.settleDue,["vyuctovane"])}</div></div></section>
   ${tbar}${body}`;
 };
