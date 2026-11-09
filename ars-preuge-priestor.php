@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.88.0
+ * Version: 1.89.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,13 +11,12 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.88.0');
+define('ARSP_VER', '1.89.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
 
 require_once ARSP_DIR . 'inc/claude.php';   /* napojenie na Claude (API kľúč len na serveri) */
-require_once ARSP_DIR . 'inc/prenos.php';   /* úplná záloha a prenos na inú stránku (záznamy + súbory) */
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -158,8 +157,6 @@ add_action('admin_post_arsp_import', function () {
     $n = 0;
     if ($ext === 'json') {
         $n = arsp_import(file_get_contents($f['tmp_name']), array());
-    } elseif ($ext === 'zip' && class_exists('ZipArchive') && ($full = arsp_import_full_zip($f['tmp_name'])) !== 'old') {
-        arsp_import_result_redirect($full, $back);   /* úplná záloha (záznamy + súbory + členovia tímu) */
     } elseif ($ext === 'zip' && class_exists('ZipArchive')) {
         $tmp = arsp_upload_dir() . '/import-' . wp_generate_password(12, false);
         wp_mkdir_p($tmp);
@@ -442,7 +439,8 @@ function arsp_admin_page() {
     if (current_user_can('manage_options')) {
         $exp = wp_nonce_url(admin_url('admin-post.php?action=arsp_export'), 'arsp_export');
         arsp_claude_admin_section();
-        arsp_prenos_admin_section();
+        /* nástroj na prenos (1.89.0) bol po presune odstránený – zmažú sa prípadné zvyšky jeho záloh na serveri */
+        foreach (array_merge((array) glob(arsp_upload_dir() . '/zaloha-*.zip'), (array) glob(arsp_upload_dir() . '/import-*.zip')) as $x) { if (is_file($x)) @unlink($x); }
         echo '<h2>Záloha</h2><p><a class="button" href="' . esc_url($exp) . '">Stiahnuť zálohu dát (JSON)</a></p>';
         echo '<h2>Import dát</h2><p>Nahrajte balík dát (<code>.zip</code> so súborom seed.json a dokumentmi, alebo zálohu <code>.json</code>). Záznamy s rovnakým ID sa prepíšu, ostatné zostanú.</p>';
         echo '<form method="post" enctype="multipart/form-data" action="' . esc_url(admin_url('admin-post.php')) . '">';
