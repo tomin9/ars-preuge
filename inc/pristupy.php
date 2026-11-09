@@ -24,6 +24,7 @@ function arsp_acc_areas() {
         'financie'   => array('label' => 'Financie', 'cols' => array('transactions')),   /* sekcia Financie v menu (denník, zostatky); platby projektov/podujatí/grantov vidno aj bez nej – arsp_acc_tx_visible */
         /* úlohy nie sú oblasť (od 1.100.0): vidieť a upravovať sa dajú podľa toho, ku čomu patria – arsp_acc_task_visible / arsp_acc_task_editable */
         'kontakty'   => array('label' => 'Kontakty', 'cols' => array('contacts')),
+        'inventar'   => array('label' => 'Inventár', 'cols' => array()),   /* sekcia Inventár (od 1.102.0) – zatiaľ bez záznamov; kolekcia sa doplní, keď sa ujasní obsah */
         /* nastavenia nie sú oblasť (od 1.99.0) – upravujú sa vo WordPresse len administrátorom; aplikácia si pár vecí ukladá sama, pozri arsp_acc_settings_keys() */
     );
 }
