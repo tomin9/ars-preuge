@@ -38,34 +38,38 @@ add_action('admin_head', function () {
 .arsp-link:hover{border-color:#2271b1;color:#1d2327}
 .arsp-link b{display:flex;align-items:center;gap:6px;font-size:15px;margin-bottom:4px}
 .arsp-link span{color:#646970}
-.arsp-gt,.arsp-pt{width:100%;border-collapse:collapse}
-.arsp-gt th,.arsp-pt th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#646970;font-weight:600;padding:12px 10px;border-bottom:1px solid #f0f0f1;background:#fafafa;vertical-align:bottom}
-.arsp-gt th:first-child,.arsp-pt th:first-child{padding-left:20px}
-.arsp-gt td{padding:12px 10px 4px;vertical-align:middle}
-.arsp-gt td:first-child{padding-left:20px}
-.arsp-grp+.arsp-grp .arsp-grow td{border-top:1px solid #e6e6e8}
-.arsp-gcell{min-width:170px}
-.arsp-gname{width:100%;font-size:15px;font-weight:600;border:1px solid transparent!important;background:transparent!important;box-shadow:none!important;padding:4px 8px!important;margin-left:-8px}
+.arsp-pt{width:100%;border-collapse:collapse}
+.arsp-pt th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#646970;font-weight:600;padding:12px 10px;border-bottom:1px solid #f0f0f1;background:#fafafa}
+.arsp-legend{color:#646970;margin:-4px 0 10px}
+.arsp-legend .arsp-tg{cursor:default;transform:scale(.92)}
+.arsp-grp{padding:12px 16px 12px 20px;border-top:1px solid #f0f0f1}
+.arsp-grp:first-child{border-top:0}
+.arsp-gline{display:flex;align-items:center;gap:12px}
+.arsp-gname{flex:0 0 170px;width:170px;font-size:14px;font-weight:600;border:1px solid transparent!important;background:transparent!important;box-shadow:none!important;padding:4px 8px!important;margin-left:-8px}
 .arsp-gname:hover,.arsp-gname:focus{border-color:#dcdcde!important;background:#fff!important}
-.arsp-new .arsp-gname{font-weight:500}
-.arsp-new{background:#fbfbfc}
-.arsp-lvl{width:100%;min-width:118px;border-radius:8px!important;border-color:#dcdcde!important}
-.arsp-lvl-0{color:#8c8f94}.arsp-lvl-1{color:#996800;background-color:#fffbea!important}.arsp-lvl-2{color:#007017;font-weight:600;background-color:#effbf1!important}
-.arsp-act{width:40px;text-align:right;padding-right:16px!important}
+.arsp-new{background:#fbfbfc}.arsp-new .arsp-gname{font-weight:500}
+.arsp-tgs{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+.arsp-tg{display:inline-flex;align-items:center;gap:4px;border:1px solid #dcdcde;background:#fff;border-radius:999px;padding:3px 6px 3px 11px;font-size:12.5px;cursor:pointer;color:#8c8f94;line-height:1.5;user-select:none}
+.arsp-tg .dashicons{font-size:16px;width:16px;height:16px}
+.arsp-tg-0{text-decoration:line-through;text-decoration-color:#c3c4c7}
+.arsp-tg-1{background:#fffbea;border-color:#f0e2a8;color:#8a6100}
+.arsp-tg-2{background:#effbf1;border-color:#b8e6c1;color:#007017;font-weight:600}
+button.arsp-tg:hover{border-color:#2271b1}
+.arsp-trash,.arsp-trash-sp{flex:0 0 32px}
 .arsp-trash{border:0;background:none;color:#a7aaad;cursor:pointer;padding:6px;border-radius:8px;line-height:1}
 .arsp-trash:hover{color:#b32d2e;background:#fcf0f1}
-.arsp-srow td{padding:2px 10px 16px;vertical-align:top}
-.arsp-slab{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8c8f94;padding-top:12px!important}
-.arsp-scols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:900px){.arsp-scols{grid-template-columns:1fr}}
+.arsp-sline{display:grid;grid-template-columns:170px 1fr 1fr 32px;gap:12px;align-items:start;margin-top:8px}
+.arsp-sline::after{content:""}
+@media(max-width:900px){.arsp-gline{flex-wrap:wrap}.arsp-sline{grid-template-columns:1fr}}
+.arsp-slab{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8c8f94;padding-top:8px;cursor:help}
 .arsp-mini{display:block;font-size:12px;color:#646970;margin:0 0 3px}
 .arsp-hint{font-size:12px;color:#8c8f94;margin-top:6px}
-.arsp-pick{position:relative;display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:36px;padding:4px 6px;border:1px solid #dcdcde;border-radius:10px;background:#fff;cursor:text}
+.arsp-pick{position:relative;display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-height:30px;padding:2px 5px;border:1px solid #dcdcde;border-radius:10px;background:#fff;cursor:text}
 .arsp-pick:focus-within{border-color:#2271b1;box-shadow:0 0 0 1px #2271b1}
 .arsp-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 10px;border-radius:999px;background:#f0f6fc;color:#135e96;font-size:12.5px;font-weight:500}
 .arsp-x{border:0;background:none;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0 5px;border-radius:999px;opacity:.6}
 .arsp-x:hover{opacity:1;background:rgba(0,0,0,.06)}
-.arsp-pin{flex:1;min-width:130px;border:0!important;box-shadow:none!important;background:transparent!important;padding:2px 4px!important;min-height:26px!important;font-size:13px}
+.arsp-pin{flex:1;min-width:110px;border:0!important;box-shadow:none!important;background:transparent!important;padding:2px 4px!important;min-height:26px!important;font-size:13px}
 .arsp-drop{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:50;background:#fff;border:1px solid #dcdcde;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:240px;overflow:auto;padding:4px}
 .arsp-drop button{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px;color:#1d2327}
 .arsp-drop button:hover,.arsp-drop button.on{background:#f0f6fc;color:#135e96}
@@ -120,6 +124,10 @@ add_action('admin_footer', function () {
       else if(e.key==='Escape'){dr.hidden=true;}
     });
   });
+  var LV=[['hidden','bez prístupu'],['visibility','len čítať'],['edit','upravovať']];
+  document.querySelectorAll('button.arsp-tg').forEach(function(b){b.addEventListener('click',function(){
+    var h=b.querySelector('input'),v=(+h.value+1)%3;h.value=v;b.className='arsp-tg arsp-tg-'+v;
+    b.querySelector('.dashicons').className='dashicons dashicons-'+LV[v][0];b.title=b.dataset.label+': '+LV[v][1]+' – kliknutím zmeníte';});});
   document.querySelectorAll('.arsp-trash').forEach(function(b){b.addEventListener('click',function(){
     if(!confirm('Zmazať skupinu „'+b.dataset.nm+'“? Ľuďom, ktorí ju majú, sa odoberie.'))return;
     var f=document.getElementById('arsp-acc-form'),h=document.createElement('input');h.type='hidden';h.name=b.dataset.del;h.value='1';f.appendChild(h);f.submit();});});

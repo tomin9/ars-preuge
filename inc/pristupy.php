@@ -319,11 +319,12 @@ function arsp_acc_admin_section() {
     echo '<form method="post" id="arsp-acc-form" action="' . esc_url(admin_url('admin-post.php')) . '">';
     wp_nonce_field('arsp_acc_save');
     echo '<input type="hidden" name="action" value="arsp_acc_save">';
-    $sel = function ($name, $v) {
-        $o = array(0 => 'Bez prístupu', 1 => 'Len čítať', 2 => 'Upravovať');
-        $h = '<select name="' . esc_attr($name) . '" class="arsp-lvl arsp-lvl-' . (int) $v . '" onchange="this.className=\'arsp-lvl arsp-lvl-\'+this.value">';
-        foreach ($o as $k => $l) $h .= '<option value="' . $k . '"' . ((int) $v === $k ? ' selected' : '') . '>' . $l . '</option>';
-        return $h . '</select>';
+    /* oblasť ako štítok s ikonou: kliknutím sa prepína Bez prístupu → Len čítať → Upravovať (skript v inc/admin.php) */
+    $LV = array(0 => array('hidden', 'bez prístupu'), 1 => array('visibility', 'len čítať'), 2 => array('edit', 'upravovať'));
+    $tg = function ($name, $label, $v) use ($LV) {
+        $v = (int) $v;
+        return '<button type="button" class="arsp-tg arsp-tg-' . $v . '" title="' . esc_attr($label . ': ' . $LV[$v][1] . ' – kliknutím zmeníte') . '" data-label="' . esc_attr($label) . '">'
+            . '<input type="hidden" name="' . esc_attr($name) . '" value="' . $v . '">' . esc_html($label) . '<span class="dashicons dashicons-' . $LV[$v][0] . '"></span></button>';
     };
     /* výber so štítkami: píšete a ponuka sa filtruje (skript v inc/admin.php) */
     $pick = function ($name, $src, $all, $cur, $ph) {
@@ -331,28 +332,25 @@ function arsp_acc_admin_section() {
         foreach ($cur as $id) if (isset($all[$id])) $h .= '<span class="arsp-chip"><input type="hidden" name="' . esc_attr($name) . '" value="' . esc_attr($id) . '">' . esc_html($all[$id]) . '<button type="button" class="arsp-x" aria-label="Odobrať">×</button></span>';
         return $h . '<input type="text" class="arsp-pin" placeholder="' . esc_attr($ph) . '" autocomplete="off"><div class="arsp-drop" hidden></div></div>';
     };
-    $row = function ($pfx, $g, $isNew) use ($sel, $pick, $areas, $projs, $evs) {
+    $row = function ($pfx, $g, $isNew) use ($tg, $pick, $areas, $projs, $evs) {
         $sc = isset($g['scope']) ? (array) $g['scope'] : array();
         $sp = isset($sc['projects']) ? (array) $sc['projects'] : array(); $se = isset($sc['events']) ? (array) $sc['events'] : array();
         $sname = $isNew ? 'new_scope' : $pfx;
-        $h = '<tbody class="arsp-grp' . ($isNew ? ' arsp-new' : '') . '"><tr class="arsp-grow"><td class="arsp-gcell">';
+        $h = '<div class="arsp-grp' . ($isNew ? ' arsp-new' : '') . '"><div class="arsp-gline">';
         $h .= $isNew ? '<input type="text" name="new_name" class="arsp-gname" placeholder="+ Nová skupina">'
                      : '<input type="text" name="' . $pfx . '[name]" class="arsp-gname" value="' . esc_attr($g['name']) . '" required>';
-        $h .= '</td>';
-        foreach ($areas as $a => $x) $h .= '<td>' . $sel($isNew ? 'new_areas[' . $a . ']' : $pfx . '[areas][' . $a . ']', isset($g['areas'][$a]) ? $g['areas'][$a] : 0) . '</td>';
-        $h .= '<td class="arsp-act">' . ($isNew ? '' : '<button type="button" class="arsp-trash" data-del="' . esc_attr($pfx . '[del]') . '" data-nm="' . esc_attr($g['name']) . '" title="Zmazať skupinu" aria-label="Zmazať skupinu"><span class="dashicons dashicons-trash"></span></button>') . '</td></tr>';
-        $h .= '<tr class="arsp-srow"><td class="arsp-slab">Rozsah</td><td colspan="' . (count($areas) + 1) . '"><div class="arsp-scols">'
-            . '<div><span class="arsp-mini">Projekty</span>' . $pick($sname . '[sp][]', 'projects', $projs, $sp, 'Pridať projekt…') . '</div>'
-            . '<div><span class="arsp-mini">Podujatia</span>' . $pick($sname . '[se][]', 'events', $evs, $se, 'Pridať podujatie…') . '</div></div>'
-            . '<div class="arsp-hint">' . ($sp || $se ? 'Len vybrané projekty a podujatia a všetko, čo do nich patrí.' : 'Nič nevybrané = celý priestor.') . '</div></td></tr></tbody>';
+        $h .= '<div class="arsp-tgs">';
+        foreach ($areas as $a => $x) $h .= $tg($isNew ? 'new_areas[' . $a . ']' : $pfx . '[areas][' . $a . ']', $x['label'], isset($g['areas'][$a]) ? $g['areas'][$a] : 0);
+        $h .= '</div>' . ($isNew ? '<span class="arsp-trash-sp"></span>' : '<button type="button" class="arsp-trash" data-del="' . esc_attr($pfx . '[del]') . '" data-nm="' . esc_attr($g['name']) . '" title="Zmazať skupinu" aria-label="Zmazať skupinu"><span class="dashicons dashicons-trash"></span></button>') . '</div>';
+        $h .= '<div class="arsp-sline"><span class="arsp-slab" title="' . esc_attr($sp || $se ? 'Len vybrané projekty a podujatia a všetko, čo do nich patrí.' : 'Nič nevybrané = celý priestor.') . '">Rozsah</span>'
+            . $pick($sname . '[sp][]', 'projects', $projs, $sp, $sp ? 'Pridať projekt…' : 'Všetky projekty – pridať…')
+            . $pick($sname . '[se][]', 'events', $evs, $se, $se ? 'Pridať podujatie…' : 'Všetky podujatia – pridať…') . '</div></div>';
         return $h;
     };
-    echo '<h2 class="arsp-h2">Skupiny</h2><div class="arsp-card arsp-flush"><table class="arsp-gt"><thead><tr><th>Skupina</th>';
-    foreach ($areas as $x) echo '<th>' . esc_html($x['label']) . '</th>';
-    echo '<th></th></tr></thead>';
+    echo '<h2 class="arsp-h2">Skupiny</h2><p class="arsp-legend">Kliknutím na oblasť meníte právo: <span class="arsp-tg arsp-tg-0">bez prístupu<span class="dashicons dashicons-hidden"></span></span> <span class="arsp-tg arsp-tg-1">len čítať<span class="dashicons dashicons-visibility"></span></span> <span class="arsp-tg arsp-tg-2">upravovať<span class="dashicons dashicons-edit"></span></span>. Rozsah: prázdne = celý priestor.</p><div class="arsp-card arsp-flush">';
     foreach ($groups as $gid => $g) echo $row('g[' . esc_attr($gid) . ']', $g, false);
     echo $row('', array(), true);
-    echo '</table></div>';
+    echo '</div>';
     echo '<h2 class="arsp-h2">Ľudia</h2><div class="arsp-card arsp-flush">';
     if (!$groups) echo '<p class="description" style="padding:14px 18px 0">Najprv vytvorte skupinu, potom ju tu pridelíte ľuďom.</p>';
     echo '<table class="arsp-pt"><thead><tr><th>Používateľ</th><th>Skupiny</th><th>Výsledok</th></tr></thead><tbody>';
