@@ -20,9 +20,9 @@ function arsp_acc_areas() {
     return array(
         'projekty'   => array('label' => 'Projekty', 'cols' => array('projects')),
         'podujatia'  => array('label' => 'Podujatia', 'cols' => array('events', 'partnerships', 'programItems', 'zabezpecenie', 'zabdodavky')),
-        'ulohy'      => array('label' => 'Úlohy', 'cols' => array('tasks')),
-        'granty'     => array('label' => 'Granty (bez platieb)', 'cols' => array('grants', 'budgetLines')),
-        'financie'   => array('label' => 'Financie (platby)', 'cols' => array('transactions')),
+        'granty'     => array('label' => 'Granty', 'cols' => array('grants', 'budgetLines')),
+        'financie'   => array('label' => 'Financie', 'cols' => array('transactions')),   /* sekcia Financie v menu aj všetky platby */
+        /* úlohy nie sú oblasť (od 1.100.0): vidieť a upravovať sa dajú podľa toho, ku čomu patria – arsp_acc_task_visible / arsp_acc_task_editable */
         'kontakty'   => array('label' => 'Kontakty', 'cols' => array('contacts')),
         /* nastavenia nie sú oblasť (od 1.99.0) – upravujú sa vo WordPresse len administrátorom; aplikácia si pár vecí ukladá sama, pozri arsp_acc_settings_keys() */
     );
@@ -207,11 +207,19 @@ function arsp_acc_me_keys() {
 /** Úloha je viditeľná aj bez práva na oblasť Úlohy, ak patrí k projektu/podujatiu (s právom na Projekty a podujatia)
  *  alebo ku grantu (s právom na Granty), alebo ju má prihlásený na starosti. Rozsah (fáza 2) sa uplatní potom. */
 function arsp_acc_task_visible($d, $acc) {
-    if (arsp_acc_level('ulohy', $acc) >= 1) return true;
     if (!empty($d['assignee']) && isset(arsp_acc_me_keys()[(string) $d['assignee']])) return true;
     if (!empty($d['projectId']) && arsp_acc_level('projekty', $acc) >= 1) return true;
     if (!empty($d['eventId']) && arsp_acc_level('podujatia', $acc) >= 1) return true;
     if (!empty($d['grantId']) && arsp_acc_level('granty', $acc) >= 1) return true;
+    return false;
+}
+
+/** Úlohu smie upravovať, kto ju má na starosti, alebo kto smie upravovať projekt / podujatie / grant, ku ktorému patrí. */
+function arsp_acc_task_editable($d, $acc) {
+    if (!empty($d['assignee']) && isset(arsp_acc_me_keys()[(string) $d['assignee']])) return true;
+    if (!empty($d['projectId']) && arsp_acc_level('projekty', $acc) >= 2) return true;
+    if (!empty($d['eventId']) && arsp_acc_level('podujatia', $acc) >= 2) return true;
+    if (!empty($d['grantId']) && arsp_acc_level('granty', $acc) >= 2) return true;
     return false;
 }
 
@@ -237,7 +245,7 @@ function arsp_acc_filter_sync($docs, $acc) {
         if ($area && arsp_acc_level($area, $acc) >= 1) { $out[] = $row; continue; }
         /* Úlohy a Kalendár vidí každý – ale len úlohy z jeho oblastí, rozsahu alebo priradené jemu */
         if ($col === 'tasks') { if ($row['x'] || arsp_acc_task_visible((array) $row['d'], $acc)) $out[] = $row; continue; }
-        if ($col === 'comments' && $area === 'ulohy') {
+        if ($col === 'comments') {   /* komentáre k úlohám – ak je úloha viditeľná */
             $p = explode(':', (string) (is_object($row['d']) && isset($row['d']->parent) ? $row['d']->parent : ''), 2);
             if (count($p) === 2 && $p[0] === 'tasks' && $tv(strtok($p[1], '~'))) $out[] = $row;
         }
@@ -261,9 +269,21 @@ function arsp_acc_check_write($col, $op, $data, $curDoc, $acc, $id = '') {
         }
         return true;
     }
-    $area = arsp_acc_doc_area($col, $curDoc !== null ? $curDoc : $data);
-    if ($col === 'comments' && !$area && is_array($data)) $area = arsp_acc_doc_area($col, $data);
-    if (!$area || arsp_acc_level($area, $acc) < 2) return $deny();
+    if ($col === 'tasks') {   /* úloha: stará aj nová podoba musí byť upraviteľná (nedá sa „presunúť“ k cudziemu) */
+        if ($curDoc !== null && !arsp_acc_task_editable($curDoc, $acc)) return $deny();
+        if ($op !== 'delete' && !arsp_acc_task_editable(array_merge($curDoc !== null ? $curDoc : array(), is_array($data) ? $data : array()), $acc)) return $deny();
+    } else {
+        $ref0 = $curDoc !== null ? $curDoc : $data;
+        $p = ($col === 'comments' && is_array($ref0) && isset($ref0['parent'])) ? explode(':', (string) $ref0['parent'], 2) : array();
+        if (count($p) === 2 && $p[0] === 'tasks') {   /* komentár k úlohe: stačí, že úlohu vidí */
+            $by = arsp_acc_all_docs(); $tid = strtok($p[1], '~');
+            if (!isset($by['tasks'][$tid]) || !arsp_acc_task_visible($by['tasks'][$tid], $acc)) return $deny();
+        } else {
+            $area = arsp_acc_doc_area($col, $ref0);
+            if ($col === 'comments' && !$area && is_array($data)) $area = arsp_acc_doc_area($col, $data);
+            if (!$area || arsp_acc_level($area, $acc) < 2) return $deny();
+        }
+    }
     $scope = arsp_acc_scope();
     if ($scope !== null) {   /* rozsah: upravovaný aj nový záznam musí patriť do rozsahu */
         $S = arsp_acc_sets(arsp_acc_all_docs(), $scope);

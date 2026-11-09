@@ -13,7 +13,7 @@ async function write(fn){
   }
 }
 async function add(e,data){
-  if(!accEdit(e)){accDeny();return null;}
+  if(!accEdit(e)||(ACC&&((ENT[e]&&ENT[e].col)||e)==="tasks"&&!accTaskEdit(data))){accDeny();return null;}   /* nová úloha musí patriť k niečomu, čo smie upravovať */
   const t=Date.now(),doc=Object.assign({createdAt:t,updatedAt:t},meId()?{createdBy:meId(),updatedBy:meId()}:{},data);
   let id=null;
   const ok=await write(async()=>{
@@ -23,7 +23,7 @@ async function add(e,data){
   return ok?id:null;
 }
 function upd(e,id,patch){
-  if(!accEdit(e))return Promise.resolve(accDeny());
+  if(!accEditRec(e,get(e,id)))return Promise.resolve(accDeny());
   patch=Object.assign({},patch,{updatedAt:Date.now()},meId()?{updatedBy:meId()}:{});
   return write(async()=>{
     if(db)await db.doc(ENT[e].col+"/"+id).update(patch);
@@ -31,7 +31,7 @@ function upd(e,id,patch){
   });
 }
 function del(e,id){
-  if(!accEdit(e))return Promise.resolve(accDeny());
+  if(!accEditRec(e,get(e,id)))return Promise.resolve(accDeny());
   return write(async()=>{
     if(db)await db.doc(ENT[e].col+"/"+id).delete();
     else{S.d[e]=S.d[e].filter(x=>x.id!==id);render();}

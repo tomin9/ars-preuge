@@ -7,7 +7,7 @@ const DW_EDIT=e=>e==="contacts"||e==="tasks";               /* ceruzka = zobrazi
 function openDrawer(e,id,isNew){
   if(!accRead(e))return;
   {const r=get(e,id);if(r&&r._stub){toast("Tento záznam je mimo vášho prístupu – vidíte len jeho názov.");return;}}
-  DW={e,id,isNew:!!isNew,edit:!!isNew&&accEdit(e)};closeSide();
+  DW={e,id,isNew:!!isNew,edit:!!isNew&&accEditRec(e,get(e,id))};closeSide();
   const host=$("#drawer");
   host.innerHTML=`<div class="dscrim" data-dclose></div><aside class="drawer${DW_NEW(e)?" dw-narrow":""}${DW_EDIT(e)?" dw-ed":""}" role="dialog" aria-modal="true" aria-label="${esc(ENT[e].one)}">
     <div class="dtop${DW_NEW(e)?" dtop-ic":""}">${DW_NEW(e)?"":`<span class="kind">${esc(ENT[e].one)}</span>`}
@@ -17,7 +17,7 @@ function openDrawer(e,id,isNew){
     <div class="dbody"><div id="dw-head"></div><div id="dw-props"></div><div id="dw-extra"></div></div></aside>`;
   host.hidden=false;
   host.querySelectorAll("[data-dclose]").forEach(b=>b.onclick=closeDrawer);
-  if(!accEdit(e))host.querySelectorAll("[data-ddel],[data-dedit]").forEach(b=>b.style.display="none");
+  if(!accEditRec(e,get(e,id)))host.querySelectorAll("[data-ddel],[data-dedit]").forEach(b=>b.style.display="none");
   const ed=host.querySelector("[data-dedit]");if(ed)ed.onclick=()=>{DW.edit=!DW.edit;ed.classList.toggle("on",DW.edit);drawerRefresh(true);};
   const pg=host.querySelector("[data-dpage]");if(pg)pg.onclick=()=>{const d=DW;closeDrawer();openRec(d.e,d.id);};
   host.querySelector("[data-ddel]").onclick=async()=>{
