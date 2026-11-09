@@ -143,7 +143,7 @@ function dExtra(e,r){
     if(r.ctype&&r.ctype!=="osoba"){const P=S.d.contacts.filter(x=>x.id!==r.id&&orgList(x).includes(r.id)).sort((x,y)=>(x.name||"").localeCompare(y.name||"","sk"));
       h+=`<section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${LKI.contacts}Kontakty</span></h3>${P.length?`<ul class="items lk">${P.map(x=>`<li class="cpl" data-open="contacts:${esc(x.id)}"><span class="t">${esc(x.name||"Bez mena")}</span>${ed||orgFn(x,r.id)?`<input type="text" class="orgfn" list="fn-dl" data-orgfn="${esc(r.id)}" data-orgfnof="${esc(x.id)}" value="${esc(orgFn(x,r.id))}" placeholder="Funkcia" aria-label="Funkcia"${ed?"":" readonly tabindex=\"-1\""}>`:""}</li>`).join("")}</ul>`:""}${fnDl()}</section>`;}
     h+=accountCard(r,ed&&!S.readOnly);
-    if(accRead("ledger"))h+=lkCard(e,r,"ledger");   /* bez práva na financie sa platby pri kontakte nezobrazia */
+    h+=lkCard(e,r,"ledger");   /* platby pri kontakte: server pošle len tie z viditeľných projektov / podujatí / grantov */
     if(r.ctype&&r.ctype!=="osoba")h+=logoCard(r,ed&&!S.readOnly);
     if(ed&&!S.readOnly)h+=mergeBlock(r);}
   if(e==="ledger")h+=`<section class="dcard"><div class="ldocs">${LDOCS.map(([k,l])=>docRow("ledger",r,k,l)).join("")}</div></section>

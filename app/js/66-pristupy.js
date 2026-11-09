@@ -9,7 +9,7 @@ const ACC_VIEW={projekty:"projekty",projekt:"projekty",granty:"granty",grant:"gr
 const accAreaOf=e=>ACC_AREA[(ENT[e]&&ENT[e].col)||e]||"";          /* oblasť druhu záznamu; komentáre stráži server podľa rodiča */
 const accReadA=a=>!ACC||!a||(ACC[a]||0)>=1;
 const accEditA=a=>!ACC||!a||(ACC[a]||0)>=2;
-const accRead=e=>accReadA(accAreaOf(e));   /* úlohy nemajú oblasť – vidí ich každý (server pošle len tie z jeho oblastí a rozsahu, a jeho vlastné) */
+const accRead=e=>((ENT[e]&&ENT[e].col)||e)==="transactions"||accReadA(accAreaOf(e));   /* platby: server pošle tie, ktoré patria k viditeľnému (Financie = len sekcia v menu) */   /* úlohy nemajú oblasť – vidí ich každý (server pošle len tie z jeho oblastí a rozsahu, a jeho vlastné) */
 /* úlohu smie upravovať, kto ju má na starosti, alebo kto smie upravovať projekt / podujatie / grant, ku ktorému patrí (ako server) */
 const accTaskEdit=t=>!ACC||(!!t&&(isMine(t.assignee)||(!!t.projectId&&accEditA("projekty"))||(!!t.eventId&&accEditA("podujatia"))||(!!t.grantId&&accEditA("granty"))));
 const accTaskNew=()=>!ACC||["projekty","podujatia","granty"].some(accEditA);
@@ -32,3 +32,9 @@ function accLock(root){if(!root)return;
     el.classList.add("acc-ro");});}
 function accLockView(){if(!ACC)return;const a=ACC_VIEW[S.view]||"";if(a&&!accEditA(a))accLock(document.getElementById("view"));}
 function accLockDrawer(){if(!ACC||!DW)return;if(!accEditRec(DW.e,get(DW.e,DW.id))){accLock(document.getElementById("drawer"));document.querySelectorAll("#drawer [data-ddel],#drawer [data-dedit]").forEach(b=>b.style.display="none");}}
+/* rozmazanie súm (HIDE_AMT): text so značkou \u2063 sa zabalí do .acc-blur, polia s takou hodnotou dostanú triedu */
+function accBlur(root){if(!HIDE_AMT||!root)return;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeValue.indexOf("\u2063")>=0&&!(n.parentNode&&n.parentNode.classList&&n.parentNode.classList.contains("acc-blur"))?1:3});
+  const L=[];while(w.nextNode())L.push(w.currentNode);
+  L.forEach(n=>{const sp=document.createElement("span");sp.className="acc-blur";sp.title="Suma je skrytá";sp.textContent=n.nodeValue.replace(/\u2063/g,"");n.parentNode.replaceChild(sp,n);});
+  root.querySelectorAll("input,textarea").forEach(i=>{if(String(i.value).indexOf("\u2063")>=0){i.value=i.value.replace(/\u2063/g,"");i.classList.add("acc-blur");i.readOnly=true;}});}

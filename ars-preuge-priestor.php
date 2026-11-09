@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.100.0
+ * Version: 1.101.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.100.0');
+define('ARSP_VER', '1.101.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -225,6 +225,7 @@ add_action('template_redirect', function () {
         'logout'=> wp_logout_url(home_url('/')),
         'ai'    => arsp_claude_key() !== '' && arsp_acc_can('granty', 2),
         'access'=> arsp_acc_user(),
+        'hideAmounts' => arsp_acc_hide_amounts(),
     );
     $inject = '<script>window.ARSP=' . wp_json_encode($cfg) . ';var ARSP_BLOB=window.ARSP.blob;</script>'
             . '<script>' . file_get_contents(ARSP_DIR . 'app/shim.js') . '</script>';

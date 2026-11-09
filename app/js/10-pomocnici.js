@@ -5,7 +5,8 @@ const $=s=>document.querySelector(s);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const nf2=new Intl.NumberFormat("sk-SK",{style:"currency",currency:"EUR",minimumFractionDigits:2,maximumFractionDigits:2});
 const nf0=new Intl.NumberFormat("sk-SK",{style:"currency",currency:"EUR",maximumFractionDigits:0});
-const eur=n=>nf2.format(Number(n)||0), eur0=n=>nf0.format(Number(n)||0);
+const HIDE_AMT=!!(window.ARSP&&ARSP.hideAmounts);   /* prístupy: sumy platieb skryté – server ich neposiela, tu sa každá suma rozmaže (značka \u2063, pozri accBlur) */
+const eur=n=>HIDE_AMT?"\u20638 888,88 €":nf2.format(Number(n)||0), eur0=n=>HIDE_AMT?"\u20638 888 €":nf0.format(Number(n)||0);
 const pad=n=>String(n).padStart(2,"0");
 const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const today=()=>iso(new Date());

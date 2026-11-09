@@ -55,6 +55,7 @@ add_action('admin_head', function () {
 .arsp-tg-1{background:#fffbea;border-color:#f0e2a8;color:#8a6100}
 .arsp-tg-2{background:#effbf1;border-color:#b8e6c1;color:#007017;font-weight:600}
 button.arsp-tg:hover{border-color:#2271b1}
+.arsp-amt input{display:none}.arsp-amt{color:#8c8f94;border-style:dashed}.arsp-amt.on{background:#f0f6fc;border-color:#9ec2e6;border-style:solid;color:#135e96;font-weight:600}
 .arsp-trash,.arsp-trash-sp{flex:0 0 32px}
 .arsp-trash{border:0;background:none;color:#a7aaad;cursor:pointer;padding:6px;border-radius:8px;line-height:1}
 .arsp-trash:hover{color:#b32d2e;background:#fcf0f1}

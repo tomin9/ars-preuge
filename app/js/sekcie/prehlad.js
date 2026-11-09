@@ -17,8 +17,8 @@ VIEWS.prehlad=()=>{
   return`<div class="head"><div><h1>${first?`Ahoj, ${esc(first)}`:"Prehľad"}</h1><p class="sub">${esc(dstr)}</p></div>
     <div class="row"><button class="btn" data-create="ledger">Zapísať platbu</button><button class="btn pri" data-create="tasks">Nová úloha</button></div></div>
   <div class="strip">
-    <div><b class="${lc.bank<0?"neg":""}">${eur0(lc.bank)}</b><span>na bankovom účte</span></div>
-    <div><b class="${lc.cash<0?"neg":""}">${eur0(lc.cash)}</b><span>v pokladni</span></div>
+    ${accView("financie")?`<div><b class="${lc.bank<0?"neg":""}">${eur0(lc.bank)}</b><span>na bankovom účte</span></div>
+    <div><b class="${lc.cash<0?"neg":""}">${eur0(lc.cash)}</b><span>v pokladni</span></div>`:""}
     <div><b>${me?mine.length:open.length}</b><span>${me?"mojich otvorených úloh":"otvorených úloh"}</span></div>
     <div><b class="${late.length?"neg":""}">${late.length}</b><span>úloh po termíne</span></div>
     <div><b>${S.d.grants.filter(g=>ACTIVE_G.includes(g.status)).length}</b><span>grantov v procese</span></div>
@@ -31,7 +31,7 @@ VIEWS.prehlad=()=>{
         ${activeG.length?activeG.map(g=>{const c=grantCalc(g);const n=daysTo(g.settleDue);return`<div data-open="grants:${esc(g.id)}" style="cursor:pointer;padding:9px 0;border-top:1px solid var(--line)">
           <div class="spread"><b>${esc(g.name||"Grant")}</b><span class="meta">${g.settleDue?`vyúčtovanie ${n<0?`<span class="late">${fdateS(g.settleDue)}</span>`:fdateS(g.settleDue)}`:""}</span></div>
           <div class="barline" style="margin-top:6px">${bar(c.paidG,c.appr,pcolor(g.projectId),c.planG)}<span class="meta">${eur0(c.paidG)} z ${eur0(c.appr)}${c.planG?` · plánované ${eur0(c.planG)}`:""}</span></div></div>`;}).join(""):`<div class="empty">Žiadny schválený grant v realizácii.</div>`}</div>
-      ${unpaid.length?`<div class="panel"><div class="spread"><h2>Nevyplatené a nevybavené</h2><span class="meta">${eur(sum(unpaid,x=>x.amount))}</span></div><ul class="items">${unpaid.slice(0,8).map(ledgerLi).join("")}</ul></div>`:""}
+      ${unpaid.length&&accView("financie")?`<div class="panel"><div class="spread"><h2>Nevyplatené a nevybavené</h2><span class="meta">${eur(sum(unpaid,x=>x.amount))}</span></div><ul class="items">${unpaid.slice(0,8).map(ledgerLi).join("")}</ul></div>`:""}
     </div>
     <div class="stack">
       <div class="panel"><div class="spread"><h2>Termíny</h2><button class="btn ghost sm" data-go="kalendar">Kalendár</button></div>

@@ -21,7 +21,7 @@ function arsp_acc_areas() {
         'projekty'   => array('label' => 'Projekty', 'cols' => array('projects')),
         'podujatia'  => array('label' => 'Podujatia', 'cols' => array('events', 'partnerships', 'programItems', 'zabezpecenie', 'zabdodavky')),
         'granty'     => array('label' => 'Granty', 'cols' => array('grants', 'budgetLines')),
-        'financie'   => array('label' => 'Financie', 'cols' => array('transactions')),   /* sekcia Financie v menu aj všetky platby */
+        'financie'   => array('label' => 'Financie', 'cols' => array('transactions')),   /* sekcia Financie v menu (denník, zostatky); platby projektov/podujatí/grantov vidno aj bez nej – arsp_acc_tx_visible */
         /* úlohy nie sú oblasť (od 1.100.0): vidieť a upravovať sa dajú podľa toho, ku čomu patria – arsp_acc_task_visible / arsp_acc_task_editable */
         'kontakty'   => array('label' => 'Kontakty', 'cols' => array('contacts')),
         /* nastavenia nie sú oblasť (od 1.99.0) – upravujú sa vo WordPresse len administrátorom; aplikácia si pár vecí ukladá sama, pozri arsp_acc_settings_keys() */
@@ -214,6 +214,29 @@ function arsp_acc_task_visible($d, $acc) {
     return false;
 }
 
+/** Platba je viditeľná aj bez práva na Financie, ak patrí k projektu / podujatiu / grantu, ktorý človek vidí. */
+function arsp_acc_tx_visible($d, $acc) {
+    if (arsp_acc_level('financie', $acc) >= 1) return true;
+    if (!empty($d['projectId']) && arsp_acc_level('projekty', $acc) >= 1) return true;
+    if (!empty($d['eventId']) && arsp_acc_level('podujatia', $acc) >= 1) return true;
+    if ((!empty($d['grantId']) || !empty($d['cofinGrantId'])) && arsp_acc_level('granty', $acc) >= 1) return true;
+    return false;
+}
+
+/** Skryť sumy platieb? Len bez práva na Financie a len ak to majú zapnuté všetky skupiny človeka (platí voľnejšie). */
+function arsp_acc_hide_amounts($uid = 0) {
+    $acc = arsp_acc_user($uid);
+    if ($acc === null || arsp_acc_level('financie', $acc) >= 1) return false;
+    $uid = $uid ? (int) $uid : get_current_user_id();
+    $groups = arsp_acc_groups(); $any = false;
+    foreach ((array) get_user_meta($uid, 'arsp_acc', true) as $gid) {
+        if (empty($groups[$gid])) continue;
+        if (empty($groups[$gid]['hideAmt'])) return false;
+        $any = true;
+    }
+    return $any;
+}
+
 /** Úlohu smie upravovať, kto ju má na starosti, alebo kto smie upravovať projekt / podujatie / grant, ku ktorému patrí. */
 function arsp_acc_task_editable($d, $acc) {
     if (!empty($d['assignee']) && isset(arsp_acc_me_keys()[(string) $d['assignee']])) return true;
@@ -227,6 +250,7 @@ function arsp_acc_filter_sync($docs, $acc) {
     if ($acc === null) return $docs;
     $out = array();
     $taskVis = null;   /* id úloh viditeľných bez práva na oblasť Úlohy (pre komentáre k nim) */
+    $hideAmt = arsp_acc_hide_amounts();
     $tv = function ($tid) use (&$taskVis, $acc) {
         if ($taskVis === null) { $taskVis = array(); $by = arsp_acc_all_docs(); foreach ((isset($by['tasks']) ? $by['tasks'] : array()) as $i => $d) if (arsp_acc_task_visible($d, $acc)) $taskVis[$i] = true; }
         return isset($taskVis[$tid]);
@@ -242,6 +266,13 @@ function arsp_acc_filter_sync($docs, $acc) {
         }
         $area = $row['x'] ? arsp_acc_col_area($col) : arsp_acc_doc_area($col, $row['d']);
         if ($col === 'comments' && $row['x']) continue;   /* zmazaný komentár – rodič už nepoznáme */
+        if ($col === 'transactions' && $row['x']) { $out[] = $row; continue; }   /* zmazaná platba – len id, nech zmizne aj u neho */
+        if ($col === 'transactions' && !$row['x']) {   /* platby: aj bez Financií, ak patria k viditeľnému; sumy prípadne skryté */
+            $d = (array) $row['d'];
+            if (!arsp_acc_tx_visible($d, $acc)) continue;
+            if ($hideAmt) { $m = clone $row['d']; unset($m->amount); $m->_masked = 1; $row['d'] = $m; }
+            $out[] = $row; continue;
+        }
         if ($area && arsp_acc_level($area, $acc) >= 1) { $out[] = $row; continue; }
         /* Úlohy a Kalendár vidí každý – ale len úlohy z jeho oblastí, rozsahu alebo priradené jemu */
         if ($col === 'tasks') { if ($row['x'] || arsp_acc_task_visible((array) $row['d'], $acc)) $out[] = $row; continue; }
@@ -430,6 +461,7 @@ function arsp_acc_admin_section() {
                      : '<input type="text" name="' . $pfx . '[name]" class="arsp-gname" value="' . esc_attr($g['name']) . '" required>';
         $h .= '<div class="arsp-tgs">';
         foreach ($areas as $a => $x) $h .= $tg($isNew ? 'new_areas[' . $a . ']' : $pfx . '[areas][' . $a . ']', $x['label'], isset($g['areas'][$a]) ? $g['areas'][$a] : 0);
+        $h .= '<label class="arsp-tg arsp-amt' . (!empty($g['hideAmt']) ? ' on' : '') . '" title="Sumy platieb sa nepošlú a v aplikácii budú rozmazané (neplatí pre toho, kto má Financie)"><input type="checkbox" name="' . ($isNew ? 'new_hideAmt' : $pfx . '[hideAmt]') . '" value="1"' . (!empty($g['hideAmt']) ? ' checked' : '') . ' onchange="this.parentNode.classList.toggle(\'on\',this.checked)">skryť sumy<span class="dashicons dashicons-money-alt"></span></label>';
         $h .= '</div>' . ($isNew ? '<span class="arsp-trash-sp"></span>' : '<button type="button" class="arsp-trash" data-del="' . esc_attr($pfx . '[del]') . '" data-nm="' . esc_attr($g['name']) . '" title="Zmazať skupinu" aria-label="Zmazať skupinu"><span class="dashicons dashicons-trash"></span></button>') . '</div>';
         $h .= '<div class="arsp-sline"><span class="arsp-slab" title="' . esc_attr($sp || $se ? 'Len vybrané projekty a podujatia a všetko, čo do nich patrí.' : 'Nič nevybrané = celý priestor.') . '">Rozsah</span>'
             . $pick($sname . '[sp][]', 'projects', $projs, $sp, $sp ? 'Pridať projekt…' : 'Všetky projekty – pridať…')
@@ -455,6 +487,7 @@ function arsp_acc_admin_section() {
         else {
             foreach ($acc as $a => $l) echo '<span class="arsp-pill arsp-l' . (int) $l . '">' . esc_html($areas[$a]['label']) . ': ' . $lvlTxt[(int) $l] . '</span>';
             $sc = arsp_acc_scope($u->ID);
+            if (arsp_acc_hide_amounts($u->ID)) echo '<span class="arsp-pill arsp-scp">sumy platieb skryté</span>';
             if ($sc !== null) echo '<span class="arsp-pill arsp-scp">rozsah: ' . count($sc['projects']) . ' projektov, ' . count($sc['events']) . ' podujatí</span>';
         }
         echo '</td></tr>';
@@ -475,7 +508,7 @@ add_action('admin_post_arsp_acc_save', function () {
         $as = array(); foreach ($areas as $a) $as[$a] = $lvl(isset($g['areas'][$a]) ? $g['areas'][$a] : 0);
         $ids = function ($v) { $o = array(); foreach ((array) $v as $x) { $x = (string) $x; if (arsp_valid_id($x)) $o[] = $x; } return $o; };
         $sp = $ids(isset($g['sp']) ? $g['sp'] : array()); $se = $ids(isset($g['se']) ? $g['se'] : array());
-        $groups[$gid] = array('name' => $name, 'areas' => $as) + ($sp || $se ? array('scope' => array('projects' => $sp, 'events' => $se)) : array());
+        $groups[$gid] = array('name' => $name, 'areas' => $as) + ($sp || $se ? array('scope' => array('projects' => $sp, 'events' => $se)) : array()) + (!empty($g['hideAmt']) ? array('hideAmt' => 1) : array());
     }
     $newName = sanitize_text_field(isset($_POST['new_name']) ? wp_unslash($_POST['new_name']) : '');
     if ($newName !== '') {
@@ -483,7 +516,7 @@ add_action('admin_post_arsp_acc_save', function () {
         $ids = function ($v) { $o = array(); foreach ((array) $v as $x) { $x = (string) wp_unslash($x); if (arsp_valid_id($x)) $o[] = $x; } return $o; };
         $ns = isset($_POST['new_scope']) ? (array) $_POST['new_scope'] : array();
         $sp = $ids(isset($ns['sp']) ? $ns['sp'] : array()); $se = $ids(isset($ns['se']) ? $ns['se'] : array());
-        $groups['g' . substr(md5(uniqid('', true)), 0, 10)] = array('name' => $newName, 'areas' => $as) + ($sp || $se ? array('scope' => array('projects' => $sp, 'events' => $se)) : array());
+        $groups['g' . substr(md5(uniqid('', true)), 0, 10)] = array('name' => $newName, 'areas' => $as) + ($sp || $se ? array('scope' => array('projects' => $sp, 'events' => $se)) : array()) + (!empty($_POST['new_hideAmt']) ? array('hideAmt' => 1) : array());
     }
     update_option('arsp_acc_groups', $groups, false);
     foreach ((array) (isset($_POST['u']) ? $_POST['u'] : array()) as $uid => $row) {
