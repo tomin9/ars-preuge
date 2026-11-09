@@ -24,7 +24,7 @@ function arsp_acc_areas() {
         'granty'     => array('label' => 'Granty (bez platieb)', 'cols' => array('grants', 'budgetLines')),
         'financie'   => array('label' => 'Financie (platby)', 'cols' => array('transactions')),
         'kontakty'   => array('label' => 'Kontakty', 'cols' => array('contacts')),
-        'nastavenia' => array('label' => 'Nastavenia', 'cols' => array('settings')),
+        /* nastavenia nie sú oblasť (od 1.99.0) – upravujú sa vo WordPresse len administrátorom; aplikácia si pár vecí ukladá sama, pozri arsp_acc_settings_keys() */
     );
 }
 
@@ -172,6 +172,11 @@ function arsp_acc_level($area, $acc) { if ($acc === null) return 2; return isset
 /** Má prihlásený na oblasť aspoň úroveň $lvl? */
 function arsp_acc_can($area, $lvl) { return arsp_acc_level($area, arsp_acc_user()) >= $lvl; }
 
+/** Ktoré polia spoločných nastavení smie obmedzený človek meniť z aplikácie a s akým právom (stačí jedno z nich). */
+function arsp_acc_settings_keys() {
+    return array('zbOrder' => array('podujatia'), 'cats' => array('podujatia', 'financie'), 'roleTags' => array('kontakty'));
+}
+
 /** Oblasť jedného záznamu (komentár patrí k oblasti svojho rodiča "kolekcia:id…"). */
 function arsp_acc_doc_area($col, $doc) {
     if ($col !== 'comments') return arsp_acc_col_area($col);
@@ -244,7 +249,18 @@ function arsp_acc_filter_sync($docs, $acc) {
 function arsp_acc_check_write($col, $op, $data, $curDoc, $acc, $id = '') {
     if ($acc === null) return true;
     $deny = function () { return new WP_Error('forbidden', 'Na túto úpravu nemáte právo. Požiadajte správcu o rozšírenie prístupu.', array('status' => 403)); };
-    if ($col === 'settings') return arsp_acc_level('nastavenia', $acc) >= 2 ? true : $deny();
+    if ($col === 'settings') {   /* aplikácia ukladá do nastavení len pár vecí pri bežnej práci – povolené podľa oblasti, ku ktorej patria */
+        $old = is_array($curDoc) ? $curDoc : array(); $new = is_array($data) ? $data : array();
+        foreach (array_unique(array_merge(array_keys($old), array_keys($new))) as $k) {
+            $a = isset($old[$k]) ? $old[$k] : null; $b = isset($new[$k]) ? $new[$k] : null;
+            if (!array_key_exists($k, $new)) continue;   /* čo aplikácia neposlala (napr. skryté zostatky), ostáva – pozri zlúčenie v /doc */
+            if (wp_json_encode($a) === wp_json_encode($b)) continue;
+            $need = arsp_acc_settings_keys(); $ok = false;
+            foreach (isset($need[$k]) ? $need[$k] : array() as $area) if (arsp_acc_level($area, $acc) >= 2) $ok = true;
+            if (!$ok) return $deny();
+        }
+        return true;
+    }
     $area = arsp_acc_doc_area($col, $curDoc !== null ? $curDoc : $data);
     if ($col === 'comments' && !$area && is_array($data)) $area = arsp_acc_doc_area($col, $data);
     if (!$area || arsp_acc_level($area, $acc) < 2) return $deny();

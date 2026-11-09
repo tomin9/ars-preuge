@@ -4,7 +4,7 @@
    len skrýva menu a tlačidlá a zápis sa zastaví so zrozumiteľnou správou skôr, než by ho odmietol server.
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/66-pristupy.js. Nie je to samostatný skript. ===== */
 const ACC=(window.ARSP&&ARSP.access)||null;
-const ACC_AREA={projects:"projekty",events:"podujatia",partnerships:"podujatia",programItems:"podujatia",zabezpecenie:"podujatia",zabdodavky:"podujatia",tasks:"ulohy",grants:"granty",budgetLines:"granty",transactions:"financie",contacts:"kontakty",settings:"nastavenia"};
+const ACC_AREA={projects:"projekty",events:"podujatia",partnerships:"podujatia",programItems:"podujatia",zabezpecenie:"podujatia",zabdodavky:"podujatia",tasks:"ulohy",grants:"granty",budgetLines:"granty",transactions:"financie",contacts:"kontakty"};
 const ACC_VIEW={projekty:"projekty",projekt:"projekty",granty:"granty",grant:"granty",podujatia:"podujatia",podujatie:"podujatia",financie:"financie",kontakty:"kontakty",nastavenia:"nastavenia"};
 const accAreaOf=e=>ACC_AREA[(ENT[e]&&ENT[e].col)||e]||"";          /* oblasť druhu záznamu; komentáre stráži server podľa rodiča */
 const accReadA=a=>!ACC||!a||(ACC[a]||0)>=1;

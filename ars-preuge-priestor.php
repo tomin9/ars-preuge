@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.98.0
+ * Version: 1.99.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.98.0');
+define('ARSP_VER', '1.99.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -286,6 +286,10 @@ add_action('rest_api_init', function () {
             $upd = arsp_now_ms();
             if ($cur && (int) $cur['updated'] >= $upd) $upd = (int) $cur['updated'] + 1;
 
+            if ($col === 'settings' && $op === 'set' && $cur && !$cur['deleted'] && arsp_acc_user() !== null && is_array($data)) {
+                $old = json_decode($cur['data'], true);   /* obmedzený človek nevidí všetky nastavenia – čo neposlal, ostáva */
+                if (is_array($old)) $data = array_merge($old, $data);
+            }
             $chk = arsp_acc_check_write($col, $op, is_array($data) ? $data : array(), $cur && !$cur['deleted'] ? json_decode($cur['data'], true) : null, arsp_acc_user(), $id);
             if (is_wp_error($chk)) return $chk;
 

@@ -38,7 +38,7 @@ function del(e,id){
   });
 }
 function saveSettings(patch){
-  if(ACC&&!accEditA("nastavenia"))return Promise.resolve(accDeny());
+  if(ACC&&Object.keys(patch).some(k=>!({zbOrder:["podujatia"],cats:["podujatia","financie"],roleTags:["kontakty"]}[k]||[]).some(accEditA)))return Promise.resolve(accDeny());   /* rovnaké pravidlo ako na serveri (arsp_acc_settings_keys) */
   const next=Object.assign({},S.settings,patch);
   return write(async()=>{if(db)await db.doc("settings/main").set(next);else{S.settings=next;render();}});
 }
