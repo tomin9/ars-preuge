@@ -68,7 +68,7 @@ const ICON={
   zabezpecenie:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/><path d="m9 12 2 2 4-4"/></svg>',
   menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
 };
-const NAV=[["prehlad","Prehľad"],["kalendar","Kalendár"],["ulohy","Úlohy"],"-",["projekty","Projekty"],["granty","Granty"],["podujatia","Podujatia"],"-",["financie","Financie"],["kontakty","Kontakty"],["nastavenia","Nastavenia"]];
+const NAV=[["prehlad","Prehľad"],["kalendar","Kalendár"],["ulohy","Úlohy"],"-",["projekty","Projekty"],["granty","Granty"],["podujatia","Podujatia"],"-",["financie","Financie"],["kontakty","Kontakty"]];   /* Nastavenia sú od 1.94.0 vo WordPresse (Ars Preuge → Nastavenia) */
 const ACT={projekt:"projekty",grant:"granty",podujatie:"podujatia"};
 
 function render(){

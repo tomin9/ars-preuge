@@ -8,6 +8,7 @@ if (!defined('ABSPATH')) exit;
 add_action('admin_menu', function () {
     add_menu_page('Ars Preuge', 'Ars Preuge', ARSP_CAP, 'arsp', 'arsp_admin_page', 'dashicons-art', 3);
     add_submenu_page('arsp', 'Ars Preuge – prehľad', 'Prehľad', ARSP_CAP, 'arsp', 'arsp_admin_page');
+    add_submenu_page('arsp', 'Ars Preuge – nastavenia', 'Nastavenia', 'manage_options', 'arsp-nastavenia', 'arsp_admin_page_nastavenia');
     add_submenu_page('arsp', 'Ars Preuge – prístupy', 'Prístupy', 'manage_options', 'arsp-pristupy', 'arsp_admin_page_pristupy');
     add_submenu_page('arsp', 'Ars Preuge – AI', 'AI', 'manage_options', 'arsp-ai', 'arsp_admin_page_ai');
     add_submenu_page('arsp', 'Ars Preuge – záloha', 'Záloha', 'manage_options', 'arsp-zaloha', 'arsp_admin_page_zaloha');
@@ -63,6 +64,7 @@ add_action('admin_head', function () {
 .arsp-save{position:sticky;bottom:0;background:#f0f0f1;padding:12px 0;margin:0}
 .arsp-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .arsp-status{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.arsp-facts th{padding:6px 10px 6px 0;width:140px;font-weight:600}.arsp-facts td{padding:6px 0}
 .arsp-dot{width:9px;height:9px;border-radius:50%;background:#a7aaad;display:inline-block}.arsp-dot.ok{background:#00a32a}
 </style>';
 });
@@ -87,6 +89,7 @@ function arsp_admin_page() {
     if (current_user_can('manage_options')) {
         $groups = count(arsp_acc_groups()); $key = arsp_claude_key() !== '';
         echo '<div class="arsp-links">'
+            . '<a class="arsp-link" href="' . esc_url(admin_url('admin.php?page=arsp-nastavenia')) . '"><b><span class="dashicons dashicons-admin-generic"></span>Nastavenia</b><span>Počiatočné zostatky, kategórie platieb, typy úloh</span></a>'
             . '<a class="arsp-link" href="' . esc_url(admin_url('admin.php?page=arsp-pristupy')) . '"><b><span class="dashicons dashicons-lock"></span>Prístupy</b><span>Kto čo vidí a smie meniť · skupín: ' . $groups . '</span></a>'
             . '<a class="arsp-link" href="' . esc_url(admin_url('admin.php?page=arsp-ai')) . '"><b><span class="dashicons dashicons-lightbulb"></span>AI</b><span>Napojenie na Claude · ' . ($key ? 'kľúč je nastavený' : 'kľúč nie je nastavený') . '</span></a>'
             . '<a class="arsp-link" href="' . esc_url(admin_url('admin.php?page=arsp-zaloha')) . '"><b><span class="dashicons dashicons-database"></span>Záloha</b><span>Stiahnuť zálohu dát, import</span></a>'
@@ -134,3 +137,64 @@ function arsp_admin_page_zaloha() {
     echo '<button class="button" onclick="return confirm(\'Importovať? Záznamy s rovnakým ID sa prepíšu.\')">Importovať</button> <span class="description">max. ' . esc_html(size_format(wp_max_upload_size())) . '</span></form></div>';
     echo '</div>';
 }
+
+/* ---------------------------------------------------------- Nastavenia (spoločné nastavenia aplikácie: záznam settings/main) */
+function arsp_settings_get() {
+    global $wpdb; $t = arsp_table();
+    $row = $wpdb->get_row($wpdb->prepare("SELECT data,updated,deleted FROM $t WHERE col=%s AND id=%s", 'settings', 'main'), ARRAY_A);
+    $d = $row && !$row['deleted'] ? json_decode($row['data'], true) : array();
+    return array(is_array($d) ? $d : array(), $row ? (int) $row['updated'] : 0);
+}
+/* zápis ako cez aplikáciu: zlúči zmenené polia (ostatné, napr. poradie v Zabezpečení, ostanú) a posunie čas zmeny – tím ju dostane do 8 sekúnd */
+function arsp_settings_save($patch) {
+    global $wpdb; $t = arsp_table();
+    list($d, $u) = arsp_settings_get();
+    foreach ($patch as $k => $v) { if ($v === null) unset($d[$k]); else $d[$k] = $v; }
+    $upd = arsp_now_ms(); if ($u >= $upd) $upd = $u + 1;
+    $wpdb->replace($t, array('col' => 'settings', 'id' => 'main', 'data' => wp_json_encode((object) $d, JSON_UNESCAPED_UNICODE), 'updated' => $upd, 'deleted' => 0), array('%s', '%s', '%s', '%d', '%d'));
+}
+function arsp_def_cats() { return array('Honoráre', 'Materiál', 'Služby', 'Technika', 'Propagácia', 'Tlač', 'Cestovné', 'Prenájom', 'Ubytovanie', 'Občerstvenie', 'Bankové poplatky', 'Dotácia', 'Dar / sponzoring', 'Vstupné', 'Členské', 'Iné'); }
+function arsp_def_ttypes() { return array('Plagát', 'Podklady', 'Grafika', 'Web/Social', 'Fotenie', 'Tlač', 'Produkcia', 'Administratíva', 'Iné'); }
+
+function arsp_admin_page_nastavenia() {
+    if (!current_user_can('manage_options')) return;
+    list($s) = arsp_settings_get();
+    arsp_admin_top('Nastavenia', 'Spoločné nastavenia pracovného priestoru pre celý tím. Zmeny sa tímu prejavia do niekoľkých sekúnd.');
+    if (isset($_GET['arsp_st'])) echo '<div class="notice notice-success is-dismissible"><p>Nastavenia sú uložené.</p></div>';
+    $num = function ($v) { return $v === null || $v === '' ? '' : esc_attr((string) $v); };
+    $cats = !empty($s['cats']) && is_array($s['cats']) ? $s['cats'] : arsp_def_cats();
+    $tt = !empty($s['ttypes']) && is_array($s['ttypes']) ? $s['ttypes'] : arsp_def_ttypes();
+    echo '<div class="arsp-card"><h2>Združenie</h2><table class="form-table arsp-facts" role="presentation"><tbody>'
+        . '<tr><th>Názov</th><td>Ars Preuge, o. z.</td></tr><tr><th>IČO</th><td>42147018</td></tr><tr><th>DIČ</th><td>2023110408</td></tr>'
+        . '<tr><th>Sídlo</th><td>Veľkolehotská cesta 2994/6, 971 01 Prievidza</td></tr><tr><th>Právna forma</th><td>Združenie (zväz, spolok)</td></tr><tr><th>Vznik</th><td>25. 11. 2009</td></tr>'
+        . '</tbody></table><p class="description">Tieto údaje sa používajú v zmluvách. Ak sa zmenia, dajte vedieť – upravia sa v programe.</p></div>';
+    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
+    wp_nonce_field('arsp_settings');
+    echo '<input type="hidden" name="action" value="arsp_settings">';
+    echo '<div class="arsp-card"><h2>Počiatočné zostatky</h2><p class="description">Stav peňazí pred prvým záznamom v denníku. Z nich sa počíta priebežný zostatok.</p>'
+        . '<div class="arsp-row" style="gap:24px;margin-top:10px"><label>Banka (€)<br><input type="number" step="0.01" name="openBank" value="' . $num(isset($s['openBank']) ? $s['openBank'] : '') . '" style="width:180px"></label>'
+        . '<label>Pokladňa (€)<br><input type="number" step="0.01" name="openCash" value="' . $num(isset($s['openCash']) ? $s['openCash'] : '') . '" style="width:180px"></label></div></div>';
+    echo '<div class="arsp-gbody" style="padding:0;gap:16px"><div class="arsp-card" style="margin:0"><h2>Kategórie výdavkov a príjmov</h2><p class="description">Jedna kategória na riadok. Kategórie, ktoré tím použije pri platbách alebo ako časti programu podujatí, sa v aplikácii ponúknu aj tak.</p>'
+        . '<textarea name="cats" rows="14" style="width:100%;margin-top:8px">' . esc_textarea(implode("\n", $cats)) . '</textarea></div>'
+        . '<div class="arsp-card" style="margin:0"><h2>Typy úloh</h2><p class="description">Jeden typ na riadok.</p>'
+        . '<textarea name="ttypes" rows="14" style="width:100%;margin-top:8px">' . esc_textarea(implode("\n", $tt)) . '</textarea></div></div>';
+    echo '<p class="arsp-save"><button class="button button-primary button-large">Uložiť nastavenia</button></p></form></div>';
+}
+
+add_action('admin_post_arsp_settings', function () {
+    if (!current_user_can('manage_options')) wp_die('Forbidden');
+    check_admin_referer('arsp_settings');
+    $num = function ($k) { $v = isset($_POST[$k]) ? trim((string) wp_unslash($_POST[$k])) : ''; return $v === '' ? null : round((float) str_replace(',', '.', $v), 2); };
+    $lines = function ($k) {
+        $o = array();
+        foreach (preg_split('/\r\n|\r|\n/', (string) wp_unslash(isset($_POST[$k]) ? $_POST[$k] : '')) as $l) { $l = sanitize_text_field($l); if ($l !== '' && !in_array($l, $o, true)) $o[] = $l; }
+        return $o;
+    };
+    $cats = $lines('cats'); $tt = $lines('ttypes');
+    arsp_settings_save(array(
+        'openBank' => $num('openBank'), 'openCash' => $num('openCash'),
+        'cats' => $cats && $cats !== arsp_def_cats() ? $cats : null,       /* zhodné s predvolenými = neukladať (aplikácia ich doplní sama) */
+        'ttypes' => $tt && $tt !== arsp_def_ttypes() ? $tt : null,
+    ));
+    wp_safe_redirect(add_query_arg('arsp_st', '1', admin_url('admin.php?page=arsp-nastavenia'))); exit;
+});
