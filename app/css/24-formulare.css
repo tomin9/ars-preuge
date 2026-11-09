@@ -51,3 +51,4 @@ textarea{width:100%;min-height:80px;resize:vertical;line-height:1.45}
 @media (max-width:760px){
   .props{grid-template-columns:120px 1fr}
 }
+.acc-ro{cursor:default}                     /* pole len na čítanie (prístupy) */

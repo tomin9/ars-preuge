@@ -6,6 +6,7 @@ const DW_NEW=e=>e==="ledger"||e==="contacts"||e==="tasks";  /* panely v novej po
 const DW_EDIT=e=>e==="contacts"||e==="tasks";               /* ceruzka = zobraziť všetky polia */
 function openDrawer(e,id,isNew){
   if(!accRead(e))return;
+  {const r=get(e,id);if(r&&r._stub){toast("Tento záznam je mimo vášho prístupu – vidíte len jeho názov.");return;}}
   DW={e,id,isNew:!!isNew,edit:!!isNew&&accEdit(e)};closeSide();
   const host=$("#drawer");
   host.innerHTML=`<div class="dscrim" data-dclose></div><aside class="drawer${DW_NEW(e)?" dw-narrow":""}${DW_EDIT(e)?" dw-ed":""}" role="dialog" aria-modal="true" aria-label="${esc(ENT[e].one)}">
@@ -37,6 +38,7 @@ function drawerRefresh(force){
     if(!force&&ae&&el.contains(ae)&&ae.matches("input,textarea,select"))return;
     el.innerHTML=fn(DW.e,r);bindPart(el,DW.e,r);
   });
+  accLockDrawer();
 }
 const ICO_MOVE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>';
 const ICO_OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m5 12 5 5 9-10"/></svg>';

@@ -214,9 +214,9 @@ function arsp_acc_refs($col, $d, &$refs) {
 }
 function arsp_acc_stub($col, $d) {
     $v = function ($k) use ($d) { return isset($d[$k]) ? $d[$k] : null; };
-    if ($col === 'projects') return array('name' => $v('name'), 'color' => $v('color'));
-    if ($col === 'events') return array('name' => $v('name'), 'date' => $v('date'));
-    return array('name' => $v('name'), 'ctype' => $v('ctype'));
+    if ($col === 'projects') return array('name' => $v('name'), 'color' => $v('color'), '_stub' => 1);
+    if ($col === 'events') return array('name' => $v('name'), 'date' => $v('date'), '_stub' => 1);
+    return array('name' => $v('name'), 'ctype' => $v('ctype'), '_stub' => 1);
 }
 
 /** Celé filtrovanie /sync: oblasti (fáza 1) + rozsah s menovkami (fáza 2). $full = prvé načítanie (since 0). */
@@ -250,6 +250,46 @@ function arsp_acc_sync($docs, $full) {
         }
     }
     return array_values($out);
+}
+
+/* Fáza 3 – súbory a fotky: obmedzený človek dostane nahraný súbor alebo album, len ak patrí k záznamu, ktorý smie vidieť. */
+function arsp_acc_can_see_ref($needle, $cols = null) {
+    $acc = arsp_acc_user();
+    if ($acc === null) return true;
+    global $wpdb; $t = arsp_table();
+    $like = '%' . $wpdb->esc_like($needle) . '%';
+    $rows = $cols
+        ? $wpdb->get_results($wpdb->prepare("SELECT col,id,data FROM $t WHERE deleted=0 AND col IN ('" . implode("','", array_map('esc_sql', $cols)) . "') AND data LIKE %s", $like), ARRAY_A)
+        : $wpdb->get_results($wpdb->prepare("SELECT col,id,data FROM $t WHERE deleted=0 AND data LIKE %s", $like), ARRAY_A);
+    if (!$rows) return false;
+    $scope = arsp_acc_scope();
+    $S = null;
+    foreach ($rows as $r) {
+        $d = json_decode($r['data'], true); if (!is_array($d)) $d = array();
+        $area = arsp_acc_doc_area($r['col'], $d);
+        if ($r['col'] === 'settings' || !$area || arsp_acc_level($area, $acc) < 1) continue;
+        if ($scope === null) return true;
+        if ($S === null) { $S = arsp_acc_sets(arsp_acc_all_docs(), $scope); $S['C'] = arsp_acc_contacts($S); }
+        if (arsp_acc_doc_in_scope($r['col'], $r['id'], $d, $S)) return true;
+    }
+    return false;
+}
+
+/** Album Google Fotiek: patrí k podujatiu, ktoré človek smie vidieť? (porovnáva sa photosUrl a albums[].url) */
+function arsp_acc_can_see_album($url) {
+    $acc = arsp_acc_user();
+    if ($acc === null) return true;
+    if (arsp_acc_level('dianie', $acc) < 1) return false;
+    $by = arsp_acc_all_docs();
+    $scope = arsp_acc_scope();
+    $S = $scope === null ? null : arsp_acc_sets($by, $scope);
+    foreach ((isset($by['events']) ? $by['events'] : array()) as $id => $d) {
+        $urls = array(isset($d['photosUrl']) ? (string) $d['photosUrl'] : '');
+        foreach ((array) (isset($d['albums']) ? $d['albums'] : array()) as $a) if (is_array($a) && !empty($a['url'])) $urls[] = (string) $a['url'];
+        if (!in_array($url, $urls, true)) continue;
+        if ($S === null || arsp_acc_doc_in_scope('events', $id, $d, $S)) return true;
+    }
+    return false;
 }
 
 /* ------------------------------------------------------- administrácia */

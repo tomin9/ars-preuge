@@ -38,9 +38,10 @@ VIEWS.grant=()=>{
   const unassigned=c.L.filter(x=>x.type!=="prijem"&&!x.lineId);
   const cofinOk=c.cofinReq?c.sc>=c.cofinReq:true;
   const cl=g.checklist||[];
-  const gtab=GRTABS.find(t=>t[0]===S.grtab)?S.grtab:"vyzva";
+  const GRT=GRTABS.filter(t=>(t[0]!=="ulohy"||accRead("tasks"))&&(t[0]!=="podujatia"||accRead("events")));
+  const gtab=GRT.find(t=>t[0]===S.grtab)?S.grtab:"vyzva";
   const gcnt={ulohy:T.filter(t=>!isDone(t)).length,rozpocet:Ln.length,podujatia:E.length};
-  const tbar=`<div class="ptabs ntabs" role="tablist" style="margin-top:6px">${GRTABS.map(([k,l])=>`<button role="tab" data-grtab="${k}" aria-selected="${gtab===k}">${l}</button>`).join("")}</div>`;
+  const tbar=`<div class="ptabs ntabs" role="tablist" style="margin-top:6px">${GRT.map(([k,l])=>`<button role="tab" data-grtab="${k}" aria-selected="${gtab===k}">${l}</button>`).join("")}</div>`;
   let body="";
   if(gtab==="vyzva")body=grantCallTab(g);  /* vzhľad ako Texty podujatia – grant-nacitanie.js */
   else if(gtab==="ziadost")body=grantAppTab(g);

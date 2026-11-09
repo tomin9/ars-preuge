@@ -1,7 +1,7 @@
 /* ===== Podujatie – zoznam záložiek, marketing a záložka Spolupráce (tím, partneri, sponzori, dobrovoľníci).
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-spoluprace.js. Nie je to samostatný skript. ===== */
 const EVTABS=[["texty","Texty"],["rozpocet","Rozpočet"],["ulohy","Úlohy"],["granty","Granty"],["dramaturgia","Dramaturgia"],["marketing","Marketing"],["spoluprace","Spolupráce"],["dokumenty","Dokumenty"],["fotky","Fotky"],["zabezpecenie","Zabezpečenie"]];
-const evTabsFor=e=>EVTABS.filter(t=>t[0]!=="zabezpecenie"||isNox(e));
+const evTabsFor=e=>EVTABS.filter(t=>(t[0]!=="zabezpecenie"||isNox(e))&&(t[0]!=="rozpocet"||accRead("ledger"))&&(t[0]!=="ulohy"||accRead("tasks"))&&(t[0]!=="granty"||accRead("grants")));
 const MKT_DEF=["Vizuál / plagát","Udalosť na Facebooku","Instagram – príspevky a stories","Web a kalendáre podujatí","Tlačová správa","Newsletter","Rádio a médiá","Výlep plagátov","Foto a video dokumentácia"];
 const evMkt=e=>Array.isArray(e.mkt)?e.mkt:MKT_DEF.map(t=>({t,d:false}));
 const TEAM_SEC=[["tim","Tím","Člen tímu"],["partner","Partneri","Partner"],["sponzor","Sponzori","Sponzor"],["dobrovolnik","Dobrovoľníci","Dobrovoľník"]];

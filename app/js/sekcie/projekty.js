@@ -19,7 +19,7 @@ VIEWS.projekt=()=>{
   const c=projCalc(p),pid=esc(p.id),col=p.color||GRAY;
   const G=related("projects",p,"grants"),E=related("projects",p,"events").sort((a,b)=>(b.date||"").localeCompare(a.date||"")),C=related("projects",p,"contacts").sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk"));
   const tab=S.ptab||"podujatia";
-  const TABS=[["podujatia","Podujatia",E.length,["events","Nové podujatie"]],["ulohy","Úlohy",c.open,["tasks","Nová úloha"]],["granty","Granty",G.length,["grants","Nový grant"]],["financie","Financie",c.L.length,["ledger","Zapísať platbu"]],["ludia","Ľudia",C.length,["contacts","Nový kontakt"]]];
+  const TABS=[["podujatia","Podujatia",E.length,["events","Nové podujatie"]],["ulohy","Úlohy",c.open,["tasks","Nová úloha"]],["granty","Granty",G.length,["grants","Nový grant"]],["financie","Financie",c.L.length,["ledger","Zapísať platbu"]],["ludia","Ľudia",C.length,["contacts","Nový kontakt"]]].filter(t=>accRead(t[3][0]));
   const cur=TABS.find(t=>t[0]===tab)||TABS[0];
   const head=coverUrl(p)?`<div class="pcw"><img class="pcover" src="${esc(coverUrl(p))}" alt="" style="object-position:${esc(posOf(p))}"><button class="btn pcedit" data-peek="projects:${pid}">Upraviť</button></div><h1 class="ptitle">${esc(p.name||"Bez názvu")}</h1>`
     :`<div class="spread ptitle" style="align-items:center;flex-wrap:nowrap"><h1>${esc(p.name||"Bez názvu")}</h1><button class="btn" style="flex:none" data-peek="projects:${pid}">Upraviť</button></div>`;

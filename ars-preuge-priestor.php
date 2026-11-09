@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.91.1
+ * Version: 1.92.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.91.1');
+define('ARSP_VER', '1.92.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -240,6 +240,7 @@ function arsp_serve_blob($id) {
     if (!$id || empty($map[$id])) { status_header(404); echo 'Not found'; return; }
     $path = arsp_upload_dir() . '/' . basename($map[$id]['file']);
     if (!file_exists($path)) { status_header(404); echo 'Not found'; return; }
+    if (!arsp_acc_can_see_ref($id)) { status_header(403); echo 'Forbidden'; return; }   /* súbor patrí k záznamu, ktorý človek nesmie vidieť */
     nocache_headers();
     header('Content-Type: ' . $map[$id]['type']);
     header('Content-Length: ' . filesize($path));
@@ -340,6 +341,7 @@ add_action('rest_api_init', function () {
         'callback' => function (WP_REST_Request $r) {
             if (!arsp_acc_can('dianie', 1)) return new WP_Error('forbidden', 'Na fotky podujatí nemáte prístup.', array('status' => 403));
             $url = esc_url_raw(trim((string) $r->get_param('url')));
+            if ($url && !arsp_acc_can_see_album($url)) return new WP_Error('forbidden', 'Tento album nepatrí k podujatiu, ku ktorému máte prístup.', array('status' => 403));
             $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
             if (!in_array($host, array('photos.app.goo.gl', 'photos.google.com', 'goo.gl'), true)) {
                 return new WP_Error('bad_url', 'Podporované sú len odkazy na zdieľané albumy Google Fotiek.', array('status' => 400));
@@ -450,7 +452,7 @@ function arsp_admin_page() {
         $exp = wp_nonce_url(admin_url('admin-post.php?action=arsp_export'), 'arsp_export');
         arsp_acc_admin_section();
         arsp_claude_admin_section();
-        /* nástroj na prenos (1.91.1) bol po presune odstránený – zmažú sa prípadné zvyšky jeho záloh na serveri */
+        /* nástroj na prenos (1.92.0) bol po presune odstránený – zmažú sa prípadné zvyšky jeho záloh na serveri */
         foreach (array_merge((array) glob(arsp_upload_dir() . '/zaloha-*.zip'), (array) glob(arsp_upload_dir() . '/import-*.zip')) as $x) { if (is_file($x)) @unlink($x); }
         echo '<h2>Záloha</h2><p><a class="button" href="' . esc_url($exp) . '">Stiahnuť zálohu dát (JSON)</a></p>';
         echo '<h2>Import dát</h2><p>Nahrajte balík dát (<code>.zip</code> so súborom seed.json a dokumentmi, alebo zálohu <code>.json</code>). Záznamy s rovnakým ID sa prepíšu, ostatné zostanú.</p>';

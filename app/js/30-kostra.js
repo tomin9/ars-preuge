@@ -3,7 +3,8 @@
 /* ================= navigation ================= */
 function go(view,id,isBack){
   id=id||null;
-  if(!accView(view)){view="prehlad";id=null;}   /* oblasť bez prístupu – server dáta aj tak neposiela */
+  if(!accView(view)){view="prehlad";id=null;}
+  {const ce={projekt:"projects",grant:"grants",podujatie:"events"}[view],r=ce&&id?get(ce,id):null;if(r&&r._stub){toast("Tento záznam je mimo vášho prístupu – vidíte len jeho názov.");return;}}   /* oblasť bez prístupu – server dáta aj tak neposiela */
   if(!isBack&&(S.view!==view||S.id!==id)){S.hist=S.hist||[];S.hist.push({view:S.view,id:S.id});if(S.hist.length>50)S.hist.shift();try{history.pushState({n:S.hist.length},"");}catch(_){}}
   S.view=view;S.id=id;closeSide();
   try{const u=urlFor(ACT[view]||view);if(curUrl()!==u)history.replaceState(history.state,"",u);}catch(_){}
@@ -30,6 +31,7 @@ function navBar(){
   <nav class="nb-path" aria-label="Kde som">${r?`<button data-go="${sec}">${esc(secL)}</button><span>/</span><b>${esc(ttl(ent,r))}</b>`:`<b>${esc(secL||"Prehľad")}</b>`}</nav></div>`;
 }
 function openRec(e,id){
+  {const r=get(e,id);if(r&&r._stub){toast("Tento záznam je mimo vášho prístupu – vidíte len jeho názov.");return;}}
   if(e==="zab")return zbOpenEvent();
   if(e==="projects")return go("projekt",id);
   if(e==="grants")return go("grant",id);
@@ -81,7 +83,7 @@ function render(){
   const f=VIEWS[S.view]||VIEWS.prehlad;
   v.innerHTML=navBar()+notice+f();
   if(fid){const el=document.getElementById(fid);if(el){if(fval!==null&&el.value!==fval)el.value=fval;el.focus();if(sel&&el.setSelectionRange)try{el.setSelectionRange(sel[0],sel[1]);}catch(_){}}}
-  bindView();accSweep();
+  bindView();accSweep();accLockView();
   if(DW)drawerRefresh();
 }
 function colSide(){try{return localStorage.getItem("arsp_sidecol")==="1";}catch(_){return false;}}

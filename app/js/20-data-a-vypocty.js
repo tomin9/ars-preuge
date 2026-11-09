@@ -69,7 +69,8 @@ async function boot(){
     S.live=true;let pending=KEYS.length+1;
     const done=()=>{if(pending>0&&--pending===0)S.loading=false;};
     KEYS.forEach(e=>db.collection(ENT[e].col).onSnapshot(snap=>{
-      S.d[e]=snap.docs.map(d=>norm(e,Object.assign({id:d.id},d.data())));
+      const all=snap.docs.map(d=>norm(e,Object.assign({id:d.id},d.data())));
+      S.d[e]=all.filter(x=>!x._stub);S.stub=S.stub||{};S.stub[e]=all.filter(x=>x._stub);   /* menovky záznamov mimo rozsahu – nie v zoznamoch */
       done();refreshPeople();loadTeam();render();
     },err=>{done();if(err&&err.code!=="revoked")toast("Spojenie s databázou sa prerušilo. Obnovte stránku.");render();}));
     db.doc("settings/main").onSnapshot(s=>{S.settings=s.exists?Object.assign({},s.data()):{};done();render();},()=>{done();});

@@ -14,7 +14,7 @@ const fdate=d=>{if(!d)return"";const[y,m,dd]=d.split("-");return`${+dd}. ${+m}. 
 const fdateS=d=>{if(!d)return"";const[y,m,dd]=d.split("-");return y===String(new Date().getFullYear())?`${+dd}. ${+m}.`:`${+dd}. ${+m}. ${y}`;};
 const daysTo=d=>d?Math.round((new Date(d+"T12:00:00")-new Date(today()+"T12:00:00"))/864e5):null;
 const rid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
-const get=(e,id)=>id?S.d[e].find(x=>x.id===id):null;
+const get=(e,id)=>id?(S.d[e].find(x=>x.id===id)||((S.stub&&S.stub[e])||[]).find(x=>x.id===id)||null):null;   /* menovky (prístupy) len na mená */
 const ttl=(e,r)=>r?(r[ENT[e].title]||"Bez názvu"):"";
 const meId=()=>S.me&&S.me.id||null;
 const optL=(o,k)=>(OPT[o].find(x=>x[0]===k)||[k,k||""])[1];

@@ -40,6 +40,6 @@ Pravidlo skupiny = **rozsah** + **oblasti**.
 
 1. ✅ (1.90.0) **Fáza 1 – oblasti:** stránka Prístupy (skupiny, úrovne podľa oblastí, pridelenie ľuďom) + filtrovanie `/sync`, kontrola `/doc`, menu a režim čítania v aplikácii. Rozsah zatiaľ „všetko“.
 2. ✅ (1.91.0) **Fáza 2 – rozsah:** vybrané projekty / podujatia; menovky odkazovaných záznamov; Úlohy a Kalendár len z rozsahu. Poznámky: prvé načítanie je úplné, no ak sa záznam dostane do rozsahu len cudzou zmenou prepojenia, obmedzenému sa ukáže až po obnovení stránky; nová úloha/platba scoped používateľa musí mať väzbu na jeho projekt/podujatie/grant, inak ju server odmietne; Zabezpečenie vidí len rozsah s podujatím NOX.
-3. **Fáza 3 – súbory a detaily:** kontrola nahraných súborov a fotiek, platby pri kontaktoch, export/CSV len z povolených dát, test so skutočnými ľuďmi.
+3. ✅ (1.92.0) **Fáza 3 – súbory a detaily:** kontrola nahraných súborov a fotiek, platby pri kontaktoch, export/CSV len z povolených dát, test so skutočnými ľuďmi. Hotové: nahraný súbor sa vydá len ak je priložený k záznamu, ktorý človek vidí (oblasť + rozsah); album len z podujatia v rozsahu; záložky Rozpočet/Úlohy/Granty/Podujatia/Financie/Ľudia sa skryjú bez prístupu; platby pri kontakte len s právom na Financie; „len čítať“ zamkne polia; menovky (`_stub`) nie sú v zoznamoch ani exportoch a nedajú sa otvoriť.
 
 Pri každej fáze: overenie v `nastroje/kontrola-vzhladu/` (plný prístup = 0 rozdielov) + nové testy pre obmedzeného používateľa (server nepošle zakázané kolekcie, zápis odmietne, menu sa skryje).

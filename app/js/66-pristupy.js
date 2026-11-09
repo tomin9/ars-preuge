@@ -19,3 +19,11 @@ function accSweep(){if(!ACC)return;
   if(!["tasks","events","ledger","grants","projects","contacts"].some(accEdit))document.querySelectorAll("[data-new]").forEach(b=>b.style.display="none");
   document.querySelectorAll("[data-create]").forEach(b=>{if(!accEdit(b.dataset.create))b.style.display="none";});
   document.querySelectorAll(".gnew").forEach(b=>{if(b.dataset.create&&!accEdit(b.dataset.create))b.style.display="none";});}
+/* „len čítať“: polia, ktoré zapisujú (majú data-… alebo id editora), sa zamknú – bez prístupu by ich zápis aj tak odmietol server */
+function accLock(root){if(!root)return;
+  root.querySelectorAll("input,textarea,select").forEach(el=>{
+    const w=Object.keys(el.dataset).length||(el.id&&/^(f-|dw-|ga-|ph-|gbn-|g-|st-|ev-|cmt|tx)/.test(el.id));if(!w||el.type==="search")return;
+    if(el.tagName==="SELECT"||["checkbox","radio","file","date","color"].includes(el.type))el.disabled=true;else el.readOnly=true;
+    el.classList.add("acc-ro");});}
+function accLockView(){if(!ACC)return;const a=ACC_VIEW[S.view]||"";if(a&&!accEditA(a))accLock(document.getElementById("view"));}
+function accLockDrawer(){if(!ACC||!DW)return;if(!accEdit(DW.e))accLock(document.getElementById("drawer"));}

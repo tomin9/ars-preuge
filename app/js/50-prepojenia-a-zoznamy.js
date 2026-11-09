@@ -93,7 +93,7 @@ function linkBlock(e,r,t){
   ${avail.length&&e!=="contacts"?`<select data-linkadd="${e}:${esc(r.id)}|${t}" aria-label="Prepojiť existujúci záznam" style="width:100%;margin-top:6px;color:var(--muted)"><option value="">Prepojiť existujúce…</option>${avail.map(x=>`<option value="${esc(x.id)}">${esc(ttl(t,x))}${t==="ledger"?` · ${fdateS(x.date)||"plánované"} · ${eur(x.amount)}`:""}</option>`).join("")}</select>`:""}`;
 }
 function linksHtml(e,r){
-  return MAIN.filter(t=>t!==e&&!linkFields(e,t).some(f=>f.t==="rel")).map(t=>`<div class="sec">${linkBlock(e,r,t)}</div>`).join("");
+  return MAIN.filter(t=>t!==e&&accRead(t)&&!linkFields(e,t).some(f=>f.t==="rel")).map(t=>`<div class="sec">${linkBlock(e,r,t)}</div>`).join("");
 }
 document.addEventListener("click",e=>{const tr=e.target.closest&&e.target.closest("[data-teamrm]");if(tr){e.stopPropagation();e.preventDefault();const[eid,cid]=tr.dataset.teamrm.split("|"),e0=get("events",eid);if(e0)(async()=>{await link("events",eid,"contacts",cid,false);for(const pt of S.d.partnerships.filter(x=>x.eventId===eid&&x.contactId===cid))await del("partnerships",pt.id);const e1=get("events",eid)||e0,rl=Object.assign({},e1.roles||{});delete rl[cid];await upd("events",eid,{roles:rl});})();return;}},true);
 document.addEventListener("click",e=>{const lg=e.target.closest&&e.target.closest("[data-orglegacy]");if(lg&&DW&&DW.e==="contacts"){e.preventDefault();upd("contacts",DW.id,{org:""});return;}
@@ -143,12 +143,12 @@ function dExtra(e,r){
     if(r.ctype&&r.ctype!=="osoba"){const P=S.d.contacts.filter(x=>x.id!==r.id&&orgList(x).includes(r.id)).sort((x,y)=>(x.name||"").localeCompare(y.name||"","sk"));
       h+=`<section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${LKI.contacts}Kontakty</span></h3>${P.length?`<ul class="items lk">${P.map(x=>`<li class="cpl" data-open="contacts:${esc(x.id)}"><span class="t">${esc(x.name||"Bez mena")}</span>${ed||orgFn(x,r.id)?`<input type="text" class="orgfn" list="fn-dl" data-orgfn="${esc(r.id)}" data-orgfnof="${esc(x.id)}" value="${esc(orgFn(x,r.id))}" placeholder="Funkcia" aria-label="Funkcia"${ed?"":" readonly tabindex=\"-1\""}>`:""}</li>`).join("")}</ul>`:""}${fnDl()}</section>`;}
     h+=accountCard(r,ed&&!S.readOnly);
-    h+=lkCard(e,r,"ledger");
+    if(accRead("ledger"))h+=lkCard(e,r,"ledger");   /* bez práva na financie sa platby pri kontakte nezobrazia */
     if(r.ctype&&r.ctype!=="osoba")h+=logoCard(r,ed&&!S.readOnly);
     if(ed&&!S.readOnly)h+=mergeBlock(r);}
   if(e==="ledger")h+=`<section class="dcard"><div class="ldocs">${LDOCS.map(([k,l])=>docRow("ledger",r,k,l)).join("")}</div></section>
     <section class="dcard note"><textarea aria-label="Poznámka" id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`;
-  if(e==="tasks")h+=MAIN.filter(t=>t!==e&&!linkFields(e,t).some(f=>f.t==="rel")).map(t=>lkCard(e,r,t)).join("");
+  if(e==="tasks")h+=MAIN.filter(t=>t!==e&&accRead(t)&&!linkFields(e,t).some(f=>f.t==="rel")).map(t=>lkCard(e,r,t)).join("");
   else if(MAIN.includes(e)&&e!=="contacts")h+=linksHtml(e,r);
   if(e==="lines"){const c=lineCalc(r),pd=x=>x.paid!==false&&!!x.date,pG=sum(c.L.filter(x=>!cofinG(x)&&pd(x)),x=>x.amount),plG=c.sg-pG;h+=`<div class="sec"><div class="facts" style="margin:0"><div><span>Zaplatené z dotácie</span><b>${eur(pG)}</b>${plG?`<span>+ plánované ${eur(plG)}</span>`:""}</div><div><span>Ostáva z dotácie</span><b class="${(+r.fromGrant||0)-c.sg<0?"neg":""}">${eur((+r.fromGrant||0)-c.sg)}</b>${plG?`<span>po zaplatení plánovaných</span>`:""}</div><div><span>Spolufinancovanie</span><b>${eur(c.sc)}</b></div></div></div>`;
     h+=miniList("Výdavky na položku","ledger",c.L,ledgerLi,{lineId:r.id,grantId:r.grantId||"",projectId:(get("grants",r.grantId)||{}).projectId||""});}
