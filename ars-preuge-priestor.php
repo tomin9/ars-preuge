@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.97.0
+ * Version: 1.98.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.97.0');
+define('ARSP_VER', '1.98.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -340,7 +340,7 @@ add_action('rest_api_init', function () {
     register_rest_route('arsp/v1', '/photos', array(
         'methods' => 'GET', 'permission_callback' => $perm,
         'callback' => function (WP_REST_Request $r) {
-            if (!arsp_acc_can('dianie', 1)) return new WP_Error('forbidden', 'Na fotky podujatí nemáte prístup.', array('status' => 403));
+            if (!arsp_acc_can('podujatia', 1)) return new WP_Error('forbidden', 'Na fotky podujatí nemáte prístup.', array('status' => 403));
             $url = esc_url_raw(trim((string) $r->get_param('url')));
             if ($url && !arsp_acc_can_see_album($url)) return new WP_Error('forbidden', 'Tento album nepatrí k podujatiu, ku ktorému máte prístup.', array('status' => 403));
             $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
@@ -378,7 +378,7 @@ add_action('rest_api_init', function () {
     register_rest_route('arsp/v1', '/photo', array(
         'methods' => 'GET', 'permission_callback' => $perm,
         'callback' => function (WP_REST_Request $r) {
-            if (!arsp_acc_can('dianie', 1)) return new WP_Error('forbidden', 'Na fotky podujatí nemáte prístup.', array('status' => 403));
+            if (!arsp_acc_can('podujatia', 1)) return new WP_Error('forbidden', 'Na fotky podujatí nemáte prístup.', array('status' => 403));
             $id = (string) $r->get_param('id');
             if (!preg_match('#^[A-Za-z0-9_\-]{20,}$#', $id)) return new WP_Error('bad_id', 'Neplatná fotka.', array('status' => 400));
             $res = wp_safe_remote_get('https://lh3.googleusercontent.com/pw/' . $id . '=d', array('timeout' => 60, 'redirection' => 3, 'limit_response_size' => 80 * 1024 * 1024));

@@ -18,7 +18,8 @@ if (!defined('ABSPATH')) exit;
 /** Oblasti: názov pre ľudí + kolekcie, ktoré do nej patria. */
 function arsp_acc_areas() {
     return array(
-        'dianie'     => array('label' => 'Projekty a podujatia', 'cols' => array('projects', 'events', 'partnerships', 'programItems', 'zabezpecenie', 'zabdodavky')),
+        'projekty'   => array('label' => 'Projekty', 'cols' => array('projects')),
+        'podujatia'  => array('label' => 'Podujatia', 'cols' => array('events', 'partnerships', 'programItems', 'zabezpecenie', 'zabdodavky')),
         'ulohy'      => array('label' => 'Úlohy', 'cols' => array('tasks')),
         'granty'     => array('label' => 'Granty (bez platieb)', 'cols' => array('grants', 'budgetLines')),
         'financie'   => array('label' => 'Financie (platby)', 'cols' => array('transactions')),
@@ -33,7 +34,17 @@ function arsp_acc_col_area($col) {
     return isset($map[$col]) ? $map[$col] : '';
 }
 
-function arsp_acc_groups() { $g = get_option('arsp_acc_groups', array()); return is_array($g) ? $g : array(); }
+function arsp_acc_groups() {
+    $g = get_option('arsp_acc_groups', array()); if (!is_array($g)) return array();
+    foreach ($g as $k => $x) {   /* do 1.97: jedna oblasť „Projekty a podujatia“ (dianie) → platí pre obe nové */
+        if (isset($x['areas']['dianie'])) {
+            if (!isset($x['areas']['projekty'])) $g[$k]['areas']['projekty'] = (int) $x['areas']['dianie'];
+            if (!isset($x['areas']['podujatia'])) $g[$k]['areas']['podujatia'] = (int) $x['areas']['dianie'];
+            unset($g[$k]['areas']['dianie']);
+        }
+    }
+    return $g;
+}
 
 /** Práva používateľa: null = plný prístup, inak pole oblasť → 0/1/2. */
 function arsp_acc_user($uid = 0) {
@@ -52,7 +63,11 @@ function arsp_acc_user($uid = 0) {
             if (isset($acc[$a]) && $l > $acc[$a]) $acc[$a] = $l;
         }
     }
-    return $found ? $acc : null;   /* skupina medzitým zmazaná → ako bez skupiny (plný prístup) */
+    if (!$found) return null;   /* skupina medzitým zmazaná → ako bez skupiny (plný prístup) */
+    /* väzby: kto má projekty, vidí aj ich granty a podujatia; kto má granty, vidí aj podujatia (aspoň na čítanie) */
+    if ($acc['projekty'] >= 1) { $acc['granty'] = max($acc['granty'], 1); $acc['podujatia'] = max($acc['podujatia'], 1); }
+    if ($acc['granty'] >= 1) $acc['podujatia'] = max($acc['podujatia'], 1);
+    return $acc;
 }
 
 /** Rozsah používateľa: null = celý priestor, inak array('projects'=>ids, 'events'=>ids) – zjednotenie skupín.
@@ -189,7 +204,8 @@ function arsp_acc_me_keys() {
 function arsp_acc_task_visible($d, $acc) {
     if (arsp_acc_level('ulohy', $acc) >= 1) return true;
     if (!empty($d['assignee']) && isset(arsp_acc_me_keys()[(string) $d['assignee']])) return true;
-    if ((!empty($d['projectId']) || !empty($d['eventId'])) && arsp_acc_level('dianie', $acc) >= 1) return true;
+    if (!empty($d['projectId']) && arsp_acc_level('projekty', $acc) >= 1) return true;
+    if (!empty($d['eventId']) && arsp_acc_level('podujatia', $acc) >= 1) return true;
     if (!empty($d['grantId']) && arsp_acc_level('granty', $acc) >= 1) return true;
     return false;
 }
@@ -316,7 +332,7 @@ function arsp_acc_can_see_ref($needle, $cols = null) {
 function arsp_acc_can_see_album($url) {
     $acc = arsp_acc_user();
     if ($acc === null) return true;
-    if (arsp_acc_level('dianie', $acc) < 1) return false;
+    if (arsp_acc_level('podujatia', $acc) < 1) return false;
     $by = arsp_acc_all_docs();
     $scope = arsp_acc_scope();
     $S = $scope === null ? null : arsp_acc_sets($by, $scope);
@@ -384,7 +400,7 @@ function arsp_acc_admin_section() {
             . $pick($sname . '[se][]', 'events', $evs, $se, $se ? 'Pridať podujatie…' : 'Všetky podujatia – pridať…') . '</div></div>';
         return $h;
     };
-    echo '<h2 class="arsp-h2">Skupiny</h2><p class="arsp-legend">Kliknutím na oblasť meníte právo: <span class="arsp-tg arsp-tg-0">bez prístupu<span class="dashicons dashicons-hidden"></span></span> <span class="arsp-tg arsp-tg-1">len čítať<span class="dashicons dashicons-visibility"></span></span> <span class="arsp-tg arsp-tg-2">upravovať<span class="dashicons dashicons-edit"></span></span>. Rozsah: prázdne = celý priestor.</p><div class="arsp-card arsp-flush">';
+    echo '<h2 class="arsp-h2">Skupiny</h2><p class="arsp-legend">Kliknutím na oblasť meníte právo: <span class="arsp-tg arsp-tg-0">bez prístupu<span class="dashicons dashicons-hidden"></span></span> <span class="arsp-tg arsp-tg-1">len čítať<span class="dashicons dashicons-visibility"></span></span> <span class="arsp-tg arsp-tg-2">upravovať<span class="dashicons dashicons-edit"></span></span>. Kto má <b>Projekty</b>, vidí aj Granty a Podujatia; kto má <b>Granty</b>, vidí aj Podujatia (aspoň na čítanie). Rozsah: prázdne = celý priestor.</p><div class="arsp-card arsp-flush">';
     foreach ($groups as $gid => $g) echo $row('g[' . esc_attr($gid) . ']', $g, false);
     echo $row('', array(), true);
     echo '</div>';
