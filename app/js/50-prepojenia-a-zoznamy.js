@@ -142,6 +142,7 @@ function dExtra(e,r){
   if(e==="contacts"){const ed=DW&&DW.edit;
     if(r.ctype&&r.ctype!=="osoba"){const P=S.d.contacts.filter(x=>x.id!==r.id&&orgList(x).includes(r.id)).sort((x,y)=>(x.name||"").localeCompare(y.name||"","sk"));
       h+=`<section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${LKI.contacts}Kontakty</span></h3>${P.length?`<ul class="items lk">${P.map(x=>`<li class="cpl" data-open="contacts:${esc(x.id)}"><span class="t">${esc(x.name||"Bez mena")}</span>${ed||orgFn(x,r.id)?`<input type="text" class="orgfn" list="fn-dl" data-orgfn="${esc(r.id)}" data-orgfnof="${esc(x.id)}" value="${esc(orgFn(x,r.id))}" placeholder="Funkcia" aria-label="Funkcia"${ed?"":" readonly tabindex=\"-1\""}>`:""}</li>`).join("")}</ul>`:""}${fnDl()}</section>`;}
+    h+=accountCard(r,ed&&!S.readOnly);
     h+=lkCard(e,r,"ledger");
     if(r.ctype&&r.ctype!=="osoba")h+=logoCard(r,ed&&!S.readOnly);
     if(ed&&!S.readOnly)h+=mergeBlock(r);}
@@ -168,11 +169,15 @@ function picker(box,initial,onSet){
       const inp=box.querySelector("input"),menu=box.querySelector(".menu");let hits=[];
       const show=async q=>{
         hits=user?await user.search(q):[];
-        const items=hits.map(h=>`<button type="button" data-id="${esc(h.id)}"><img class="av sm" alt="" src="${esc(h.avatarUrl)}">${esc(h.name)}</button>`);
+        /* aj osoby z kontaktov; prepojený kontakt sa uloží ako jeho účet (funguje „Moje úlohy“), neprepojený ako kontakt */
+        const hid=new Set(hits.map(h=>h.id)),nq=pnorm(q);
+        const cts=nq?S.d.contacts.filter(c=>(c.ctype||"osoba")==="osoba"&&pnorm(c.name).includes(nq)&&!hid.has(ctUserId(c))).sort((a,b)=>pnorm(a.name).indexOf(nq)-pnorm(b.name).indexOf(nq)||(a.name||"").localeCompare(b.name||"","sk")).slice(0,8):[];
+        const items=hits.map(h=>`<button type="button" data-id="${esc(h.id)}"><img class="av sm" alt="" src="${esc(h.avatarUrl)}">${esc(h.name)}</button>`)
+          .concat(cts.map(c=>`<button type="button" data-cid="${esc(c.id)}">${cIcon(c)}${esc(c.name||"Bez mena")}<small class="meta" style="margin-left:auto">kontakt</small></button>`));
         if(q)items.push(`<button type="button" data-text="1">Použiť meno „${esc(q)}“</button>`);
         menu.innerHTML=items.join("");menu.hidden=!items.length;
         menu.querySelectorAll("button").forEach(b=>b.onmousedown=ev=>{ev.preventDefault();
-          if(b.dataset.id){const h=hits.find(x=>x.id===b.dataset.id);S.people[h.id]=h;val=h.id;}else val="~"+inp.value.trim();
+          if(b.dataset.id){const h=hits.find(x=>x.id===b.dataset.id);S.people[h.id]=h;val=h.id;}else if(b.dataset.cid){const c=get("contacts",b.dataset.cid);val=(c&&ctUserId(c))||"c:"+b.dataset.cid;}else val="~"+inp.value.trim();
           onSet(val);draw();});
       };
       inp.onfocus=()=>show(inp.value.trim());inp.oninput=()=>show(inp.value.trim());

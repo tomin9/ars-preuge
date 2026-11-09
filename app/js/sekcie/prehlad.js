@@ -3,7 +3,7 @@
 VIEWS.prehlad=()=>{
   const me=meId(),td=today();
   const open=S.d.tasks.filter(t=>!isDone(t));
-  const mine=open.filter(t=>t.assignee&&t.assignee===me).sort((a,b)=>(a.status==="tyzden"?0:1)-(b.status==="tyzden"?0:1)||byDue(a,b));
+  const mine=open.filter(t=>isMine(t.assignee)).sort((a,b)=>(a.status==="tyzden"?0:1)-(b.status==="tyzden"?0:1)||byDue(a,b));
   const late=open.filter(t=>t.due&&t.due<td);
   const lc=ledgerCalc();
   const ag=agenda().filter(a=>!a.done&&a.d>=addDays(td,-30)&&a.d<=addDays(td,30)&&(a.kind!=="task"||a.d<=addDays(td,14)));

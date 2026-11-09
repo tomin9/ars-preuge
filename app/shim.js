@@ -144,7 +144,8 @@
       if (!ids.length) return Promise.resolve({});
       return api("users?ids=" + encodeURIComponent(ids.join(","))).catch(function(){ return {}; });
     },
-    search: function(q){ return api("users?q=" + encodeURIComponent(q || "")).catch(function(){ return []; }); }
+    search: function(q){ return api("users?q=" + encodeURIComponent(q || "")).catch(function(){ return []; }); },
+    team: function(){ return api("users?team=1").catch(function(){ return []; }); }
   };
 
   /* ---------------- downloads ---------------- */

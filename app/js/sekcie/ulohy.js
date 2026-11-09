@@ -3,8 +3,8 @@
 VIEWS.ulohy=()=>{
   const f=S.tf,me=meId();
   let list=S.d.tasks.filter(t=>(!f.project||t.projectId===f.project)&&(!f.org||t.org===f.org)&&(!f.type||(t.types||[]).includes(f.type))
-    &&(!f.who||(f.who==="__me"?t.assignee===me:f.who==="__none"?!t.assignee:t.assignee===f.who))&&(!f.q||(t.title||"").toLowerCase().includes(f.q.toLowerCase())));
-  const people=[...new Set(S.d.tasks.map(t=>t.assignee).filter(Boolean))];
+    &&(!f.who||(f.who==="__me"?isMine(t.assignee):f.who==="__none"?!t.assignee:personKey(t.assignee)===f.who))&&(!f.q||(t.title||"").toLowerCase().includes(f.q.toLowerCase())));
+  const people=[...new Set(S.d.tasks.map(t=>personKey(t.assignee)).filter(Boolean))];
   const tools=`<div class="tools">
     <input type="search" id="tf-q" placeholder="Hľadať v úlohách" value="${esc(f.q)}" aria-label="Hľadať">
     <select id="tf-project" aria-label="Projekt"><option value="">Všetky projekty</option>${S.d.projects.map(p=>`<option value="${esc(p.id)}" ${f.project===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}</select>

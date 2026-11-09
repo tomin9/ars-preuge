@@ -87,7 +87,7 @@ function colSide(){try{return localStorage.getItem("arsp_sidecol")==="1";}catch(
 function applySideCol(){const a=document.querySelector(".app");if(a)a.classList.toggle("sidecolp",colSide());}
 function renderSide(){applySideCol();
   const act=ACT[S.view]||S.view;
-  const myOpen=S.d.tasks.filter(t=>!isDone(t)&&t.assignee&&t.assignee===meId()).length;
+  const myOpen=S.d.tasks.filter(t=>!isDone(t)&&isMine(t.assignee)).length;
   const projs=[...S.d.projects].sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk"));
   const me=S.me;
   $("#side").innerHTML=`

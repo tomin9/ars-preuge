@@ -66,7 +66,7 @@ async function boot(){
     const done=()=>{if(pending>0&&--pending===0)S.loading=false;};
     KEYS.forEach(e=>db.collection(ENT[e].col).onSnapshot(snap=>{
       S.d[e]=snap.docs.map(d=>norm(e,Object.assign({id:d.id},d.data())));
-      done();refreshPeople();render();
+      done();refreshPeople();loadTeam();render();
     },err=>{done();if(err&&err.code!=="revoked")toast("Spojenie s databázou sa prerušilo. Obnovte stránku.");render();}));
     db.doc("settings/main").onSnapshot(s=>{S.settings=s.exists?Object.assign({},s.data()):{};done();render();},()=>{done();});
   }else S.loading=false;
