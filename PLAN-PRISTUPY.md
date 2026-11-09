@@ -39,7 +39,7 @@ Pravidlo skupiny = **rozsah** + **oblasti**.
 ## Postup (po častiach, každá sa dá nasadiť samostatne)
 
 1. ✅ (1.90.0) **Fáza 1 – oblasti:** stránka Prístupy (skupiny, úrovne podľa oblastí, pridelenie ľuďom) + filtrovanie `/sync`, kontrola `/doc`, menu a režim čítania v aplikácii. Rozsah zatiaľ „všetko“.
-2. **Fáza 2 – rozsah:** vybrané projekty / podujatia; menovky odkazovaných záznamov; Úlohy a Kalendár len z rozsahu.
+2. ✅ (1.91.0) **Fáza 2 – rozsah:** vybrané projekty / podujatia; menovky odkazovaných záznamov; Úlohy a Kalendár len z rozsahu. Poznámky: prvé načítanie je úplné, no ak sa záznam dostane do rozsahu len cudzou zmenou prepojenia, obmedzenému sa ukáže až po obnovení stránky; nová úloha/platba scoped používateľa musí mať väzbu na jeho projekt/podujatie/grant, inak ju server odmietne; Zabezpečenie vidí len rozsah s podujatím NOX.
 3. **Fáza 3 – súbory a detaily:** kontrola nahraných súborov a fotiek, platby pri kontaktoch, export/CSV len z povolených dát, test so skutočnými ľuďmi.
 
 Pri každej fáze: overenie v `nastroje/kontrola-vzhladu/` (plný prístup = 0 rozdielov) + nové testy pre obmedzeného používateľa (server nepošle zakázané kolekcie, zápis odmietne, menu sa skryje).

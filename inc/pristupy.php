@@ -6,7 +6,12 @@
  * 0 = bez prístupu · 1 = len čítať · 2 = upravovať. Používateľovi sa pridelí jedna alebo viac skupín,
  * práva sa sčítajú (platí vyššia úroveň). Kto nemá žiadnu skupinu, má plný prístup ako doteraz;
  * administrátori majú plný prístup vždy. Obmedzuje server: /sync nepošle zakázané kolekcie, /doc odmietne zápis.
- * Osobná výnimka = skupina pre jedného človeka. Rozsah (len vybrané projekty / podujatia) príde vo fáze 2.
+ * Osobná výnimka = skupina pre jedného človeka.
+ *
+ * Fáza 2 – rozsah: skupina môže byť obmedzená na vybrané projekty a/alebo podujatia. Potom človek vidí len záznamy,
+ * ktoré do rozsahu patria (podujatia projektu, granty, úlohy, platby, program, spolupráce…); z prepojených záznamov
+ * mimo rozsahu sa posielajú len „menovky“ (id + názov), aby mená v zoznamoch neboli prázdne. Prvé načítanie je úplné;
+ * ak sa niečo dostane do rozsahu len cudzou zmenou prepojenia, obmedzenému sa ukáže po obnovení stránky.
  */
 if (!defined('ABSPATH')) exit;
 
@@ -50,6 +55,103 @@ function arsp_acc_user($uid = 0) {
     return $found ? $acc : null;   /* skupina medzitým zmazaná → ako bez skupiny (plný prístup) */
 }
 
+/** Rozsah používateľa: null = celý priestor, inak array('projects'=>ids, 'events'=>ids) – zjednotenie skupín.
+ *  Skupina bez vybraných projektov a podujatí znamená celý priestor (rozsah sa potom neobmedzuje). */
+function arsp_acc_scope($uid = 0) {
+    $uid = $uid ? (int) $uid : get_current_user_id();
+    if (arsp_acc_user($uid) === null) return null;
+    $gids = get_user_meta($uid, 'arsp_acc', true);
+    $groups = arsp_acc_groups();
+    $P = array(); $E = array();
+    foreach ((array) $gids as $gid) {
+        if (empty($groups[$gid])) continue;
+        $sc = isset($groups[$gid]['scope']) ? (array) $groups[$gid]['scope'] : array();
+        $sp = isset($sc['projects']) ? (array) $sc['projects'] : array();
+        $se = isset($sc['events']) ? (array) $sc['events'] : array();
+        if (!$sp && !$se) return null;   /* aspoň jedna skupina bez rozsahu → celý priestor */
+        foreach ($sp as $x) $P[$x] = true;
+        foreach ($se as $x) $E[$x] = true;
+    }
+    return array('projects' => array_keys($P), 'events' => array_keys($E));
+}
+
+/** Všetky nezmazané záznamy ako kolekcia → id → pole (na výpočet rozsahu). */
+function arsp_acc_all_docs() {
+    global $wpdb; $t = arsp_table();
+    $by = array();
+    foreach ($wpdb->get_results("SELECT col,id,data FROM $t WHERE deleted=0", ARRAY_A) as $r) {
+        $d = json_decode($r['data'], true);
+        $by[$r['col']][$r['id']] = is_array($d) ? $d : array();
+    }
+    return $by;
+}
+
+/** Množiny záznamov v rozsahu (P projekty, E podujatia, G granty, L položky, nox = je v rozsahu podujatie NOX). */
+function arsp_acc_sets($by, $scope) {
+    $g = function ($c) use ($by) { return isset($by[$c]) ? $by[$c] : array(); };
+    $P = array_fill_keys($scope['projects'], true);
+    $E = array_fill_keys($scope['events'], true);
+    foreach ($g('events') as $id => $d) if (!empty($d['projectId']) && isset($P[$d['projectId']])) $E[$id] = true;
+    $G = array(); $nox = false;
+    foreach ($g('events') as $id => $d) if (isset($E[$id])) {
+        foreach ((array) (isset($d['grantIds']) ? $d['grantIds'] : array()) as $x) if ($x) $G[$x] = true;
+        if (stripos((string) (isset($d['name']) ? $d['name'] : ''), 'nox') !== false) $nox = true;
+    }
+    foreach ($g('grants') as $id => $d) if (!empty($d['projectId']) && isset($P[$d['projectId']])) $G[$id] = true;
+    $L = array();
+    foreach ($g('budgetLines') as $id => $d) if (!empty($d['grantId']) && isset($G[$d['grantId']])) $L[$id] = true;
+    return array('P' => $P, 'E' => $E, 'G' => $G, 'L' => $L, 'nox' => $nox, 'by' => $by);
+}
+
+/** Patrí záznam do rozsahu? (podľa prepojení; nový záznam sa posudzuje podľa posielaných polí) */
+function arsp_acc_doc_in_scope($col, $id, $d, $S) {
+    $has = function ($set, $k) use ($d) { return !empty($d[$k]) && isset($set[$d[$k]]); };
+    switch ($col) {
+        case 'projects': return isset($S['P'][$id]);
+        case 'events': return isset($S['E'][$id]) || $has($S['P'], 'projectId');
+        case 'grants': return isset($S['G'][$id]) || $has($S['P'], 'projectId');
+        case 'budgetLines': return $has($S['G'], 'grantId');
+        case 'tasks': return $has($S['P'], 'projectId') || $has($S['E'], 'eventId') || $has($S['G'], 'grantId');
+        case 'transactions': return $has($S['P'], 'projectId') || $has($S['E'], 'eventId') || $has($S['G'], 'grantId') || $has($S['G'], 'cofinGrantId') || $has($S['L'], 'lineId');
+        case 'partnerships': case 'programItems': return $has($S['E'], 'eventId');
+        case 'zabezpecenie': case 'zabdodavky': return $S['nox'];
+        case 'contacts': return isset($S['C'][$id]);
+        case 'comments':
+            $p = explode(':', (string) (isset($d['parent']) ? $d['parent'] : ''), 2);
+            if (count($p) < 2) return false;
+            $pid = strtok($p[1], '~'); $pc = $p[0];
+            $pd = isset($S['by'][$pc][$pid]) ? $S['by'][$pc][$pid] : null;
+            return $pd !== null && $pc !== 'comments' && arsp_acc_doc_in_scope($pc, $pid, $pd, $S);
+        case 'settings': return true;
+    }
+    return false;
+}
+
+/** Kontakty v rozsahu: na ktoré sa odkazujú záznamy rozsahu + ich organizácie + kontakty prepojené na projekt/podujatie. */
+function arsp_acc_contacts($S) {
+    $C = array();
+    $by = $S['by'];
+    $ref = function ($col, $keys) use ($by, $S, &$C) {
+        foreach ((isset($by[$col]) ? $by[$col] : array()) as $id => $d) {
+            if (!arsp_acc_doc_in_scope($col, $id, $d, $S)) continue;
+            foreach ($keys as $k) if (!empty($d[$k])) $C[$d[$k]] = true;
+        }
+    };
+    $ref('transactions', array('contactId'));
+    $ref('partnerships', array('contactId'));
+    $ref('programItems', array('contactId', 'prepId'));
+    $ref('grants', array('providerId'));
+    foreach ((isset($by['contacts']) ? $by['contacts'] : array()) as $id => $d) {
+        foreach ((array) (isset($d['projectIds']) ? $d['projectIds'] : array()) as $x) if (isset($S['P'][$x])) $C[$id] = true;
+        foreach ((array) (isset($d['eventIds']) ? $d['eventIds'] : array()) as $x) if (isset($S['E'][$x])) $C[$id] = true;
+    }
+    foreach (array_keys($C) as $id) {   /* organizácie ľudí v rozsahu */
+        $d = isset($by['contacts'][$id]) ? $by['contacts'][$id] : array();
+        foreach ((array) (isset($d['orgIds']) ? $d['orgIds'] : array()) as $o) $C[$o] = true;
+    }
+    return $C;
+}
+
 function arsp_acc_level($area, $acc) { if ($acc === null) return 2; return isset($acc[$area]) ? (int) $acc[$area] : 0; }
 /** Má prihlásený na oblasť aspoň úroveň $lvl? */
 function arsp_acc_can($area, $lvl) { return arsp_acc_level($area, arsp_acc_user()) >= $lvl; }
@@ -86,22 +188,89 @@ function arsp_acc_filter_sync($docs, $acc) {
 }
 
 /** Kontrola zápisu /doc. $data = nové dáta (pri set/update), $curDoc = doterajší záznam (alebo null). Vráti true alebo WP_Error. */
-function arsp_acc_check_write($col, $op, $data, $curDoc, $acc) {
+function arsp_acc_check_write($col, $op, $data, $curDoc, $acc, $id = '') {
     if ($acc === null) return true;
     $deny = function () { return new WP_Error('forbidden', 'Na túto úpravu nemáte právo. Požiadajte správcu o rozšírenie prístupu.', array('status' => 403)); };
     if ($col === 'settings') return arsp_acc_level('nastavenia', $acc) >= 2 ? true : $deny();
     $area = arsp_acc_doc_area($col, $curDoc !== null ? $curDoc : $data);
     if ($col === 'comments' && !$area && is_array($data)) $area = arsp_acc_doc_area($col, $data);
     if (!$area || arsp_acc_level($area, $acc) < 2) return $deny();
+    $scope = arsp_acc_scope();
+    if ($scope !== null) {   /* rozsah: upravovaný aj nový záznam musí patriť do rozsahu */
+        $S = arsp_acc_sets(arsp_acc_all_docs(), $scope);
+        if ($col === 'contacts') $S['C'] = arsp_acc_contacts($S);
+        $ref = $curDoc !== null ? $curDoc : $data;
+        if (!arsp_acc_doc_in_scope($col, (string) $id, is_array($ref) ? $ref : array(), $S)) return $deny();
+    }
     return true;
 }
 
+/* menovky: odkazy záznamu na projekty / podujatia / kontakty (mimo rozsahu sa pošle len názov) */
+function arsp_acc_refs($col, $d, &$refs) {
+    $add = function ($c, $v) use (&$refs) { if ($v) $refs[$c][$v] = true; };
+    if (isset($d['projectId'])) $add('projects', $d['projectId']);
+    if (isset($d['eventId'])) $add('events', $d['eventId']);
+    foreach (array('contactId', 'prepId', 'providerId') as $k) if (isset($d[$k])) $add('contacts', $d[$k]);
+}
+function arsp_acc_stub($col, $d) {
+    $v = function ($k) use ($d) { return isset($d[$k]) ? $d[$k] : null; };
+    if ($col === 'projects') return array('name' => $v('name'), 'color' => $v('color'));
+    if ($col === 'events') return array('name' => $v('name'), 'date' => $v('date'));
+    return array('name' => $v('name'), 'ctype' => $v('ctype'));
+}
+
+/** Celé filtrovanie /sync: oblasti (fáza 1) + rozsah s menovkami (fáza 2). $full = prvé načítanie (since 0). */
+function arsp_acc_sync($docs, $full) {
+    $acc = arsp_acc_user();
+    if ($acc === null) return $docs;
+    $docs = arsp_acc_filter_sync($docs, $acc);
+    $scope = arsp_acc_scope();
+    if ($scope === null) return $docs;
+    $S = arsp_acc_sets(arsp_acc_all_docs(), $scope);
+    $S['C'] = arsp_acc_contacts($S);
+    $out = array(); $refs = array(); $sentFull = array();
+    foreach ($docs as $r) {
+        $col = $r['c'];
+        if ($col === 'settings' || $r['x']) { $out[] = $r; continue; }   /* zmazané: len id, oblasť už prešla */
+        $d = is_object($r['d']) ? (array) $r['d'] : (array) $r['d'];
+        if (!arsp_acc_doc_in_scope($col, $r['i'], $d, $S)) continue;
+        $out[] = $r; $sentFull[$col . ':' . $r['i']] = true;
+        arsp_acc_refs($col, $d, $refs);
+    }
+    /* menovky k odkazom mimo rozsahu (kontakty mimo oblasti Kontakty tiež – len meno) */
+    foreach ($refs as $col => $ids) {
+        foreach (array_keys($ids) as $id) {
+            if (isset($sentFull[$col . ':' . $id])) continue;
+            $d = isset($S['by'][$col][$id]) ? $S['by'][$col][$id] : null;
+            if ($d === null) continue;
+            $inScope = arsp_acc_doc_in_scope($col, $id, $d, $S) && ($col !== 'contacts' || isset($S['C'][$id]));
+            $area = arsp_acc_col_area($col);
+            if ($inScope && arsp_acc_level($area, $acc) >= 1) { if ($full) $out[] = array('c' => $col, 'i' => $id, 'u' => 1, 'x' => 0, 'd' => (object) $d); continue; }
+            $out[] = array('c' => $col, 'i' => $id, 'u' => 1, 'x' => 0, 'd' => (object) arsp_acc_stub($col, $d));
+        }
+    }
+    return array_values($out);
+}
+
 /* ------------------------------------------------------- administrácia */
+
+/** Zoznam na výber rozsahu: id → názov (projekty / podujatia). */
+function arsp_acc_pick($col) {
+    global $wpdb; $t = arsp_table();
+    $o = array();
+    foreach ($wpdb->get_results($wpdb->prepare("SELECT id,data FROM $t WHERE col=%s AND deleted=0", $col), ARRAY_A) as $r) {
+        $d = json_decode($r['data'], true);
+        $o[$r['id']] = (string) (is_array($d) && !empty($d['name']) ? $d['name'] : $r['id']);
+    }
+    natcasesort($o);
+    return $o;
+}
 
 function arsp_acc_admin_section() {
     if (!current_user_can('manage_options')) return;
     $areas = arsp_acc_areas();
     $groups = arsp_acc_groups();
+    $projs = arsp_acc_pick('projects'); $evs = arsp_acc_pick('events');
     echo '<h2 id="arsp-pristupy">Prístupy</h2>';
     if (isset($_GET['arsp_acc'])) echo '<div class="notice notice-success"><p>Prístupy sú uložené.</p></div>';
     echo '<p>Kto nemá pridelenú žiadnu skupinu (a každý administrátor), vidí a môže upravovať všetko ako doteraz. '
@@ -116,17 +285,30 @@ function arsp_acc_admin_section() {
         foreach ($o as $k => $l) $h .= '<option value="' . $k . '"' . ((int) $v === $k ? ' selected' : '') . '>' . $l . '</option>';
         return $h . '</select>';
     };
-    echo '<h3>Skupiny</h3><table class="widefat striped" style="max-width:1100px"><thead><tr><th>Skupina</th>';
+    $multi = function ($name, $all, $cur) {
+        $h = '<select name="' . esc_attr($name) . '[]" multiple size="4" style="min-width:220px">';
+        foreach ($all as $id => $nm) $h .= '<option value="' . esc_attr($id) . '"' . (in_array($id, $cur, true) ? ' selected' : '') . '>' . esc_html($nm) . '</option>';
+        return $h . '</select>';
+    };
+    $scopeRow = function ($pfx, $g) use ($multi, $projs, $evs, $areas) {
+        $sc = isset($g['scope']) ? (array) $g['scope'] : array();
+        $sp = isset($sc['projects']) ? (array) $sc['projects'] : array(); $se = isset($sc['events']) ? (array) $sc['events'] : array();
+        return '<tr><td colspan="' . (count($areas) + 2) . '" style="padding:6px 10px 14px;border-bottom:2px solid #c3c4c7"><b>Rozsah:</b> nič nevybrané = celý priestor; inak len vybrané projekty a podujatia (a všetko, čo do nich patrí).'
+            . '<div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:6px"><label>Projekty<br>' . $multi($pfx . '[sp]', $projs, $sp) . '</label><label>Podujatia<br>' . $multi($pfx . '[se]', $evs, $se) . '</label></div>'
+            . '<p class="description">Výber zrušíte kliknutím so stlačeným Ctrl (na Macu Cmd). Mená prepojených záznamov mimo rozsahu vidno (len názov), ich obsah nie.</p></td></tr>';
+    };
+    echo '<h3>Skupiny</h3><table class="widefat" style="max-width:1200px"><thead><tr><th>Skupina</th>';
     foreach ($areas as $x) echo '<th>' . esc_html($x['label']) . '</th>';
     echo '<th>Zmazať</th></tr></thead><tbody>';
     foreach ($groups as $gid => $g) {
         echo '<tr><td><input type="text" name="g[' . esc_attr($gid) . '][name]" value="' . esc_attr($g['name']) . '" required></td>';
         foreach ($areas as $a => $x) echo '<td>' . $sel('g[' . esc_attr($gid) . '][areas][' . $a . ']', isset($g['areas'][$a]) ? $g['areas'][$a] : 0) . '</td>';
         echo '<td style="text-align:center"><input type="checkbox" name="g[' . esc_attr($gid) . '][del]" value="1" aria-label="Zmazať skupinu"></td></tr>';
+        echo $scopeRow('g[' . esc_attr($gid) . ']', $g);
     }
     echo '<tr><td><input type="text" name="new_name" placeholder="+ nová skupina (napr. Dobrovoľníci NOX)"></td>';
     foreach ($areas as $a => $x) echo '<td>' . $sel('new_areas[' . $a . ']', 0) . '</td>';
-    echo '<td></td></tr></tbody></table>';
+    echo '<td></td></tr>' . $scopeRow('new_scope', array()) . '</tbody></table>';
     echo '<h3>Ľudia</h3>';
     if (!$groups) echo '<p class="description">Najprv vytvorte skupinu, potom ju tu pridelíte ľuďom.</p>';
     echo '<table class="widefat striped" style="max-width:1100px"><thead><tr><th>Používateľ</th><th>Skupiny</th><th>Výsledok</th></tr></thead><tbody>';
@@ -139,7 +321,9 @@ function arsp_acc_admin_section() {
             echo '<label style="margin-right:14px;white-space:nowrap"><input type="checkbox" name="u[' . (int) $u->ID . '][g][]" value="' . esc_attr($gid) . '"' . (in_array($gid, $mine, true) ? ' checked' : '') . '> ' . esc_html($g['name']) . '</label>';
         }
         $acc = arsp_acc_user($u->ID);
-        echo '</td><td>' . ($acc === null ? 'plný prístup' : esc_html(implode(' · ', array_map(function ($a, $l) use ($areas) { return $areas[$a]['label'] . ': ' . ($l === 2 ? 'upravovať' : ($l === 1 ? 'čítať' : '–')); }, array_keys($acc), $acc)))) . '</td></tr>';
+        $sc = $acc === null ? null : arsp_acc_scope($u->ID);
+        $scTxt = $sc === null ? '' :  ' · rozsah: ' . count($sc['projects']) . ' projektov + ' . count($sc['events']) . ' podujatí';
+        echo '</td><td>' . ($acc === null ? 'plný prístup' : esc_html(implode(' · ', array_map(function ($a, $l) use ($areas) { return $areas[$a]['label'] . ': ' . ($l === 2 ? 'upravovať' : ($l === 1 ? 'čítať' : '–')); }, array_keys($acc), $acc))) . esc_html($scTxt)) . '</td></tr>';
     }
     echo '</tbody></table><p><button class="button button-primary">Uložiť prístupy</button></p></form>';
 }
@@ -154,12 +338,17 @@ add_action('admin_post_arsp_acc_save', function () {
         if (!preg_match('/^g[a-z0-9]{1,20}$/', (string) $gid) || !empty($g['del'])) continue;
         $name = sanitize_text_field(isset($g['name']) ? $g['name'] : ''); if ($name === '') continue;
         $as = array(); foreach ($areas as $a) $as[$a] = $lvl(isset($g['areas'][$a]) ? $g['areas'][$a] : 0);
-        $groups[$gid] = array('name' => $name, 'areas' => $as);
+        $ids = function ($v) { $o = array(); foreach ((array) $v as $x) { $x = (string) $x; if (arsp_valid_id($x)) $o[] = $x; } return $o; };
+        $sp = $ids(isset($g['sp']) ? $g['sp'] : array()); $se = $ids(isset($g['se']) ? $g['se'] : array());
+        $groups[$gid] = array('name' => $name, 'areas' => $as) + ($sp || $se ? array('scope' => array('projects' => $sp, 'events' => $se)) : array());
     }
     $newName = sanitize_text_field(isset($_POST['new_name']) ? wp_unslash($_POST['new_name']) : '');
     if ($newName !== '') {
         $as = array(); foreach ($areas as $a) $as[$a] = $lvl(isset($_POST['new_areas'][$a]) ? $_POST['new_areas'][$a] : 0);
-        $groups['g' . substr(md5(uniqid('', true)), 0, 10)] = array('name' => $newName, 'areas' => $as);
+        $ids = function ($v) { $o = array(); foreach ((array) $v as $x) { $x = (string) wp_unslash($x); if (arsp_valid_id($x)) $o[] = $x; } return $o; };
+        $ns = isset($_POST['new_scope']) ? (array) $_POST['new_scope'] : array();
+        $sp = $ids(isset($ns['sp']) ? $ns['sp'] : array()); $se = $ids(isset($ns['se']) ? $ns['se'] : array());
+        $groups['g' . substr(md5(uniqid('', true)), 0, 10)] = array('name' => $newName, 'areas' => $as) + ($sp || $se ? array('scope' => array('projects' => $sp, 'events' => $se)) : array());
     }
     update_option('arsp_acc_groups', $groups, false);
     foreach ((array) (isset($_POST['u']) ? $_POST['u'] : array()) as $uid => $row) {

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.90.0
+ * Version: 1.91.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.90.0');
+define('ARSP_VER', '1.91.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -267,7 +267,7 @@ add_action('rest_api_init', function () {
                 $out[] = array('c' => $row['col'], 'i' => $row['id'], 'u' => $u, 'x' => (int) $row['deleted'],
                     'd' => $row['deleted'] ? null : json_decode($row['data']));
             }
-            return array('now' => $now, 'max' => $max, 'docs' => arsp_acc_filter_sync($out, arsp_acc_user()));
+            return array('now' => $now, 'max' => $max, 'docs' => arsp_acc_sync($out, $since === 0));
         },
     ));
 
@@ -284,7 +284,7 @@ add_action('rest_api_init', function () {
             $upd = arsp_now_ms();
             if ($cur && (int) $cur['updated'] >= $upd) $upd = (int) $cur['updated'] + 1;
 
-            $chk = arsp_acc_check_write($col, $op, is_array($data) ? $data : array(), $cur && !$cur['deleted'] ? json_decode($cur['data'], true) : null, arsp_acc_user());
+            $chk = arsp_acc_check_write($col, $op, is_array($data) ? $data : array(), $cur && !$cur['deleted'] ? json_decode($cur['data'], true) : null, arsp_acc_user(), $id);
             if (is_wp_error($chk)) return $chk;
 
             if ($op === 'delete') {
@@ -450,7 +450,7 @@ function arsp_admin_page() {
         $exp = wp_nonce_url(admin_url('admin-post.php?action=arsp_export'), 'arsp_export');
         arsp_acc_admin_section();
         arsp_claude_admin_section();
-        /* nástroj na prenos (1.90.0) bol po presune odstránený – zmažú sa prípadné zvyšky jeho záloh na serveri */
+        /* nástroj na prenos (1.91.0) bol po presune odstránený – zmažú sa prípadné zvyšky jeho záloh na serveri */
         foreach (array_merge((array) glob(arsp_upload_dir() . '/zaloha-*.zip'), (array) glob(arsp_upload_dir() . '/import-*.zip')) as $x) { if (is_file($x)) @unlink($x); }
         echo '<h2>Záloha</h2><p><a class="button" href="' . esc_url($exp) . '">Stiahnuť zálohu dát (JSON)</a></p>';
         echo '<h2>Import dát</h2><p>Nahrajte balík dát (<code>.zip</code> so súborom seed.json a dokumentmi, alebo zálohu <code>.json</code>). Záznamy s rovnakým ID sa prepíšu, ostatné zostanú.</p>';
