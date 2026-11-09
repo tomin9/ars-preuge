@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.89.0
+ * Version: 1.90.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,12 +11,13 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.89.0');
+define('ARSP_VER', '1.90.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
 
 require_once ARSP_DIR . 'inc/claude.php';   /* napojenie na Claude (API kľúč len na serveri) */
+require_once ARSP_DIR . 'inc/pristupy.php'; /* prístupy: kto čo vidí a smie meniť */
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -221,7 +222,8 @@ add_action('template_redirect', function () {
         'base'  => get_option('permalink_structure') ? rtrim((string) wp_parse_url(arsp_app_url(), PHP_URL_PATH), '/') : '',
         'admin' => current_user_can('manage_options') ? admin_url() : '',
         'logout'=> wp_logout_url(home_url('/')),
-        'ai'    => arsp_claude_key() !== '',
+        'ai'    => arsp_claude_key() !== '' && arsp_acc_can('granty', 2),
+        'access'=> arsp_acc_user(),
     );
     $inject = '<script>window.ARSP=' . wp_json_encode($cfg) . ';var ARSP_BLOB=window.ARSP.blob;</script>'
             . '<script>' . file_get_contents(ARSP_DIR . 'app/shim.js') . '</script>';
@@ -265,7 +267,7 @@ add_action('rest_api_init', function () {
                 $out[] = array('c' => $row['col'], 'i' => $row['id'], 'u' => $u, 'x' => (int) $row['deleted'],
                     'd' => $row['deleted'] ? null : json_decode($row['data']));
             }
-            return array('now' => $now, 'max' => $max, 'docs' => $out);
+            return array('now' => $now, 'max' => $max, 'docs' => arsp_acc_filter_sync($out, arsp_acc_user()));
         },
     ));
 
@@ -281,6 +283,9 @@ add_action('rest_api_init', function () {
             $cur = $wpdb->get_row($wpdb->prepare("SELECT data,updated,deleted FROM $t WHERE col=%s AND id=%s", $col, $id), ARRAY_A);
             $upd = arsp_now_ms();
             if ($cur && (int) $cur['updated'] >= $upd) $upd = (int) $cur['updated'] + 1;
+
+            $chk = arsp_acc_check_write($col, $op, is_array($data) ? $data : array(), $cur && !$cur['deleted'] ? json_decode($cur['data'], true) : null, arsp_acc_user());
+            if (is_wp_error($chk)) return $chk;
 
             if ($op === 'delete') {
                 $wpdb->replace($t, array('col' => $col, 'id' => $id, 'data' => '{}', 'updated' => $upd, 'deleted' => 1), array('%s', '%s', '%s', '%d', '%d'));
@@ -315,6 +320,7 @@ add_action('rest_api_init', function () {
             }
             /* celý tím s e-mailmi – na prepojenie kontaktov s účtami (kontakt s rovnakým e-mailom = ten istý človek) */
             if ($r->get_param('team')) {
+                if (arsp_acc_user() !== null) return array();   /* e-maily tímu len pre plný prístup */
                 $list = array();
                 foreach (get_users(array('number' => 300, 'orderby' => 'display_name', 'capability' => ARSP_CAP)) as $u) $list[] = arsp_profile($u, true);
                 return $list;
@@ -332,6 +338,7 @@ add_action('rest_api_init', function () {
     register_rest_route('arsp/v1', '/photos', array(
         'methods' => 'GET', 'permission_callback' => $perm,
         'callback' => function (WP_REST_Request $r) {
+            if (!arsp_acc_can('dianie', 1)) return new WP_Error('forbidden', 'Na fotky podujatí nemáte prístup.', array('status' => 403));
             $url = esc_url_raw(trim((string) $r->get_param('url')));
             $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
             if (!in_array($host, array('photos.app.goo.gl', 'photos.google.com', 'goo.gl'), true)) {
@@ -368,6 +375,7 @@ add_action('rest_api_init', function () {
     register_rest_route('arsp/v1', '/photo', array(
         'methods' => 'GET', 'permission_callback' => $perm,
         'callback' => function (WP_REST_Request $r) {
+            if (!arsp_acc_can('dianie', 1)) return new WP_Error('forbidden', 'Na fotky podujatí nemáte prístup.', array('status' => 403));
             $id = (string) $r->get_param('id');
             if (!preg_match('#^[A-Za-z0-9_\-]{20,}$#', $id)) return new WP_Error('bad_id', 'Neplatná fotka.', array('status' => 400));
             $res = wp_safe_remote_get('https://lh3.googleusercontent.com/pw/' . $id . '=d', array('timeout' => 60, 'redirection' => 3, 'limit_response_size' => 80 * 1024 * 1024));
@@ -385,6 +393,8 @@ add_action('rest_api_init', function () {
     register_rest_route('arsp/v1', '/upload', array(
         'methods' => 'POST', 'permission_callback' => $perm,
         'callback' => function (WP_REST_Request $r) {
+            $acc = arsp_acc_user();
+            if ($acc !== null && max($acc) < 2) return new WP_Error('forbidden', 'Na nahrávanie súborov nemáte právo.', array('status' => 403));
             $files = $r->get_file_params();
             if (empty($files['file']) || !empty($files['file']['error'])) return new WP_Error('invalid_argument', 'Súbor chýba', array('status' => 400));
             $f = $files['file'];
@@ -438,8 +448,9 @@ function arsp_admin_page() {
     echo '</ul>';
     if (current_user_can('manage_options')) {
         $exp = wp_nonce_url(admin_url('admin-post.php?action=arsp_export'), 'arsp_export');
+        arsp_acc_admin_section();
         arsp_claude_admin_section();
-        /* nástroj na prenos (1.89.0) bol po presune odstránený – zmažú sa prípadné zvyšky jeho záloh na serveri */
+        /* nástroj na prenos (1.90.0) bol po presune odstránený – zmažú sa prípadné zvyšky jeho záloh na serveri */
         foreach (array_merge((array) glob(arsp_upload_dir() . '/zaloha-*.zip'), (array) glob(arsp_upload_dir() . '/import-*.zip')) as $x) { if (is_file($x)) @unlink($x); }
         echo '<h2>Záloha</h2><p><a class="button" href="' . esc_url($exp) . '">Stiahnuť zálohu dát (JSON)</a></p>';
         echo '<h2>Import dát</h2><p>Nahrajte balík dát (<code>.zip</code> so súborom seed.json a dokumentmi, alebo zálohu <code>.json</code>). Záznamy s rovnakým ID sa prepíšu, ostatné zostanú.</p>';

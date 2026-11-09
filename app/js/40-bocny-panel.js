@@ -5,7 +5,8 @@ let DW=null;
 const DW_NEW=e=>e==="ledger"||e==="contacts"||e==="tasks";  /* panely v novej podobe (vzor: kontakt) – ikonové tlačidlá, karty */
 const DW_EDIT=e=>e==="contacts"||e==="tasks";               /* ceruzka = zobraziť všetky polia */
 function openDrawer(e,id,isNew){
-  DW={e,id,isNew:!!isNew,edit:!!isNew};closeSide();
+  if(!accRead(e))return;
+  DW={e,id,isNew:!!isNew,edit:!!isNew&&accEdit(e)};closeSide();
   const host=$("#drawer");
   host.innerHTML=`<div class="dscrim" data-dclose></div><aside class="drawer${DW_NEW(e)?" dw-narrow":""}${DW_EDIT(e)?" dw-ed":""}" role="dialog" aria-modal="true" aria-label="${esc(ENT[e].one)}">
     <div class="dtop${DW_NEW(e)?" dtop-ic":""}">${DW_NEW(e)?"":`<span class="kind">${esc(ENT[e].one)}</span>`}
@@ -15,6 +16,7 @@ function openDrawer(e,id,isNew){
     <div class="dbody"><div id="dw-head"></div><div id="dw-props"></div><div id="dw-extra"></div></div></aside>`;
   host.hidden=false;
   host.querySelectorAll("[data-dclose]").forEach(b=>b.onclick=closeDrawer);
+  if(!accEdit(e))host.querySelectorAll("[data-ddel],[data-dedit]").forEach(b=>b.style.display="none");
   const ed=host.querySelector("[data-dedit]");if(ed)ed.onclick=()=>{DW.edit=!DW.edit;ed.classList.toggle("on",DW.edit);drawerRefresh(true);};
   const pg=host.querySelector("[data-dpage]");if(pg)pg.onclick=()=>{const d=DW;closeDrawer();openRec(d.e,d.id);};
   host.querySelector("[data-ddel]").onclick=async()=>{

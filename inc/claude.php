@@ -149,6 +149,7 @@ add_action('rest_api_init', function () {
     register_rest_route('arsp/v1', '/ai/vyzva', array(
         'methods' => 'POST', 'permission_callback' => $perm,
         'callback' => function (WP_REST_Request $r) {
+            if (function_exists('arsp_acc_can') && !arsp_acc_can('granty', 2)) return new WP_Error('forbidden', 'Na načítanie cez Claude treba právo upravovať granty.', array('status' => 403));
             $lock = 'arsp_ai_busy_' . get_current_user_id();
             if (get_transient($lock)) return new WP_Error('busy', 'Claude ešte číta predchádzajúci dokument – počkajte, kým skončí.', array('status' => 429));
             $block = $r->get_param('asset') ? arsp_claude_asset_block($r->get_param('asset')) : arsp_claude_url_block($r->get_param('url'));
@@ -165,6 +166,7 @@ add_action('rest_api_init', function () {
     register_rest_route('arsp/v1', '/ai/ziadost', array(
         'methods' => 'POST', 'permission_callback' => $perm,
         'callback' => function (WP_REST_Request $r) {
+            if (function_exists('arsp_acc_can') && !arsp_acc_can('granty', 2)) return new WP_Error('forbidden', 'Na načítanie cez Claude treba právo upravovať granty.', array('status' => 403));
             $lock = 'arsp_ai_busy_' . get_current_user_id();
             if (get_transient($lock)) return new WP_Error('busy', 'Claude ešte číta predchádzajúci dokument – počkajte, kým skončí.', array('status' => 429));
             $block = $r->get_param('asset') ? arsp_claude_asset_block($r->get_param('asset')) : arsp_claude_url_block($r->get_param('url'));

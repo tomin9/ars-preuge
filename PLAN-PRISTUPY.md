@@ -38,7 +38,7 @@ Pravidlo skupiny = **rozsah** + **oblasti**.
 
 ## Postup (po častiach, každá sa dá nasadiť samostatne)
 
-1. **Fáza 1 – oblasti:** stránka Prístupy (skupiny, úrovne podľa oblastí, pridelenie ľuďom) + filtrovanie `/sync`, kontrola `/doc`, menu a režim čítania v aplikácii. Rozsah zatiaľ „všetko“.
+1. ✅ (1.90.0) **Fáza 1 – oblasti:** stránka Prístupy (skupiny, úrovne podľa oblastí, pridelenie ľuďom) + filtrovanie `/sync`, kontrola `/doc`, menu a režim čítania v aplikácii. Rozsah zatiaľ „všetko“.
 2. **Fáza 2 – rozsah:** vybrané projekty / podujatia; menovky odkazovaných záznamov; Úlohy a Kalendár len z rozsahu.
 3. **Fáza 3 – súbory a detaily:** kontrola nahraných súborov a fotiek, platby pri kontaktoch, export/CSV len z povolených dát, test so skutočnými ľuďmi.
 

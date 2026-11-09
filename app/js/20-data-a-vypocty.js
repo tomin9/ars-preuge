@@ -13,6 +13,7 @@ async function write(fn){
   }
 }
 async function add(e,data){
+  if(!accEdit(e)){accDeny();return null;}
   const t=Date.now(),doc=Object.assign({createdAt:t,updatedAt:t},meId()?{createdBy:meId(),updatedBy:meId()}:{},data);
   let id=null;
   const ok=await write(async()=>{
@@ -22,6 +23,7 @@ async function add(e,data){
   return ok?id:null;
 }
 function upd(e,id,patch){
+  if(!accEdit(e))return Promise.resolve(accDeny());
   patch=Object.assign({},patch,{updatedAt:Date.now()},meId()?{updatedBy:meId()}:{});
   return write(async()=>{
     if(db)await db.doc(ENT[e].col+"/"+id).update(patch);
@@ -29,12 +31,14 @@ function upd(e,id,patch){
   });
 }
 function del(e,id){
+  if(!accEdit(e))return Promise.resolve(accDeny());
   return write(async()=>{
     if(db)await db.doc(ENT[e].col+"/"+id).delete();
     else{S.d[e]=S.d[e].filter(x=>x.id!==id);render();}
   });
 }
 function saveSettings(patch){
+  if(ACC&&!accEditA("nastavenia"))return Promise.resolve(accDeny());
   const next=Object.assign({},S.settings,patch);
   return write(async()=>{if(db)await db.doc("settings/main").set(next);else{S.settings=next;render();}});
 }
@@ -56,7 +60,7 @@ function refreshPeople(){
 
 async function boot(){
   const now=new Date();S.cal={y:now.getFullYear(),m:now.getMonth()};
-  {const hv=hashView()||"prehlad";S.view=hv;try{history.replaceState(history.state,"",urlFor(hv));}catch(_){}}
+  {let hv=hashView()||"prehlad";if(!accView(hv))hv="prehlad";S.view=hv;try{history.replaceState(history.state,"",urlFor(hv));}catch(_){}}
   render();
   const C=window.claude;const use=n=>(C&&typeof C.use==="function")?C.use(n):Promise.resolve(null);
   [db,user,dl,assets,mcp]=await Promise.all([use("db"),use("user"),use("downloads"),use("assets"),use("mcp")]);
