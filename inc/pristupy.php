@@ -111,7 +111,8 @@ function arsp_acc_doc_in_scope($col, $id, $d, $S) {
         case 'events': return isset($S['E'][$id]) || $has($S['P'], 'projectId');
         case 'grants': return isset($S['G'][$id]) || $has($S['P'], 'projectId');
         case 'budgetLines': return $has($S['G'], 'grantId');
-        case 'tasks': return $has($S['P'], 'projectId') || $has($S['E'], 'eventId') || $has($S['G'], 'grantId');
+        case 'tasks': return $has($S['P'], 'projectId') || $has($S['E'], 'eventId') || $has($S['G'], 'grantId')
+            || (!empty($d['assignee']) && isset(arsp_acc_me_keys()[(string) $d['assignee']]));   /* moje úlohy vidím vždy */
         case 'transactions': return $has($S['P'], 'projectId') || $has($S['E'], 'eventId') || $has($S['G'], 'grantId') || $has($S['G'], 'cofinGrantId') || $has($S['L'], 'lineId');
         case 'partnerships': case 'programItems': return $has($S['E'], 'eventId');
         case 'zabezpecenie': case 'zabdodavky': return $S['nox'];
@@ -168,9 +169,39 @@ function arsp_acc_doc_area($col, $doc) {
 
 /** Filtrovanie odpovede /sync: docs = položky {c,i,u,x,d}. Pri obmedzenom prístupe sa zakázané kolekcie neposielajú;
  *  bez práva na financie sa z nastavení vynechajú počiatočné zostatky. */
+/** Hodnoty „Zodpovedný“, ktoré znamenajú prihláseného: jeho účet a jeho kontakty (ručne prepojené alebo s rovnakým e-mailom). */
+function arsp_acc_me_keys() {
+    static $k = null;
+    if ($k !== null) return $k;
+    $uid = get_current_user_id(); $k = array('wp_' . $uid => true);
+    $u = function_exists('get_userdata') ? get_userdata($uid) : null;
+    $em = $u ? strtolower((string) $u->user_email) : '';
+    $by = arsp_acc_all_docs();
+    foreach ((isset($by['contacts']) ? $by['contacts'] : array()) as $id => $c) {
+        $w = isset($c['wpUser']) ? (string) $c['wpUser'] : '';
+        if ($w === 'wp_' . $uid || ($w === '' && $em !== '' && strtolower(trim((string) (isset($c['email']) ? $c['email'] : ''))) === $em)) $k['c:' . $id] = true;
+    }
+    return $k;
+}
+
+/** Úloha je viditeľná aj bez práva na oblasť Úlohy, ak patrí k projektu/podujatiu (s právom na Projekty a podujatia)
+ *  alebo ku grantu (s právom na Granty), alebo ju má prihlásený na starosti. Rozsah (fáza 2) sa uplatní potom. */
+function arsp_acc_task_visible($d, $acc) {
+    if (arsp_acc_level('ulohy', $acc) >= 1) return true;
+    if (!empty($d['assignee']) && isset(arsp_acc_me_keys()[(string) $d['assignee']])) return true;
+    if ((!empty($d['projectId']) || !empty($d['eventId'])) && arsp_acc_level('dianie', $acc) >= 1) return true;
+    if (!empty($d['grantId']) && arsp_acc_level('granty', $acc) >= 1) return true;
+    return false;
+}
+
 function arsp_acc_filter_sync($docs, $acc) {
     if ($acc === null) return $docs;
     $out = array();
+    $taskVis = null;   /* id úloh viditeľných bez práva na oblasť Úlohy (pre komentáre k nim) */
+    $tv = function ($tid) use (&$taskVis, $acc) {
+        if ($taskVis === null) { $taskVis = array(); $by = arsp_acc_all_docs(); foreach ((isset($by['tasks']) ? $by['tasks'] : array()) as $i => $d) if (arsp_acc_task_visible($d, $acc)) $taskVis[$i] = true; }
+        return isset($taskVis[$tid]);
+    };
     foreach ($docs as $row) {
         $col = $row['c'];
         if ($col === 'settings') {
@@ -182,7 +213,13 @@ function arsp_acc_filter_sync($docs, $acc) {
         }
         $area = $row['x'] ? arsp_acc_col_area($col) : arsp_acc_doc_area($col, $row['d']);
         if ($col === 'comments' && $row['x']) continue;   /* zmazaný komentár – rodič už nepoznáme */
-        if ($area && arsp_acc_level($area, $acc) >= 1) $out[] = $row;
+        if ($area && arsp_acc_level($area, $acc) >= 1) { $out[] = $row; continue; }
+        /* Úlohy a Kalendár vidí každý – ale len úlohy z jeho oblastí, rozsahu alebo priradené jemu */
+        if ($col === 'tasks') { if ($row['x'] || arsp_acc_task_visible((array) $row['d'], $acc)) $out[] = $row; continue; }
+        if ($col === 'comments' && $area === 'ulohy') {
+            $p = explode(':', (string) (is_object($row['d']) && isset($row['d']->parent) ? $row['d']->parent : ''), 2);
+            if (count($p) === 2 && $p[0] === 'tasks' && $tv(strtok($p[1], '~'))) $out[] = $row;
+        }
     }
     return array_values($out);
 }
