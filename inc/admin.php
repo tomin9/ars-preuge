@@ -74,8 +74,8 @@ add_action('admin_head', function () {
 .arsp-who img{border-radius:50%}
 .arsp-who b{display:block}.arsp-who span{color:#646970;font-size:12px}
 .arsp-pt td{padding:12px 10px;vertical-align:middle;border-top:1px solid #f0f0f1}
-.arsp-pt td:first-child{padding-left:20px;width:280px}
-.arsp-pt td:nth-child(2){width:360px}
+.arsp-pt td:first-child,.arsp-pt th:first-child{padding-left:20px;width:1%;white-space:nowrap;padding-right:28px}
+.arsp-pt td:nth-child(2),.arsp-pt th:nth-child(2){width:380px}
 .arsp-pill{display:inline-block;margin:0 4px 4px 0;padding:2px 9px;border-radius:999px;background:#f0f0f1;font-size:12px;color:#50575e;white-space:nowrap}
 .arsp-pill.arsp-l0{color:#a7aaad;text-decoration:line-through}.arsp-pill.arsp-l1{background:#fcf9e8;color:#996800}.arsp-pill.arsp-l2{background:#edfaef;color:#007017}
 .arsp-pill.arsp-full{background:#edfaef;color:#007017}.arsp-pill.arsp-scp{background:#f0f6fc;color:#2271b1}

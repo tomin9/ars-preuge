@@ -359,8 +359,8 @@ function arsp_acc_admin_section() {
     $lvlTxt = array(0 => '–', 1 => 'čítať', 2 => 'upravovať');
     foreach (get_users(array('capability' => ARSP_CAP, 'orderby' => 'display_name', 'number' => 300)) as $u) {
         $mine = get_user_meta($u->ID, 'arsp_acc', true); if (!is_array($mine)) $mine = array();
-        echo '<tr><td class="arsp-who">' . get_avatar($u->ID, 32) . '<div><b>' . esc_html($u->display_name) . '</b><span>' . esc_html($u->user_email) . '</span></div></td><td>';
-        if (user_can($u, 'manage_options')) { echo '<span class="arsp-pill">administrátor</span><div class="arsp-hint">Skupina sa mu nedá prideliť – ak ho chcete obmedziť, zmeňte mu v Používateľoch rolu na „Tím Ars Preuge“.</div></td><td><span class="arsp-pill arsp-full">plný prístup</span></td></tr>'; continue; }
+        echo '<tr><td><div class="arsp-who">' . get_avatar($u->ID, 32) . '<div><b>' . esc_html($u->display_name) . '</b><span>' . esc_html($u->user_email) . '</span></div></div></td><td>';
+        if (user_can($u, 'manage_options')) { echo '<span class="arsp-pill">administrátor</span><div class="arsp-hint">Na obmedzenie zmeňte rolu na „Tím Ars Preuge“.</div></td><td><span class="arsp-pill arsp-full">plný prístup</span></td></tr>'; continue; }
         echo '<input type="hidden" name="u[' . (int) $u->ID . '][x]" value="1">' . $pick('u[' . (int) $u->ID . '][g][]', 'groups', $gnames, $mine, '+ pridať skupinu');
         $acc = arsp_acc_user($u->ID);
         echo '</td><td>';
