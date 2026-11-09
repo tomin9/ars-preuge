@@ -89,7 +89,7 @@ function arsp_admin_page() {
     if (current_user_can('manage_options')) {
         $groups = count(arsp_acc_groups()); $key = arsp_claude_key() !== '';
         echo '<div class="arsp-links">'
-            . '<a class="arsp-link" href="' . esc_url(admin_url('admin.php?page=arsp-nastavenia')) . '"><b><span class="dashicons dashicons-admin-generic"></span>Nastavenia</b><span>Počiatočné zostatky, kategórie platieb, typy úloh</span></a>'
+            . '<a class="arsp-link" href="' . esc_url(admin_url('admin.php?page=arsp-nastavenia')) . '"><b><span class="dashicons dashicons-admin-generic"></span>Nastavenia</b><span>Kategórie platieb, typy úloh, údaje združenia</span></a>'
             . '<a class="arsp-link" href="' . esc_url(admin_url('admin.php?page=arsp-pristupy')) . '"><b><span class="dashicons dashicons-lock"></span>Prístupy</b><span>Kto čo vidí a smie meniť · skupín: ' . $groups . '</span></a>'
             . '<a class="arsp-link" href="' . esc_url(admin_url('admin.php?page=arsp-ai')) . '"><b><span class="dashicons dashicons-lightbulb"></span>AI</b><span>Napojenie na Claude · ' . ($key ? 'kľúč je nastavený' : 'kľúč nie je nastavený') . '</span></a>'
             . '<a class="arsp-link" href="' . esc_url(admin_url('admin.php?page=arsp-zaloha')) . '"><b><span class="dashicons dashicons-database"></span>Záloha</b><span>Stiahnuť zálohu dát, import</span></a>'
@@ -161,7 +161,6 @@ function arsp_admin_page_nastavenia() {
     list($s) = arsp_settings_get();
     arsp_admin_top('Nastavenia', 'Spoločné nastavenia pracovného priestoru pre celý tím. Zmeny sa tímu prejavia do niekoľkých sekúnd.');
     if (isset($_GET['arsp_st'])) echo '<div class="notice notice-success is-dismissible"><p>Nastavenia sú uložené.</p></div>';
-    $num = function ($v) { return $v === null || $v === '' ? '' : esc_attr((string) $v); };
     $cats = !empty($s['cats']) && is_array($s['cats']) ? $s['cats'] : arsp_def_cats();
     $tt = !empty($s['ttypes']) && is_array($s['ttypes']) ? $s['ttypes'] : arsp_def_ttypes();
     echo '<div class="arsp-card"><h2>Združenie</h2><table class="form-table arsp-facts" role="presentation"><tbody>'
@@ -171,9 +170,6 @@ function arsp_admin_page_nastavenia() {
     echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
     wp_nonce_field('arsp_settings');
     echo '<input type="hidden" name="action" value="arsp_settings">';
-    echo '<div class="arsp-card"><h2>Počiatočné zostatky</h2><p class="description">Stav peňazí pred prvým záznamom v denníku. Z nich sa počíta priebežný zostatok.</p>'
-        . '<div class="arsp-row" style="gap:24px;margin-top:10px"><label>Banka (€)<br><input type="number" step="0.01" name="openBank" value="' . $num(isset($s['openBank']) ? $s['openBank'] : '') . '" style="width:180px"></label>'
-        . '<label>Pokladňa (€)<br><input type="number" step="0.01" name="openCash" value="' . $num(isset($s['openCash']) ? $s['openCash'] : '') . '" style="width:180px"></label></div></div>';
     echo '<div class="arsp-gbody" style="padding:0;gap:16px"><div class="arsp-card" style="margin:0"><h2>Kategórie výdavkov a príjmov</h2><p class="description">Jedna kategória na riadok. Kategórie, ktoré tím použije pri platbách alebo ako časti programu podujatí, sa v aplikácii ponúknu aj tak.</p>'
         . '<textarea name="cats" rows="14" style="width:100%;margin-top:8px">' . esc_textarea(implode("\n", $cats)) . '</textarea></div>'
         . '<div class="arsp-card" style="margin:0"><h2>Typy úloh</h2><p class="description">Jeden typ na riadok.</p>'
@@ -184,7 +180,6 @@ function arsp_admin_page_nastavenia() {
 add_action('admin_post_arsp_settings', function () {
     if (!current_user_can('manage_options')) wp_die('Forbidden');
     check_admin_referer('arsp_settings');
-    $num = function ($k) { $v = isset($_POST[$k]) ? trim((string) wp_unslash($_POST[$k])) : ''; return $v === '' ? null : round((float) str_replace(',', '.', $v), 2); };
     $lines = function ($k) {
         $o = array();
         foreach (preg_split('/\r\n|\r|\n/', (string) wp_unslash(isset($_POST[$k]) ? $_POST[$k] : '')) as $l) { $l = sanitize_text_field($l); if ($l !== '' && !in_array($l, $o, true)) $o[] = $l; }
@@ -192,7 +187,6 @@ add_action('admin_post_arsp_settings', function () {
     };
     $cats = $lines('cats'); $tt = $lines('ttypes');
     arsp_settings_save(array(
-        'openBank' => $num('openBank'), 'openCash' => $num('openCash'),
         'cats' => $cats && $cats !== arsp_def_cats() ? $cats : null,       /* zhodné s predvolenými = neukladať (aplikácia ich doplní sama) */
         'ttypes' => $tt && $tt !== arsp_def_ttypes() ? $tt : null,
     ));

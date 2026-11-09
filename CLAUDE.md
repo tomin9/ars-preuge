@@ -57,7 +57,7 @@ Majiteľ repozitára nie je programátor – výsledky a problémy vysvetľuj po
    - **Zabezpečenie** – len pri podujatí s „nox“ v názve (NOX:art): technický plán po dielach – napájanie, technika a káble, ľudia s dňom a časom, otvorené úlohy, dodávky (kto čo požičal/daroval), súhrn a pohľad „podľa ľudí“.
 7. **Financie** – peňažný denník (banka a pokladňa, priebežné zostatky, poradové čísla), roky + „Plánované“, pohľady Denník · Projekty · Kategórie, filtre, export CSV. Platba v bočnom paneli má doklady (zmluva, faktúra, výpis) a **generátor zmluvy o dielo / autorskej zmluvy** (Word alebo tlač).
 8. **Kontakty** – Osoby · Firmy · Organizácie · Média, filtre podľa rolí, kopírovanie e-mailov. Kontakt v bočnom paneli: fotka/ikona, údaje, organizácie s funkciou, platby, spolupráce, logo, zlúčenie duplicít.
-9. **Nastavenia** – od 1.94.0 vo WordPresse (*Ars Preuge → Nastavenia*, len administrátor): údaje združenia (len na čítanie), počiatočné zostatky, kategórie platieb, typy úloh; ukladá sa do záznamu `settings/main` (zlúčením, ostatné polia ostanú). V aplikácii na starej adrese ostal len odkaz.
+9. **Nastavenia** – od 1.94.0 vo WordPresse (*Ars Preuge → Nastavenia*, len administrátor): údaje združenia (len na čítanie), kategórie platieb, typy úloh (počiatočné zostatky sa od 1.94.1 neupravujú – uložené hodnoty ostávajú a počítajú sa); ukladá sa do záznamu `settings/main` (zlúčením, ostatné polia ostanú). V aplikácii na starej adrese ostal len odkaz.
 
 Všade: **hľadanie** (lupa alebo Ctrl+K), **+ Nové** (úloha, podujatie, platba, grant, projekt, kontakt), **bočný panel** na rýchlu úpravu (malé záznamy sa otvárajú len v ňom; projekt, grant a podujatie majú vlastnú stránku), komentáre, adresa v prehliadači sa mení so sekciou (funguje Späť).
 
