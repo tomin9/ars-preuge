@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 1.92.0
+ * Version: 1.93.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,13 +11,14 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '1.92.0');
+define('ARSP_VER', '1.93.0');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
 
 require_once ARSP_DIR . 'inc/claude.php';   /* napojenie na Claude (API kľúč len na serveri) */
 require_once ARSP_DIR . 'inc/pristupy.php'; /* prístupy: kto čo vidí a smie meniť */
+require_once ARSP_DIR . 'inc/admin.php';    /* administrácia: Prehľad · Prístupy · AI · Záloha */
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -150,7 +151,7 @@ function arsp_import($raw, $files) {
 add_action('admin_post_arsp_import', function () {
     if (!current_user_can('manage_options')) wp_die('Forbidden');
     check_admin_referer('arsp_import');
-    $back = admin_url('admin.php?page=arsp');
+    $back = admin_url('admin.php?page=arsp-zaloha');
     if (!empty($_FILES['arsp_file']['error']) && in_array($_FILES['arsp_file']['error'], array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE), true)) { wp_safe_redirect(add_query_arg('arsp_msg', 'big', $back)); exit; }
     if (empty($_FILES['arsp_file']['tmp_name']) || !empty($_FILES['arsp_file']['error'])) { wp_safe_redirect(add_query_arg('arsp_msg', 'nofile', $back)); exit; }
     $f = $_FILES['arsp_file'];
@@ -426,43 +427,6 @@ add_action('rest_api_init', function () {
 });
 
 /* ------------------------------------------------------------ admin + UI */
-
-add_action('admin_menu', function () {
-    add_menu_page('Ars Preuge', 'Ars Preuge', ARSP_CAP, 'arsp', 'arsp_admin_page', 'dashicons-art', 3);
-});
-
-function arsp_admin_page() {
-    $url = arsp_app_url();
-    global $wpdb; $t = arsp_table();
-    $rows = $wpdb->get_results("SELECT col, COUNT(*) n FROM $t WHERE deleted=0 GROUP BY col", ARRAY_A);
-    echo '<div class="wrap"><h1>Ars Preuge – pracovný priestor</h1>';
-    if (isset($_GET['arsp_msg'])) {
-        $m = sanitize_key($_GET['arsp_msg']);
-        if ($m === 'ok') echo '<div class="notice notice-success"><p>Import hotový – načítaných záznamov: ' . (int) $_GET['arsp_n'] . '.</p></div>';
-        elseif ($m === 'big') echo '<div class="notice notice-error"><p>Súbor je väčší, ako server dovolí nahrať (' . esc_html(size_format(wp_max_upload_size())) . '). Požiadajte hosting o zvýšenie limitu <code>upload_max_filesize</code> a <code>post_max_size</code> aspoň na 10 MB.</p></div>';
-        else echo '<div class="notice notice-error"><p>Import sa nepodaril – skontrolujte, či ste nahrali správny súbor.</p></div>';
-    }
-    echo '<p><a class="button button-primary button-hero" href="' . esc_url($url) . '" target="_blank">Otvoriť pracovný priestor</a></p>';
-    echo '<p>Adresa pre tím: <code>' . esc_html($url) . '</code></p>';
-    echo '<h2>Kto má prístup</h2><p>Administrátori, redaktori (Editor) a používatelia s rolou <b>Tím Ars Preuge</b>. Nového člena pridáte cez <a href="' . esc_url(admin_url('user-new.php')) . '">Používatelia → Pridať nového</a> a zvolíte rolu „Tím Ars Preuge“.</p>';
-    echo '<h2>Uložené záznamy</h2><ul>';
-    foreach ($rows as $r) echo '<li>' . esc_html($r['col']) . ': ' . (int) $r['n'] . '</li>';
-    echo '</ul>';
-    if (current_user_can('manage_options')) {
-        $exp = wp_nonce_url(admin_url('admin-post.php?action=arsp_export'), 'arsp_export');
-        arsp_acc_admin_section();
-        arsp_claude_admin_section();
-        /* nástroj na prenos (1.92.0) bol po presune odstránený – zmažú sa prípadné zvyšky jeho záloh na serveri */
-        foreach (array_merge((array) glob(arsp_upload_dir() . '/zaloha-*.zip'), (array) glob(arsp_upload_dir() . '/import-*.zip')) as $x) { if (is_file($x)) @unlink($x); }
-        echo '<h2>Záloha</h2><p><a class="button" href="' . esc_url($exp) . '">Stiahnuť zálohu dát (JSON)</a></p>';
-        echo '<h2>Import dát</h2><p>Nahrajte balík dát (<code>.zip</code> so súborom seed.json a dokumentmi, alebo zálohu <code>.json</code>). Záznamy s rovnakým ID sa prepíšu, ostatné zostanú.</p>';
-        echo '<form method="post" enctype="multipart/form-data" action="' . esc_url(admin_url('admin-post.php')) . '">';
-        wp_nonce_field('arsp_import');
-        echo '<input type="hidden" name="action" value="arsp_import"><input type="file" name="arsp_file" accept=".zip,.json" required> ';
-        echo '<button class="button button-primary">Importovať</button> <span class="description">max. ' . esc_html(size_format(wp_max_upload_size())) . '</span></form>';
-    }
-    echo '</div>';
-}
 
 add_action('admin_post_arsp_export', function () {
     if (!current_user_can('manage_options')) wp_die('Forbidden');

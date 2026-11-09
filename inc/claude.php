@@ -186,7 +186,6 @@ add_action('rest_api_init', function () {
 
 function arsp_claude_admin_section() {
     if (!current_user_can('manage_options')) return;
-    echo '<h2>Napojenie na Claude</h2>';
     if (isset($_GET['arsp_ai'])) {
         $m = sanitize_key($_GET['arsp_ai']);
         $txt = array('saved' => array('success', 'Kľúč je uložený.'), 'removed' => array('success', 'Kľúč je odstránený.'), 'ok' => array('success', 'Spojenie funguje – Claude odpovedal.'), 'empty' => array('error', 'Vložte kľúč.'));
@@ -208,7 +207,7 @@ add_action('admin_post_arsp_claude', function () {
     if (!current_user_can('manage_options')) wp_die('Forbidden');
     check_admin_referer('arsp_claude');
     $do = sanitize_key($_POST['arsp_do'] ?? '');
-    $back = admin_url('admin.php?page=arsp');
+    $back = admin_url('admin.php?page=arsp-ai');
     if ($do === 'remove') { delete_option('arsp_claude_key'); wp_safe_redirect(add_query_arg('arsp_ai', 'removed', $back)); exit; }
     if ($do === 'save') {
         $k = trim(wp_unslash((string) ($_POST['arsp_key'] ?? '')));
