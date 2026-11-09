@@ -456,8 +456,9 @@ function arsp_acc_admin_section() {
         $sc = isset($g['scope']) ? (array) $g['scope'] : array();
         $sp = isset($sc['projects']) ? (array) $sc['projects'] : array(); $se = isset($sc['events']) ? (array) $sc['events'] : array();
         $sname = $isNew ? 'new_scope' : $pfx;
-        $h = '<div class="arsp-grp' . ($isNew ? ' arsp-new' : '') . '"><div class="arsp-gline">';
-        $h .= $isNew ? '<input type="text" name="new_name" class="arsp-gname" placeholder="+ Nová skupina">'
+        $h = ($isNew ? '<button type="button" class="arsp-newbtn" onclick="var n=this.nextElementSibling;n.hidden=false;this.hidden=true;n.querySelector(\'.arsp-gname\').focus();">+ Nová skupina</button>' : '')
+            . '<div class="arsp-grp' . ($isNew ? ' arsp-new' : '') . '"' . ($isNew ? ' hidden' : '') . '><div class="arsp-gline">';
+        $h .= $isNew ? '<input type="text" name="new_name" class="arsp-gname" placeholder="Názov skupiny">'
                      : '<input type="text" name="' . $pfx . '[name]" class="arsp-gname" value="' . esc_attr($g['name']) . '" required>';
         $h .= '<div class="arsp-tgs">';
         foreach ($areas as $a => $x) $h .= $tg($isNew ? 'new_areas[' . $a . ']' : $pfx . '[areas][' . $a . ']', $x['label'], isset($g['areas'][$a]) ? $g['areas'][$a] : 0);

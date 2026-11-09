@@ -48,6 +48,9 @@ add_action('admin_head', function () {
 .arsp-gname{flex:0 0 170px;width:170px;font-size:14px;font-weight:600;border:1px solid transparent!important;background:transparent!important;box-shadow:none!important;padding:4px 8px!important;margin-left:-8px}
 .arsp-gname:hover,.arsp-gname:focus{border-color:#dcdcde!important;background:#fff!important}
 .arsp-new{background:#fbfbfc}.arsp-new .arsp-gname{font-weight:500}
+.arsp-newbtn{display:block;width:100%;text-align:left;border:0;border-top:1px solid #f0f0f1;background:none;padding:11px 20px;color:#2271b1;font-size:13px;font-weight:500;cursor:pointer}
+.arsp-newbtn:hover{background:#f6f7f7}.arsp-newbtn[hidden]{display:none}
+.arsp-flush>.arsp-newbtn:first-child{border-top:0}
 .arsp-tgs{display:flex;flex-wrap:wrap;gap:6px;flex:1}
 .arsp-tg{display:inline-flex;align-items:center;gap:4px;border:1px solid #dcdcde;background:#fff;border-radius:999px;padding:3px 6px 3px 11px;font-size:12.5px;cursor:pointer;color:#8c8f94;line-height:1.5;user-select:none}
 .arsp-tg .dashicons{font-size:16px;width:16px;height:16px}
