@@ -38,26 +38,44 @@ add_action('admin_head', function () {
 .arsp-link:hover{border-color:#2271b1;color:#1d2327}
 .arsp-link b{display:flex;align-items:center;gap:6px;font-size:15px;margin-bottom:4px}
 .arsp-link span{color:#646970}
-.arsp-group{padding:0}
-.arsp-ghead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-bottom:1px solid #f0f0f1}
-.arsp-gname{font-size:16px;font-weight:600;border:1px solid transparent!important;background:transparent!important;box-shadow:none!important;padding:4px 8px!important;margin-left:-8px;min-width:320px}
+.arsp-gt,.arsp-pt{width:100%;border-collapse:collapse}
+.arsp-gt th,.arsp-pt th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#646970;font-weight:600;padding:12px 10px;border-bottom:1px solid #f0f0f1;background:#fafafa;vertical-align:bottom}
+.arsp-gt th:first-child,.arsp-pt th:first-child{padding-left:20px}
+.arsp-gt td{padding:12px 10px 4px;vertical-align:middle}
+.arsp-gt td:first-child{padding-left:20px}
+.arsp-grp+.arsp-grp .arsp-grow td{border-top:1px solid #e6e6e8}
+.arsp-gcell{min-width:170px}
+.arsp-gname{width:100%;font-size:15px;font-weight:600;border:1px solid transparent!important;background:transparent!important;box-shadow:none!important;padding:4px 8px!important;margin-left:-8px}
 .arsp-gname:hover,.arsp-gname:focus{border-color:#dcdcde!important;background:#fff!important}
-.arsp-new{border-style:dashed}.arsp-new .arsp-gname{font-weight:500}
-.arsp-del{color:#b32d2e}
-.arsp-gbody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:28px;padding:16px 20px 18px}
-@media(max-width:900px){.arsp-gbody{grid-template-columns:1fr}}
-.arsp-gbody h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#646970}
-.arsp-area{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid #f6f7f7}
-.arsp-area:last-child{border-bottom:0}
-.arsp-lvl{min-width:140px}
-.arsp-lvl-0{color:#8c8f94}.arsp-lvl-1{color:#996800}.arsp-lvl-2{color:#007017;font-weight:600}
-.arsp-scope .description{margin:0 0 8px}
-.arsp-scols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.arsp-scols label{font-weight:600}
-.arsp-scols select{display:block;width:100%;margin-top:4px;font-weight:400}
-.arsp-people{border:0}
-.arsp-people td,.arsp-people th{padding:12px 18px;vertical-align:top}
-.arsp-chk{display:inline-block;margin:0 14px 4px 0;white-space:nowrap}
+.arsp-new .arsp-gname{font-weight:500}
+.arsp-new{background:#fbfbfc}
+.arsp-lvl{width:100%;min-width:118px;border-radius:8px!important;border-color:#dcdcde!important}
+.arsp-lvl-0{color:#8c8f94}.arsp-lvl-1{color:#996800;background-color:#fffbea!important}.arsp-lvl-2{color:#007017;font-weight:600;background-color:#effbf1!important}
+.arsp-act{width:40px;text-align:right;padding-right:16px!important}
+.arsp-trash{border:0;background:none;color:#a7aaad;cursor:pointer;padding:6px;border-radius:8px;line-height:1}
+.arsp-trash:hover{color:#b32d2e;background:#fcf0f1}
+.arsp-srow td{padding:2px 10px 16px;vertical-align:top}
+.arsp-slab{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8c8f94;padding-top:12px!important}
+.arsp-scols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:900px){.arsp-scols{grid-template-columns:1fr}}
+.arsp-mini{display:block;font-size:12px;color:#646970;margin:0 0 3px}
+.arsp-hint{font-size:12px;color:#8c8f94;margin-top:6px}
+.arsp-pick{position:relative;display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:36px;padding:4px 6px;border:1px solid #dcdcde;border-radius:10px;background:#fff;cursor:text}
+.arsp-pick:focus-within{border-color:#2271b1;box-shadow:0 0 0 1px #2271b1}
+.arsp-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 10px;border-radius:999px;background:#f0f6fc;color:#135e96;font-size:12.5px;font-weight:500}
+.arsp-x{border:0;background:none;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0 5px;border-radius:999px;opacity:.6}
+.arsp-x:hover{opacity:1;background:rgba(0,0,0,.06)}
+.arsp-pin{flex:1;min-width:130px;border:0!important;box-shadow:none!important;background:transparent!important;padding:2px 4px!important;min-height:26px!important;font-size:13px}
+.arsp-drop{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:50;background:#fff;border:1px solid #dcdcde;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:240px;overflow:auto;padding:4px}
+.arsp-drop button{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px;color:#1d2327}
+.arsp-drop button:hover,.arsp-drop button.on{background:#f0f6fc;color:#135e96}
+.arsp-drop .arsp-none{padding:7px 10px;color:#8c8f94}
+.arsp-who{display:flex;gap:10px;align-items:center}
+.arsp-who img{border-radius:50%}
+.arsp-who b{display:block}.arsp-who span{color:#646970;font-size:12px}
+.arsp-pt td{padding:12px 10px;vertical-align:middle;border-top:1px solid #f0f0f1}
+.arsp-pt td:first-child{padding-left:20px;width:280px}
+.arsp-pt td:nth-child(2){width:360px}
 .arsp-pill{display:inline-block;margin:0 4px 4px 0;padding:2px 9px;border-radius:999px;background:#f0f0f1;font-size:12px;color:#50575e;white-space:nowrap}
 .arsp-pill.arsp-l0{color:#a7aaad;text-decoration:line-through}.arsp-pill.arsp-l1{background:#fcf9e8;color:#996800}.arsp-pill.arsp-l2{background:#edfaef;color:#007017}
 .arsp-pill.arsp-full{background:#edfaef;color:#007017}.arsp-pill.arsp-scp{background:#f0f6fc;color:#2271b1}
@@ -67,6 +85,46 @@ add_action('admin_head', function () {
 .arsp-facts th{padding:6px 10px 6px 0;width:140px;font-weight:600}.arsp-facts td{padding:6px 0}
 .arsp-dot{width:9px;height:9px;border-radius:50%;background:#a7aaad;display:inline-block}.arsp-dot.ok{background:#00a32a}
 </style>';
+});
+
+/* výber so štítkami (rozsah, skupiny ľudí) a mazanie skupiny – len na stránke Prístupy */
+add_action('admin_footer', function () {
+    if ((isset($_GET['page']) ? $_GET['page'] : '') !== 'arsp-pristupy') return;
+    ?><script>
+(function(){
+  var O=window.ARSP_OPTS||{};
+  var norm=function(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');};
+  function chip(box,id,name){var c=document.createElement('span');c.className='arsp-chip';
+    var h=document.createElement('input');h.type='hidden';h.name=box.dataset.name;h.value=id;c.appendChild(h);
+    c.appendChild(document.createTextNode(name));var x=document.createElement('button');x.type='button';x.className='arsp-x';x.setAttribute('aria-label','Odobrať');x.textContent='×';c.appendChild(x);
+    box.insertBefore(c,box.querySelector('.arsp-pin'));}
+  function chosen(box){return Array.prototype.map.call(box.querySelectorAll('input[type=hidden]'),function(i){return i.value;});}
+  function show(box){var inp=box.querySelector('.arsp-pin'),dr=box.querySelector('.arsp-drop'),src=O[box.dataset.src]||{},q=norm(inp.value),have=chosen(box),list=[];
+    Object.keys(src).forEach(function(id){if(have.indexOf(id)<0&&norm(src[id]).indexOf(q)>=0)list.push(id);});
+    dr.innerHTML=list.length?'':'<div class="arsp-none">'+(Object.keys(src).length?'Nič ďalšie nezodpovedá':'Zatiaľ nie je z čoho vyberať')+'</div>';
+    list.slice(0,60).forEach(function(id,i){var b=document.createElement('button');b.type='button';b.dataset.id=id;b.textContent=src[id];if(i===0)b.className='on';dr.appendChild(b);});
+    dr.hidden=false;}
+  function pick(box,id){chip(box,id,(O[box.dataset.src]||{})[id]||id);var inp=box.querySelector('.arsp-pin');inp.value='';show(box);inp.focus();}
+  document.querySelectorAll('.arsp-pick').forEach(function(box){
+    var inp=box.querySelector('.arsp-pin'),dr=box.querySelector('.arsp-drop');
+    box.addEventListener('click',function(e){var x=e.target.closest('.arsp-x');if(x){x.parentNode.remove();if(!dr.hidden)show(box);return;}
+      var b=e.target.closest('.arsp-drop button');if(b){pick(box,b.dataset.id);return;}inp.focus();});
+    inp.addEventListener('focus',function(){show(box);});
+    inp.addEventListener('input',function(){show(box);});
+    inp.addEventListener('blur',function(){setTimeout(function(){if(!box.contains(document.activeElement))dr.hidden=true;},150);});
+    inp.addEventListener('keydown',function(e){
+      var it=dr.querySelectorAll('button'),cur=dr.querySelector('button.on'),i=Array.prototype.indexOf.call(it,cur);
+      if(e.key==='Enter'){e.preventDefault();if(cur)pick(box,cur.dataset.id);}
+      else if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!it.length)return;if(cur)cur.className='';var n=it[(i+(e.key==='ArrowDown'?1:-1)+it.length)%it.length];n.className='on';n.scrollIntoView({block:'nearest'});}
+      else if(e.key==='Backspace'&&!inp.value){var c=box.querySelectorAll('.arsp-chip');if(c.length)c[c.length-1].remove();}
+      else if(e.key==='Escape'){dr.hidden=true;}
+    });
+  });
+  document.querySelectorAll('.arsp-trash').forEach(function(b){b.addEventListener('click',function(){
+    if(!confirm('Zmazať skupinu „'+b.dataset.nm+'“? Ľuďom, ktorí ju majú, sa odoberie.'))return;
+    var f=document.getElementById('arsp-acc-form'),h=document.createElement('input');h.type='hidden';h.name=b.dataset.del;h.value='1';f.appendChild(h);f.submit();});});
+})();
+</script><?php
 });
 
 function arsp_admin_top($title, $sub) {
