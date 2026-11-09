@@ -315,7 +315,7 @@ function arsp_acc_admin_section() {
     foreach (get_users(array('capability' => ARSP_CAP, 'orderby' => 'display_name', 'number' => 300)) as $u) {
         $mine = get_user_meta($u->ID, 'arsp_acc', true); if (!is_array($mine)) $mine = array();
         echo '<tr><td>' . esc_html($u->display_name) . ' <span class="description">(' . esc_html($u->user_email) . ')</span></td><td>';
-        if (user_can($u, 'manage_options')) { echo '<em>administrátor – vždy všetko</em></td><td>plný prístup</td></tr>'; continue; }
+        if (user_can($u, 'manage_options')) { echo '<em>administrátor – vždy všetko</em> <span class="description">(skupina sa mu nedá prideliť; ak ho chcete obmedziť, zmeňte mu v Používateľoch rolu na „Tím Ars Preuge“)</span></td><td>plný prístup</td></tr>'; continue; }
         echo '<input type="hidden" name="u[' . (int) $u->ID . '][x]" value="1"> ';
         foreach ($groups as $gid => $g) {
             echo '<label style="margin-right:14px;white-space:nowrap"><input type="checkbox" name="u[' . (int) $u->ID . '][g][]" value="' . esc_attr($gid) . '"' . (in_array($gid, $mine, true) ? ' checked' : '') . '> ' . esc_html($g['name']) . '</label>';
