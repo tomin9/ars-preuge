@@ -55,6 +55,7 @@
 .zb-row select.typ{width:100%;min-width:0;font-size:13.5px;padding:6px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface3);color:var(--muted)}
 .zb-row select.typ.t-pozicane,.zb-row select.typ.t-darovane{color:var(--accent);font-weight:600}
 .zb-row select.typ.t-kupene,.zb-row select.typ.t-objednane{color:var(--ink)}
+.zb-row select.typ.t-nase{color:var(--good);font-weight:600}
 .zb-row.per{grid-template-columns:46px minmax(0,2fr) minmax(0,2fr) 172px minmax(0,2fr) 30px}
 .zb-row.ul{grid-template-columns:46px minmax(0,1fr) 30px}
 .zb-lead{display:flex;align-items:center;gap:4px}

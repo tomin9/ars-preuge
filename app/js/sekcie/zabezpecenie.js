@@ -18,7 +18,7 @@ function zbVals(key,fld){const m={};S.d.zab.forEach(x=>(x[key]||[]).forEach(r=>{
   return Object.values(m).map(c=>Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0]).sort((a,b)=>a.localeCompare(b,"sk"));}
 function zbMerge(a,b){const m=new Map();[...a,...b].forEach(v=>{v=String(v||"").trim().replace(/\s+/g," ");if(v&&!m.has(zbKey(v)))m.set(zbKey(v),v);});return[...m.values()].sort((x,y)=>x.localeCompare(y,"sk"));}
 function zbLists(){const dl=(id,a)=>`<datalist id="${id}">${a.map(v=>`<option value="${esc(v)}"></option>`).join("")}</datalist>`;
-  return dl("zb-dl-tech",zbMerge(zbVals("technika","nazov"),S.d.zabd.map(d=>d.nazov)))+dl("zb-dl-zdroj",zbMerge(zbVals("technika","zdroj"),S.d.zabd.map(d=>d.kto)))+dl("zb-dl-rola",zbVals("personal","rola"))+dl("zb-dl-kto",zbVals("personal","kto"));}
+  return dl("zb-dl-tech",zbMerge(zbMerge(S.d.invTech.map(t=>t.name),zbVals("technika","nazov")),S.d.zabd.map(d=>d.nazov)))+dl("zb-dl-zdroj",zbMerge(zbMerge(zbVals("technika","zdroj"),S.d.zabd.map(d=>d.kto)),S.d.contacts.map(c=>c.name)))   /* ponuka: veci z Inventára (Technika) a mená z Kontaktov */+dl("zb-dl-rola",zbVals("personal","rola"))+dl("zb-dl-kto",zbVals("personal","kto"));}
 const zbMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null;};
 function zbOverlap(a,b){if(!a.den||a.den!==b.den)return false;const a1=zbMin(a.od),a2=zbMin(a.do),b1=zbMin(b.od),b2=zbMin(b.do);if(a1==null||b1==null)return false;
   const e1=a2==null?a1+1:(a2<=a1?a2+1440:a2),e2=b2==null?b1+1:(b2<=b1?b2+1440:b2);return a1<e2&&b1<e1;}
@@ -167,7 +167,7 @@ function zbPeopleView(){
 /* items entered at a work with a Zdroj become deliveries automatically, so they show like deliveries entered in the summary.
    Same supplier + same item = one delivery; its id is derived from the names so two people syncing at once write the same record. */
 function zbSupId(kto,naz){let h=2166136261;const t=zbKey(kto)+"|"+zbKey(naz);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return"a_"+(h>>>0).toString(36)+"_"+t.length;}
-const ZB_TYP=[["","druh…"],["pozicane","požičané"],["darovane","darované"],["kupene","kúpené"],["objednane","objednané"]];
+const ZB_TYP=[["","druh…"],["nase","naše"],["pozicane","požičané"],["darovane","darované"],["kupene","kúpené"],["objednane","objednané"]];
 /* kind of a row; older rows had it written in the Zdroj field ("kúpené", "požičať z …") or none at all */
 const zbTypGuess=r=>{const z=String(r.zdroj||"");if(/k[uú]p/i.test(z))return"kupene";if(/objedn/i.test(z))return"objednane";if(/po[zž]i[cč]/i.test(z)||/daro/i.test(z))return/daro/i.test(z)?"darovane":"pozicane";if(r.supplyId||zbKey(z))return"pozicane";return"";};
 const zbTyp=r=>r.typ!==undefined?r.typ:zbTypGuess(r);
@@ -284,7 +284,12 @@ function zbBind(v){
       zbSave(id,x=>{
         if(i===undefined)return(x[k]??"")===val?null:{[k]:val};
         const arr=(x[k]||[]).map(r=>Object.assign({},r));if(!arr[+i]||arr[+i][fld]===val)return null;
-        arr[+i][fld]=val;return{[k]:arr};});
+        arr[+i][fld]=val;
+        if(k==="technika"){const r=arr[+i];   /* prepojenie s Inventárom: vec z nášho zoznamu = „naše“; doplnené „od koho“ = „požičané“ */
+          if(fld==="nazov"&&!r.typ&&!zbKey(r.zdroj)&&invTechByName(val))r.typ="nase";
+          if(fld==="zdroj"&&zbKey(val)&&!r.typ)r.typ="pozicane";
+          if(r.typ==="nase")setTimeout(()=>invTechWarn(r.nazov),600);}
+        return{[k]:arr};});
     };
     if(el.type==="checkbox"||el.tagName==="SELECT")el.onchange=commit;
     else{el.onchange=commit;el.onblur=commit;el.onkeydown=e=>{if(e.key==="Enter"&&el.tagName!=="TEXTAREA")el.blur();};}

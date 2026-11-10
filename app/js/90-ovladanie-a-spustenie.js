@@ -68,6 +68,8 @@ function bindView(){
   v.querySelectorAll("[data-cvol]").forEach(b=>b.onclick=()=>{S.cf.tag=S.cf.tag===b.dataset.cvol?"":b.dataset.cvol;render();});
   v.querySelectorAll("[data-ctab]").forEach(b=>b.onclick=()=>{S.cf.tab=b.dataset.ctab;S.cf.tag="";render();});
   v.querySelectorAll("[data-itab]").forEach(b=>b.onclick=()=>{S.inf.tab=b.dataset.itab;render();});
+  v.querySelectorAll("[data-isec]").forEach(b=>b.onclick=()=>{S.inf.sec=b.dataset.isec;render();});
+  v.querySelectorAll("[data-ittab]").forEach(b=>b.onclick=()=>{S.inf.ttab=b.dataset.ittab;render();});
   on("#if-q","input",e=>{S.inf.q=e.target.value;render();});
   ["item","pay"].forEach(k=>on("#if-"+k,"change",e=>{S.inf[k]=e.target.value;render();}));
   on("#cf-state","change",e=>{S.cf.state=e.target.value;render();});

@@ -16,14 +16,58 @@ function invItemCalc(it){const M=S.d.invMoves.filter(m=>m.itemId===it.id),q=p=>s
 function invItemExtra(it){const c=invItemCalc(it);
   return`<div class="sec"><div class="facts" style="margin:0"><div><span>Vydané spolu</span><b>${c.out} ks</b></div><div><span>Ostáva</span><b class="${c.left!=null&&c.left<0?"neg":""}">${c.left==null?"—":c.left+" ks"}</b></div><div><span>Zarobené</span><b>${eur(c.earned)}</b></div></div></div>`
     +miniList("Výdaj","invMoves",[...c.M].sort(invSort),invMoveLi,{itemId:it.id});}
+/* ----- Technika: naše veci + čo treba zohnať a čo je požičané (z riadkov techniky pri dielach v Zabezpečení) ----- */
+const invTechByName=n=>{const k=zbKey(n);return k?S.d.invTech.find(t=>zbKey(t.name)===k)||null:null;};
+const invTechRows=()=>zbList().flatMap(x=>(x.technika||[]).map((r,i)=>({x,r,i})).filter(a=>a.r.nazov));   /* všetky riadky techniky pri dielach */
+function invTechCalc(t){const k=zbKey(t.name),A=invTechRows().filter(a=>zbTyp(a.r)==="nase"&&zbKey(a.r.nazov)===k),used=sum(A,a=>zbNum(a.r.ks||1));return{A,used,free:(+t.qty||0)-used};}
+function invTechWarn(name){const t=invTechByName(name);if(!t)return;const c=invTechCalc(t);if(c.free<0)toast(`„${t.name}“: pri dielach je pridelených o ${-c.free} ks viac, než máme v inventári (${+t.qty||0} ks).`,6000);}
+const invWork=a=>`<button type="button" class="btn ghost sm" style="padding:2px 6px" data-open="zab:${esc(a.x.id)}" title="Otvoriť Zabezpečenie">č. ${esc(a.x.ord||"")} ${esc(a.x.title||"")}</button>`;
+function invTechExtra(t){const c=invTechCalc(t);
+  return`<div class="sec"><div class="facts" style="margin:0"><div><span>Máme</span><b>${+t.qty||0} ks</b></div><div><span>Pridelené</span><b>${c.used} ks</b></div><div><span>Voľné</span><b class="${c.free<0?"neg":""}">${c.free} ks</b></div></div></div>
+  <div class="sec"><h3>Kde je pridelené<span class="meta">${c.A.length||""}</span></h3>${c.A.length?`<ul class="items">${c.A.map(a=>`<li data-open="zab:${esc(a.x.id)}"><span class="t">č. ${esc(a.x.ord||"")} ${esc(a.x.title||"")}</span><span class="num">${zbNum(a.r.ks||1)} ks</span></li>`).join("")}</ul>`:`<div class="empty">Zatiaľ nikde. Pridelíte pri diele v Zabezpečení – do poľa „Položka“ napíšte názov tejto veci.</div>`}</div>`;}
+function invTechView(head){
+  const f=S.inf,R=invTechRows(),items=[...S.d.invTech].sort((a,b)=>(a.kind||"").localeCompare(b.kind||"","sk")||(a.name||"").localeCompare(b.name||"","sk"));
+  const need=R.filter(a=>!a.r.ok&&((zbTyp(a.r)===""&&!zbKey(a.r.zdroj))||zbTyp(a.r)==="objednane"));
+  /* požičané / darované: dodávky (zabd) + riadky, ktoré ešte dodávkou nie sú */
+  const G={},grp=n=>{const k=zbKey(n);return G[k]||(G[k]={k,name:String(n||"").trim().replace(/\s+/g," "),L:[]});};
+  const alloc={};R.forEach(a=>{if(a.r.supplyId)(alloc[a.r.supplyId]=alloc[a.r.supplyId]||[]).push(a);});
+  S.d.zabd.forEach(d=>grp(d.kto).L.push({n:d.nazov,ks:zbNum(d.ks),typ:d.typ,ok:!!d.ok,A:alloc[d.id]||[]}));
+  R.forEach(a=>{const t=zbTyp(a.r);if(a.r.supplyId||!(zbLent(a.r)||(t===""&&zbKey(a.r.zdroj))))return;grp(a.r.zdroj).L.push({n:a.r.nazov,ks:zbNum(a.r.ks||1),typ:t,ok:!!a.r.ok,A:[a]});});
+  const lent=Object.values(G).sort((a,b)=>!a.k-!b.k||a.name.localeCompare(b.name,"sk"));
+  const tabs=[["nase","Naše",items.length],["zohnat","Zohnať",need.length],["pozicane","Požičané",lent.length]];
+  if(!tabs.some(t=>t[0]===f.ttab))f.ttab="nase";
+  const bar=`<div class="ctbar"><div class="ptabs" role="tablist" style="margin:0">${tabs.map(([k,l,n])=>`<button role="tab" data-ittab="${k}" aria-selected="${f.ttab===k}">${l}<span>${n||""}</span></button>`).join("")}</div></div>`;
+  if(f.ttab==="zohnat")return head+bar+`<div class="panel">${need.length?table([
+      ["Položka",a=>`<span class="cut">${esc(a.r.nazov)}</span>`,"t"],["ks",a=>zbNum(a.r.ks||1),"num"],
+      ["Stav",a=>zbTyp(a.r)==="objednane"?`<span class="chip"><i style="background:${BLUE}"></i>Objednané</span>`:`<span class="chip"><i style="background:${RED}"></i>Treba zohnať</span>`],
+      ["Kam",a=>`<span class="meta">č. ${esc(a.x.ord||"")} ${esc(a.x.title||"")}</span>`],["Od koho / kde",a=>esc(a.r.zdroj||"")]
+    ],need,a=>"zab:"+esc(a.x.id),`<td>Spolu</td><td class="num">${sum(need,a=>zbNum(a.r.ks||1))}</td><td colspan="3"></td>`)
+    :`<div class="empty">Nič netreba zháňať – všetky položky pri dielach majú zdroj alebo sú zabezpečené.</div>`}</div>
+    <p class="small muted" style="margin:10px 2px 0">Sú tu položky pri dielach v Zabezpečení, ktoré nie sú z nášho inventára a nemajú vyplnené „od koho“, a položky s druhom „objednané“. Keď pri položke doplníte, od koho je, presunie sa do Požičané; keď ju odškrtnete ako zabezpečenú, zo zoznamu zmizne.</p>`;
+  if(f.ttab==="pozicane")return head+bar+`<div class="panel">${lent.length?`<div class="tw"><table><thead><tr><th class="t">Od koho</th><th>Čo a kam to ide</th><th class="num">ks</th></tr></thead><tbody>${lent.map(g=>{const c=g.k?S.d.contacts.find(x=>zbKey(x.name)===g.k):null;
+      return`<tr${c?` data-open="contacts:${esc(c.id)}"`:""}><td class="t">${g.k?(c?`<span class="cut">${cIcon(c)}${esc(c.name)}</span>`:`<span class="cut">${esc(g.name)}</span><div class="meta">nie je v kontaktoch</div>`):`<span class="meta">nezadané, od koho</span>`}</td>
+      <td style="white-space:normal">${g.L.map(l=>`<div style="margin:3px 0"><b>${esc(l.n||"")}</b> · ${l.ks} ks${l.typ==="darovane"?` <span class="chip"><i style="background:${GREEN}"></i>darované</span>`:""}${l.ok?` <span class="chip"><i style="background:${GREEN}"></i>máme</span>`:` <span class="chip"><i style="background:${OCHRE}"></i>čaká</span>`} ${l.A.map(invWork).join(" ")}</div>`).join("")}</td>
+      <td class="num">${sum(g.L,l=>l.ks)}</td></tr>`;}).join("")}</tbody></table></div>`
+    :`<div class="empty">Zatiaľ nič požičané. Pri diele v Zabezpečení vyplňte pri položke „od koho“ a objaví sa tu.</div>`}</div>`;
+  const C={};items.forEach(t=>C[t.id]=invTechCalc(t));
+  return head+bar+`<div class="panel">${items.length?table([
+      ["Vec",t=>`<span class="cut">${esc(t.name||"Bez názvu")}</span>`,"t"],["Druh",t=>esc(t.kind||"")],["Máme",t=>+t.qty||0,"num"],["Pridelené",t=>C[t.id].used||"","num"],
+      ["Voľné",t=>`<b class="${C[t.id].free<0?"neg":""}">${C[t.id].free}</b>`,"num"],["Kde je uložené",t=>esc(t.place||"")],["Stav",t=>t.state==="oprava"?chip("istate",t.state):""]
+    ],items,t=>"invTech:"+esc(t.id))
+    :`<div class="empty">Zatiaľ žiadne veci. Pridajte prvú tlačidlom „Nová vec“ – napríklad LED panel alebo kábel 30 m.</div>`}</div>
+    <p class="small muted" style="margin:10px 2px 0">Vec pridelíte pri diele v Zabezpečení: do poľa „Položka“ začnite písať jej názov a vyberte ju z ponuky – riadok dostane druh „naše“ a kusy sa tu odpočítajú z voľných.</p>`;
+}
 VIEWS.inventar=()=>{
   const f=S.inf,M=S.d.invMoves,items=[...S.d.invItems].sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk"));
   const wait=M.filter(m=>m.handover==="pripravene");
   const tabs=[["vydaj","Výdaj",M.length],["odovzdat","Na odovzdanie",wait.length],["sklad","Sklad",items.length]];
   if(!tabs.some(t=>t[0]===f.tab))f.tab="vydaj";
   const paid=p=>sum(M.filter(m=>m.pay===p),m=>m.amount);
+  const sec=`<div class="tabs" style="margin-bottom:18px">${[["predaj","Predaj"],["technika","Technika"]].map(([k,l])=>`<button data-isec="${k}" aria-pressed="${(f.sec==="technika"?"technika":"predaj")===k}">${l}</button>`).join("")}</div>`;
+  if(f.sec==="technika")return invTechView(`<div class="head"><div><h1>Inventár</h1><p class="sub">Technika – čo máme, čo treba zohnať a čo máme požičané</p></div>
+    <div class="row"><button class="btn pri" data-create="invTech">Nová vec</button></div></div>${sec}`);
   const head=`<div class="head"><div><h1>Inventár</h1><p class="sub">Predaj a rozdávanie – risografiky, pohľadnice, mapy a ďalšie veci</p></div>
-    <div class="row"><button class="btn" data-create="invItems">Nový predmet</button><button class="btn pri" data-create="invMoves"${f.item?` data-defs='${esc(JSON.stringify({itemId:f.item}))}'`:""}>Zapísať výdaj</button></div></div>
+    <div class="row"><button class="btn" data-create="invItems">Nový predmet</button><button class="btn pri" data-create="invMoves"${f.item?` data-defs='${esc(JSON.stringify({itemId:f.item}))}'`:""}>Zapísať výdaj</button></div></div>${sec}
   <div class="strip"><div><b>${eur(paid("hotovost")+paid("darujme"))}</b><span>zarobené spolu</span></div><div><b>${eur(paid("hotovost"))}</b><span>v hotovosti</span></div><div><b>${eur(paid("darujme"))}</b><span>cez Darujme.sk</span></div><div><b>${wait.length}</b><span>čaká na odovzdanie</span></div></div>
   <div class="ctbar"><div class="ptabs" role="tablist" style="margin:0">${tabs.map(([k,l,n])=>`<button role="tab" data-itab="${k}" aria-selected="${f.tab===k}">${l}<span>${n||""}</span></button>`).join("")}</div>${f.tab==="sklad"?"":`<div class="ctools"><input type="search" id="if-q" placeholder="Hľadať meno alebo poznámku" value="${esc(f.q||"")}">
     <select id="if-item" aria-label="Predmet"><option value="">Všetky predmety</option>${items.map(it=>`<option value="${esc(it.id)}" ${f.item===it.id?"selected":""}>${esc(it.name||"Bez názvu")}</option>`).join("")}</select>

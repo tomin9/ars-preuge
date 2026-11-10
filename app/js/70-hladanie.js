@@ -7,7 +7,7 @@ function openSearch(){
   const drawRes=()=>{const q=inp.value.trim().toLowerCase();hits=[];
     if(q){for(const k of ["projects","grants","events","tasks","contacts","ledger","lines"]){S.d[k].forEach(r=>{const t=ttl(k,r);const hay=(t+" "+(r.org||"")+" "+(k==="grants"?provName(r):"")+" "+(r.docNo||"")+" "+(r.email||"")).toLowerCase();if(hay.includes(q))hits.push({k,r,t,i:t.toLowerCase().indexOf(q)});});}
       hits.sort((a,b)=>(a.i<0?99:a.i)-(b.i<0?99:b.i));hits=hits.slice(0,30);}
-    else hits=[...KEYS.filter(k=>k!=="comments"&&k!=="partnerships"&&k!=="zab"&&k!=="zabd"&&k!=="invItems"&&k!=="invMoves").flatMap(k=>S.d[k].map(r=>({k,r,t:ttl(k,r),u:r.updatedAt||0})))].sort((a,b)=>b.u-a.u).slice(0,8);
+    else hits=[...KEYS.filter(k=>k!=="comments"&&k!=="partnerships"&&k!=="zab"&&k!=="zabd"&&k!=="invItems"&&k!=="invMoves"&&k!=="invTech").flatMap(k=>S.d[k].map(r=>({k,r,t:ttl(k,r),u:r.updatedAt||0})))].sort((a,b)=>b.u-a.u).slice(0,8);
     hl=Math.min(hl,Math.max(hits.length-1,0));
     res.innerHTML=hits.length?(q?"":'<div class="meta" style="padding:6px 12px">Naposledy upravené</div>')+hits.map((h,i)=>`<button class="${i===hl?"hl":""}" data-i="${i}">${h.k==="projects"?`<i class="dot" style="background:${esc(h.r.color||GRAY)}"></i>`:""}<span>${esc(h.t)}</span><span class="k">${esc(ENT[h.k].one)}</span></button>`).join(""):`<div class="empty" style="padding:12px 14px">Nič sa nenašlo.</div>`;
     res.querySelectorAll("button").forEach(b=>b.onclick=()=>pick(+b.dataset.i));};

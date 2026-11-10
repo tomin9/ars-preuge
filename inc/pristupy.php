@@ -24,7 +24,7 @@ function arsp_acc_areas() {
         'financie'   => array('label' => 'Financie', 'cols' => array('transactions')),   /* sekcia Financie v menu (denník, zostatky); platby projektov/podujatí/grantov vidno aj bez nej – arsp_acc_tx_visible */
         /* úlohy nie sú oblasť (od 1.100.0): vidieť a upravovať sa dajú podľa toho, ku čomu patria – arsp_acc_task_visible / arsp_acc_task_editable */
         'kontakty'   => array('label' => 'Kontakty', 'cols' => array('contacts')),
-        'inventar'   => array('label' => 'Inventár', 'cols' => array('invItems', 'invMoves')),   /* sekcia Inventár: predmety na predaj a ich výdaj (od 1.103.0) */
+        'inventar'   => array('label' => 'Inventár', 'cols' => array('invItems', 'invMoves', 'invTech')),   /* sekcia Inventár: predmety na predaj a ich výdaj (od 1.103.0), naša technika (od 1.104.0) */
         /* nastavenia nie sú oblasť (od 1.99.0) – upravujú sa vo WordPresse len administrátorom; aplikácia si pár vecí ukladá sama, pozri arsp_acc_settings_keys() */
     );
 }
@@ -133,7 +133,7 @@ function arsp_acc_doc_in_scope($col, $id, $d, $S) {
         case 'partnerships': case 'programItems': return $has($S['E'], 'eventId');
         case 'zabezpecenie': case 'zabdodavky': return $S['nox'];
         case 'contacts': return isset($S['C'][$id]);
-        case 'invItems': case 'invMoves': return true;   /* inventár nepatrí k projektu ani podujatiu – rozsah ho neobmedzuje (rozhoduje len úroveň oblasti) */
+        case 'invItems': case 'invMoves': case 'invTech': return true;   /* inventár nepatrí k projektu ani podujatiu – rozsah ho neobmedzuje (rozhoduje len úroveň oblasti) */
         case 'comments':
             $p = explode(':', (string) (isset($d['parent']) ? $d['parent'] : ''), 2);
             if (count($p) < 2) return false;

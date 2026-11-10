@@ -21,7 +21,8 @@ const OPT={
   pday:[["oba","Piatok aj sobota",GRAY],["piatok","Piatok",BLUE],["sobota","Sobota",PURPLE]],
   pst:[["nevybavene","Nevybavené",GRAY],["riesi","V riešení",OCHRE],["pripravene","Pripravené",GREEN]],
   ipay:[["hotovost","Hotovosť",PURPLE],["darujme","Darujme.sk",BLUE],["zadarmo","Zadarmo",GREEN],["predaj","Predáva sa",PINK]],   /* Inventár – Predaj: ako sa za vec platilo; „Predáva sa“ = nechané u predajcu */
-  ihand:[["pripravene","Pripravené",OCHRE],["odovzdane","Odovzdané",GREEN]]
+  ihand:[["pripravene","Pripravené",OCHRE],["odovzdane","Odovzdané",GREEN]],
+  istate:[["ok","V poriadku",GREEN],["oprava","Treba opraviť",RED]]
 };
 const DEF_TTYPES=["Plagát","Podklady","Grafika","Web/Social","Fotenie","Tlač","Produkcia","Administratíva","Iné"];
 const DEF_CATS=["Honoráre","Materiál","Služby","Technika","Propagácia","Tlač","Cestovné","Prenájom","Ubytovanie","Občerstvenie","Bankové poplatky","Dotácia","Dar / sponzoring","Vstupné","Členské","Iné"];
@@ -73,6 +74,9 @@ const ENT={
   invMoves:{col:"invMoves",one:"Výdaj",many:"Výdaj",title:"who",fields:[
     {k:"itemId",l:"Predmet",t:"rel",e:"invItems"},{k:"qty",l:"Kusy",t:"num"},{k:"amount",l:"Suma spolu",t:"money"},{k:"date",l:"Dátum",t:"date"},
     {k:"pay",l:"Platba",t:"sel",o:"ipay"},{k:"handover",l:"Odovzdanie",t:"sel",o:"ihand"},{k:"contactId",l:"Kontakt",t:"rel",e:"contacts"},{k:"email",l:"E-mail",t:"email"},{k:"note",l:"Poznámka",t:"long"}]},
+  /* Inventár – Technika (od 1.104.0): naše veci (panely, svetlá, káble). Prideľujú sa pri dielach v Zabezpečení: riadok techniky s druhom „naše“ a rovnakým názvom. */
+  invTech:{col:"invTech",one:"Vec",many:"Technika",title:"name",fields:[
+    {k:"kind",l:"Druh",t:"text",ph:"napr. Svetlo, Kábel, Panel"},{k:"qty",l:"Počet kusov",t:"num"},{k:"place",l:"Kde je uložené",t:"text"},{k:"state",l:"Stav",t:"sel",o:"istate"},{k:"note",l:"Poznámka",t:"long"}]},
   comments:{col:"comments"}
 };
 const KEYS=Object.keys(ENT);
@@ -81,7 +85,7 @@ const KEYS=Object.keys(ENT);
 const S={d:{},settings:{},people:{},me:null,view:"prehlad",id:null,live:false,loading:true,readOnly:false,
   tf:{project:"",who:"",org:"",type:"",q:"",mode:"board",allDone:false},
   gf:{mode:"board"}, ef:{past:false}, ff:{tab:"dennik",year:String(new Date().getFullYear()),acct:"",type:"",project:"",grant:"",q:""},
-  cf:{q:"",role:""}, pf:"aktivne", cal:null, inf:{tab:"vydaj",q:"",item:"",pay:""}};
+  cf:{q:"",role:""}, pf:"aktivne", cal:null, inf:{sec:"predaj",tab:"vydaj",ttab:"nase",q:"",item:"",pay:""}};
 KEYS.forEach(k=>S.d[k]=[]);
 let db=null,user=null,dl=null,assets=null,mcp=null;
 
