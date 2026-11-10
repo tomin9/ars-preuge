@@ -73,10 +73,11 @@ const ENT={
     {k:"kind",l:"Druh",t:"text",ph:"napr. Risografika"},{k:"price",l:"Cena za kus",t:"money"},{k:"made",l:"Vyrobené kusy",t:"num"},{k:"note",l:"Poznámka",t:"long"}]},
   invMoves:{col:"invMoves",one:"Výdaj",many:"Výdaj",title:"who",fields:[
     {k:"itemId",l:"Predmet",t:"rel",e:"invItems"},{k:"qty",l:"Kusy",t:"num"},{k:"amount",l:"Suma spolu",t:"money"},{k:"date",l:"Dátum",t:"date"},
-    {k:"pay",l:"Platba",t:"sel",o:"ipay"},{k:"handover",l:"Odovzdanie",t:"sel",o:"ihand"},{k:"contactId",l:"Kontakt",t:"rel",e:"contacts"},{k:"email",l:"E-mail",t:"email"},{k:"note",l:"Poznámka",t:"long"}]},
-  /* Inventár – Technika (od 1.104.0): naše veci (panely, svetlá, káble). Prideľujú sa pri dielach v Zabezpečení: riadok techniky s druhom „naše“ a rovnakým názvom. */
-  invTech:{col:"invTech",one:"Vec",many:"Technika",title:"name",fields:[
-    {k:"kind",l:"Druh",t:"text",ph:"napr. Svetlo, Kábel, Panel"},{k:"qty",l:"Počet kusov",t:"num"},{k:"place",l:"Kde je uložené",t:"text"},{k:"state",l:"Stav",t:"sel",o:"istate"},{k:"note",l:"Poznámka",t:"long"}]},
+    {k:"pay",l:"Platba",t:"sel",o:"ipay"},{k:"handover",l:"Odovzdanie",t:"sel",o:"ihand"},{k:"contactId",l:"Kontakt",t:"rel",e:"contacts"},{k:"txId",l:"Platba vo Financiách",t:"rel",e:"ledger"},{k:"email",l:"E-mail",t:"email"},{k:"note",l:"Poznámka",t:"long"}]},
+  /* Inventár – Technika (od 1.104.0): naše veci (panely, svetlá, káble); od 1.105.0 je každý kus samostatný záznam, rovnaké názvy sa v zozname spoja.
+     Prideľujú sa pri dielach v Zabezpečení: riadok techniky s druhom „naše“ a rovnakým názvom. Staré pole qty (počet kusov) sa rozdelí na kusy – invTechSplit. */
+  invTech:{col:"invTech",one:"Kus",many:"Technika",title:"name",fields:[
+    {k:"kind",l:"Druh",t:"text",ph:"napr. Svetlo, Kábel, Panel"},{k:"code",l:"Označenie",t:"text",ph:"napr. číslo alebo štítok na kuse"},{k:"place",l:"Kde je uložené",t:"text"},{k:"state",l:"Stav",t:"sel",o:"istate"},{k:"note",l:"Poznámka",t:"long"}]},
   comments:{col:"comments"}
 };
 const KEYS=Object.keys(ENT);

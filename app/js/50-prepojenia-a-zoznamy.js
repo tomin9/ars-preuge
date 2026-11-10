@@ -146,6 +146,7 @@ function dExtra(e,r){
     h+=lkCard(e,r,"ledger");   /* platby pri kontakte: server pošle len tie z viditeľných projektov / podujatí / grantov */
     if(r.ctype&&r.ctype!=="osoba")h+=logoCard(r,ed&&!S.readOnly);
     if(ed&&!S.readOnly)h+=mergeBlock(r);}
+  if(e==="ledger")h+=invTxCard(r);
   if(e==="ledger")h+=`<section class="dcard"><div class="ldocs">${LDOCS.map(([k,l])=>docRow("ledger",r,k,l)).join("")}</div></section>
     <section class="dcard note"><textarea aria-label="Poznámka" id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`;
   if(e==="tasks")h+=MAIN.filter(t=>t!==e&&accRead(t)&&!linkFields(e,t).some(f=>f.t==="rel")).map(t=>lkCard(e,r,t)).join("");

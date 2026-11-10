@@ -47,7 +47,7 @@ async function create(e,defs,opts){
   if(e==="events")Object.assign(base,{status:"priprava"});
   if(e==="prog")Object.assign(base,{status:"nevybavene",kind:"dielo",day:"oba"});
   if(e==="contacts")Object.assign(base,{ctype:"osoba"});
-  if(e==="invTech")Object.assign(base,{qty:1,state:"ok"});
+  if(e==="invTech")Object.assign(base,{state:"ok"});
   if(e==="invMoves"){Object.assign(base,{date:today(),qty:1,pay:"hotovost",handover:"odovzdane"});const it=defs&&defs.itemId?get("invItems",defs.itemId):null;if(it&&+it.price)base.amount=+it.price;}
   const data=Object.assign(base,defs||{});
   if(!(ENT[e].title in data))data[ENT[e].title]="";

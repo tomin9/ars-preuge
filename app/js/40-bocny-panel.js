@@ -122,6 +122,7 @@ function relOpts(f,r){
   let list=S.d[f.e];
   if(f.e==="lines"&&r.grantId)list=list.filter(l=>l.grantId===r.grantId);
   if(f.e==="grants")list=list.filter(g=>g.status==="schvalene"||g.id===r[f.k]);
+  if(f.e==="ledger")return list.filter(x=>x.type==="prijem"||x.id===r[f.k]).sort((a,b)=>(b.date||"").localeCompare(a.date||""));   /* platba k predaju z inventára: príjmy, najnovšie hore */
   return [...list].sort((a,b)=>ttl(f.e,a).localeCompare(ttl(f.e,b),"sk"));
 }
 document.addEventListener("copy",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.iban){const sel=String(t.value).substring(t.selectionStart,t.selectionEnd);if(sel){e.clipboardData.setData("text/plain",sel.replace(/\s+/g,""));e.preventDefault();}}});
@@ -189,6 +190,8 @@ function bindPart(root,e,r){
     const i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);upd(e,r.id,{[k]:a});
   });
   root.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>upd(e,r.id,{color:b.dataset.color}));
+  root.querySelectorAll("[data-invtx]").forEach(sel=>sel.onchange=async()=>{if(!sel.value)return;await upd("invMoves",sel.value,{txId:r.id});drawerRefresh(true);});   /* platba: priradiť predaj z inventára */
+  root.querySelectorAll("[data-invuntx]").forEach(b=>b.onclick=async ev=>{ev.stopPropagation();await upd("invMoves",b.dataset.invuntx,{txId:""});drawerRefresh(true);});
   root.querySelectorAll("[data-person]").forEach(box=>picker(box,get(e,r.id)[box.dataset.person],v=>upd(e,r.id,{[box.dataset.person]:v})));
   // checklist add
   root.querySelectorAll("[data-ck-add]").forEach(inp=>inp.addEventListener("keydown",ev=>{
@@ -265,7 +268,7 @@ function comboItems(c,q){
 }
 function comboOpen(inp,all){const c=comboCtx(inp);if(!c)return;const q=all?"":inp.value;const L=comboItems(c,q);const list=c.box.querySelector(".combo-list");
   const exact=L.some(x=>cnorm(ttl(c.f.e,x))===cnorm(q.trim()));
-  let h=(c.hid.value?`<button type="button" data-cv="">— zrušiť výber</button>`:"")+L.map(x=>`<button type="button" data-cv="${esc(x.id)}" class="${x.id===c.hid.value?"sel":""}">${c.f.e==="contacts"?cIcon(x):c.f.e==="grants"?provIcon(x):""}<span>${esc(ttl(c.f.e,x))}${c.f.e==="grants"&&provName(x)?`<small class="cprov">${esc(provName(x))}</small>`:""}</span></button>`).join("");
+  let h=(c.hid.value?`<button type="button" data-cv="">— zrušiť výber</button>`:"")+L.map(x=>`<button type="button" data-cv="${esc(x.id)}" class="${x.id===c.hid.value?"sel":""}">${c.f.e==="contacts"?cIcon(x):c.f.e==="grants"?provIcon(x):""}<span>${esc(ttl(c.f.e,x))}${c.f.e==="grants"&&provName(x)?`<small class="cprov">${esc(provName(x))}</small>`:""}${c.f.e==="ledger"?`<small class="cprov">${esc([fdateS(x.date)||"plánované",eur(x.amount)].join(" · "))}</small>`:""}</span></button>`).join("");
   if(q.trim()&&!exact&&c.f.e==="contacts")h+=`<button type="button" data-cnew="${esc(q.trim())}" class="new">+ Vytvoriť kontakt „${esc(q.trim())}“</button>`;
   if(!h)h=`<div class="meta" style="padding:8px 10px">Nič sa nenašlo.</div>`;
   list.innerHTML=h;list.hidden=false;list._hl=-1;}
