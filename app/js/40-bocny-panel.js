@@ -52,7 +52,7 @@ function dHead(e,r){
     top=u?`<div class="dcover"><img src="${esc(u)}" alt="" style="object-position:${esc(posOf(r))}">${can?`<div class="dcov-btns"><button type="button" class="icb" data-imgpos title="Posunúť obrázok" aria-label="Posunúť obrázok">${ICO_MOVE}</button><label class="icb" title="Zmeniť obrázok" aria-label="Zmeniť obrázok">${IMG}<input type="file" accept="image/*" data-img="${imgF.k}" hidden></label><button type="button" class="icb" data-imgdel="${imgF.k}" title="Odstrániť obrázok" aria-label="Odstrániť obrázok">${DEL}</button></div>`:""}</div>`
       :(can?`<label class="addcover">${IMG}Pridať obrázok<input type="file" accept="image/*" data-img="${imgF.k}" hidden></label>`:"");
   }
-  const ttlIn=`<input id="dw-title" class="ttl" data-f="${k}" value="${esc(r[k])}" placeholder="${esc(e==="ledger"?"Popis platby":"Názov")}" aria-label="Názov">`;
+  const ttlIn=`<input id="dw-title" class="ttl" data-f="${k}" value="${esc(r[k])}" placeholder="${esc(e==="ledger"?"Popis platby":e==="invMoves"?"Komu (meno)":"Názov")}" aria-label="Názov">`;
   if(e==="contacts"){const can=assets||!S.live;
     const ph=can?`<label class="cicobtn" title="Zmeniť fotku">${cIcon(r,true)}<input type="file" accept="image/*" data-img="icon" hidden><span class="cicoedit">Zmeniť</span></label>`:cIcon(r,true);
     const isP=(r.ctype||"osoba")==="osoba";let nm;

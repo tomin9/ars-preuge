@@ -19,7 +19,9 @@ const OPT={
   pkind:[["dielo","Umelecké dielo",BLUE],["sprievodny","Sprievodný program",PURPLE]],
   psec:[["Objekty a svetelné inštalácie","Objekty a svetelné inštalácie",BLUE],["Nové sgrafitá","Nové sgrafitá",GREEN],["Galéria ulice","Galéria ulice",OCHRE],["Živé sgrafitá","Živé sgrafitá",RED],["Sprievodný program","Sprievodný program",PURPLE]],
   pday:[["oba","Piatok aj sobota",GRAY],["piatok","Piatok",BLUE],["sobota","Sobota",PURPLE]],
-  pst:[["nevybavene","Nevybavené",GRAY],["riesi","V riešení",OCHRE],["pripravene","Pripravené",GREEN]]
+  pst:[["nevybavene","Nevybavené",GRAY],["riesi","V riešení",OCHRE],["pripravene","Pripravené",GREEN]],
+  ipay:[["hotovost","Hotovosť",PURPLE],["darujme","Darujme.sk",BLUE],["zadarmo","Zadarmo",GREEN],["predaj","Predáva sa",PINK]],   /* Inventár – Predaj: ako sa za vec platilo; „Predáva sa“ = nechané u predajcu */
+  ihand:[["pripravene","Pripravené",OCHRE],["odovzdane","Odovzdané",GREEN]]
 };
 const DEF_TTYPES=["Plagát","Podklady","Grafika","Web/Social","Fotenie","Tlač","Produkcia","Administratíva","Iné"];
 const DEF_CATS=["Honoráre","Materiál","Služby","Technika","Propagácia","Tlač","Cestovné","Prenájom","Ubytovanie","Občerstvenie","Bankové poplatky","Dotácia","Dar / sponzoring","Vstupné","Členské","Iné"];
@@ -65,6 +67,12 @@ const ENT={
     {k:"needOrg",l:"Organizačne treba",t:"long"},{k:"needMat",l:"Materiál a technika",t:"long"},{k:"eventId",l:"Podujatie",t:"rel",e:"events"},{k:"note",l:"Poznámka",t:"long"}]},
   zab:{col:"zabezpecenie",one:"Dielo",many:"Zabezpečenie",title:"title",fields:[]},
   zabd:{col:"zabdodavky",one:"Dodávka",many:"Dodávky",title:"nazov",fields:[]},
+  /* Inventár – Predaj (od 1.103.0): predmety na predaj a rozdávanie + ich výdaj (komu, koľko, za koľko). Kľúče sú rovnaké ako názvy kolekcií. */
+  invItems:{col:"invItems",one:"Predmet",many:"Predmety",title:"name",fields:[
+    {k:"kind",l:"Druh",t:"text",ph:"napr. Risografika"},{k:"price",l:"Cena za kus",t:"money"},{k:"made",l:"Vyrobené kusy",t:"num"},{k:"note",l:"Poznámka",t:"long"}]},
+  invMoves:{col:"invMoves",one:"Výdaj",many:"Výdaj",title:"who",fields:[
+    {k:"itemId",l:"Predmet",t:"rel",e:"invItems"},{k:"qty",l:"Kusy",t:"num"},{k:"amount",l:"Suma spolu",t:"money"},{k:"date",l:"Dátum",t:"date"},
+    {k:"pay",l:"Platba",t:"sel",o:"ipay"},{k:"handover",l:"Odovzdanie",t:"sel",o:"ihand"},{k:"contactId",l:"Kontakt",t:"rel",e:"contacts"},{k:"email",l:"E-mail",t:"email"},{k:"note",l:"Poznámka",t:"long"}]},
   comments:{col:"comments"}
 };
 const KEYS=Object.keys(ENT);
@@ -73,7 +81,7 @@ const KEYS=Object.keys(ENT);
 const S={d:{},settings:{},people:{},me:null,view:"prehlad",id:null,live:false,loading:true,readOnly:false,
   tf:{project:"",who:"",org:"",type:"",q:"",mode:"board",allDone:false},
   gf:{mode:"board"}, ef:{past:false}, ff:{tab:"dennik",year:String(new Date().getFullYear()),acct:"",type:"",project:"",grant:"",q:""},
-  cf:{q:"",role:""}, pf:"aktivne", cal:null};
+  cf:{q:"",role:""}, pf:"aktivne", cal:null, inf:{tab:"vydaj",q:"",item:"",pay:""}};
 KEYS.forEach(k=>S.d[k]=[]);
 let db=null,user=null,dl=null,assets=null,mcp=null;
 

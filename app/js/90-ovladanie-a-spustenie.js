@@ -67,6 +67,9 @@ function bindView(){
   on("#cf-q","input",e=>{S.cf.q=e.target.value;render();});
   v.querySelectorAll("[data-cvol]").forEach(b=>b.onclick=()=>{S.cf.tag=S.cf.tag===b.dataset.cvol?"":b.dataset.cvol;render();});
   v.querySelectorAll("[data-ctab]").forEach(b=>b.onclick=()=>{S.cf.tab=b.dataset.ctab;S.cf.tag="";render();});
+  v.querySelectorAll("[data-itab]").forEach(b=>b.onclick=()=>{S.inf.tab=b.dataset.itab;render();});
+  on("#if-q","input",e=>{S.inf.q=e.target.value;render();});
+  ["item","pay"].forEach(k=>on("#if-"+k,"change",e=>{S.inf[k]=e.target.value;render();}));
   on("#cf-state","change",e=>{S.cf.state=e.target.value;render();});
   on("#cf-ev","change",e=>{S.cf.ev=e.target.value;render();});
   on("#cf-copy","click",async()=>{const m=(S._clist||[]).filter(c=>c.email).map(c=>c.email).join(", ");try{await navigator.clipboard.writeText(m);toast("E-maily skopírované.");}catch(_){toast("Kopírovanie nie je dostupné.");}});
