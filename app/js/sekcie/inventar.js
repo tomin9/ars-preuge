@@ -1,4 +1,4 @@
-/* ===== Sekcia Inventár – Predaj (od 1.103.0): veci, ktoré sa predávajú a rozdávajú (risografiky, pohľadnice, mapy, tričká…).
+/* ===== Sekcia Inventár – Merch (do 1.106 „Predaj“, od 1.103.0): veci, ktoré sa predávajú a rozdávajú (risografiky, pohľadnice, mapy, tričká…).
    invItems = predmety (druh, cena, vyrobené kusy), invMoves = výdaj (komu, predmet, kusy, suma, platba, odovzdanie).
    Peniaze sa do Financií nezapisujú – súhrn (hotovosť / Darujme.sk) je len tu. V prístupoch je to oblasť „Inventár“ (inc/pristupy.php).
    Technika a požičané veci (prepojené s podujatiami) prídu ako ďalšia záložka.
@@ -17,7 +17,7 @@ function invTxCard(r){
   if(!L.length&&r.type!=="prijem")return"";
   const tot=sum(L,m=>m.amount),free=S.d.invMoves.filter(m=>!m.txId&&INV_PAID.includes(m.pay)&&+m.amount).sort(invSort),ed=accEditA("inventar")&&!S.readOnly;
   const it=m=>{const x=get("invItems",m.itemId);return x?x.name||"":"";};
-  return`<section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${DI.tag}Predaj z inventára</span>${L.length?`<span class="meta">${eur(tot)}${+r.amount&&Math.abs(tot-(+r.amount||0))>0.004?` z ${eur(r.amount)}`:""}</span>`:""}</h3>
+  return`<section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${DI.tag}Merch z inventára</span>${L.length?`<span class="meta">${eur(tot)}${+r.amount&&Math.abs(tot-(+r.amount||0))>0.004?` z ${eur(r.amount)}`:""}</span>`:""}</h3>
     ${L.length?`<ul class="items lk">${L.map(m=>`<li data-open="invMoves:${esc(m.id)}"><span class="t">${esc(m.who||"Bez mena")}<span class="meta" style="margin-left:6px">${esc(it(m))}</span></span><span class="num">${eur(m.amount)}</span>${ed?`<button type="button" class="icb" data-invuntx="${esc(m.id)}" title="Zrušiť priradenie" aria-label="Zrušiť priradenie">×</button>`:""}</li>`).join("")}</ul>`:`<p class="meta" style="margin:0 0 6px;white-space:normal">K tejto platbe zatiaľ nie je priradený žiadny predaj z Inventára.</p>`}
     ${ed&&free.length?`<select data-invtx="1" aria-label="Priradiť predaj" style="margin-top:6px;width:100%"><option value="">+ priradiť predaj…</option>${free.map(m=>`<option value="${esc(m.id)}">${esc([fdateS(m.date),m.who||"Bez mena",it(m),eur(m.amount),optL("ipay",m.pay)].filter(Boolean).join(" · "))}</option>`).join("")}</select>`:""}</section>`;}
 function invMoveLi(m){return`<li data-open="invMoves:${esc(m.id)}"><span class="t">${esc(m.who||"Bez mena")}</span>${chip("ipay",m.pay)}<span class="meta">${fdateS(m.date)||""}</span><span class="num">${invQty(m)} ks</span></li>`;}
@@ -30,12 +30,13 @@ function invItemExtra(it){const c=invItemCalc(it);
 /* ----- Technika: naše veci + čo treba zohnať a čo je požičané (z riadkov techniky pri dielach v Zabezpečení) ----- */
 /* vec = názov + parameter s jednotkou (Kábel 20 m); kusy s rovnakou vecou sa spoja */
 const invLabel=t=>[String((t&&t.name)||"").trim(),t&&t.param!=null&&t.param!==""?String(t.param).replace(".",",")+(t.unit&&t.unit!=="ks"?" "+t.unit:t.unit==="ks"?" ks":""):""].filter(Boolean).join(" ")||"Bez názvu";
-const invKey=t=>zbKey(invLabel(t));
-const invTechByName=n=>{const k=zbKey(n);return k?S.d.invTech.find(t=>invKey(t)===k)||null:null;};
+const invCat=t=>(t&&t.cat)||"vlastne";
+const invKey=t=>invCat(t)+"|"+zbKey(invLabel(t));   /* rovnaký názov, parameter aj kategória = jedna vec */
+const invTechByName=n=>{const k=zbKey(n);return k?S.d.invTech.find(t=>invCat(t)==="vlastne"&&zbKey(invLabel(t))===k)||null:null;};   /* prideľuje sa len vlastné */
 const invTechRows=()=>zbList().flatMap(x=>(x.technika||[]).map((r,i)=>({x,r,i})).filter(a=>a.r.nazov));   /* všetky riadky techniky pri dielach */
 /* každý kus je samostatný záznam; rovnaký názov = jedna vec s viacerými kusmi */
 const invPieces=t=>{const k=invKey(t);return k?S.d.invTech.filter(x=>invKey(x)===k).sort((a,b)=>(a.code||"").localeCompare(b.code||"","sk",{numeric:true})||(a.createdAt||0)-(b.createdAt||0)):[t];};
-function invTechCalc(t){const k=invKey(t),P=invPieces(t),A=invTechRows().filter(a=>zbTyp(a.r)==="nase"&&zbKey(a.r.nazov)===k),used=sum(A,a=>zbNum(a.r.ks||1));return{P,A,used,have:P.length,free:P.length-used,fix:P.filter(x=>x.state==="oprava").length};}
+function invTechCalc(t){const k=zbKey(invLabel(t)),P=invPieces(t),A=invCat(t)!=="vlastne"?[]:invTechRows().filter(a=>zbTyp(a.r)==="nase"&&zbKey(a.r.nazov)===k),used=sum(A,a=>zbNum(a.r.ks||1));return{P,A,used,have:P.length,free:P.length-used,fix:P.filter(x=>x.state==="oprava").length};}
 function invTechWarn(name){const t=invTechByName(name);if(!t)return;const c=invTechCalc(t);if(c.free<0)toast(`„${invLabel(t)}“: pri dielach je pridelených o ${-c.free} ks viac, než máme v inventári (${c.have} ks).`,6000);}
 /* do 1.104: jeden záznam s počtom kusov (qty) → rozdeliť na samostatné kusy; id kusov sú odvodené, takže dvaja naraz zapíšu to isté */
 function invTechSplit(){
@@ -61,14 +62,15 @@ function invGroupRefresh(force){
   const ro=ed?"":" disabled";
   const body=`<div id="dw-head"><input class="ttl" data-ig="name" value="${esc(t.name||"")}" placeholder="Názov" aria-label="Názov"${ed?"":" readonly"}></div>
     <section class="dcard"><h3>${DI.main}Údaje</h3><div class="props cprops" style="margin:0">
+      ${fld("cat","Kategória",`<select data-ig="cat"${ro}>${OPT.icat.map(o=>`<option value="${o[0]}" ${invCat(t)===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>`)}
       ${fld("param","Parameter",`<input type="number" step="0.01" data-ig="param" value="${esc(same("param")?t.param??"":"")}" placeholder="${same("param")?"napr. 20":"rôzne"}"${ro}>`)}
       ${fld("unit","Jednotka",`<select data-ig="unit"${ro}><option value="">—</option>${OPT.iunit.map(o=>`<option value="${o[0]}" ${same("unit")&&t.unit===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>`)}
       ${fld("kind","Druh",`<input type="text" data-ig="kind" value="${esc(same("kind")?t.kind||"":"")}" placeholder="${same("kind")?"napr. Kábel, Svetlo":"rôzne"}"${ro}>`)}
     </div></section>
-    <section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${ICON.inventar}Kusy</span><span class="row" style="gap:6px"><span class="meta">${c.have}</span>${ed?`<button class="btn ghost sm" data-create="invTech" data-defs='${esc(JSON.stringify({name:t.name||"",param:t.param??null,unit:t.unit||"",kind:t.kind||"",place:t.place||""}))}'>+ Pridať kus</button>`:""}</span></h3>
-      <ul class="items lk">${P.map((x,n)=>`<li data-open="invTech:${esc(x.id)}"><span class="t">${esc(x.code||("Kus "+(n+1)))}</span>${x.place?`<span class="meta">${esc(x.place)}</span>`:""}${chip("istate",x.state||"ok")}</li>`).join("")}</ul></section>
-    <section class="dcard"><div class="facts" style="margin:0"><div><span>Máme</span><b>${c.have} ks</b></div><div><span>Pridelené</span><b>${c.used} ks</b></div><div><span>Voľné</span><b class="${c.free<0?"neg":""}">${c.free} ks</b></div></div></section>
-    <section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${ICON.podujatia}Kde je pridelené</span><span class="meta">${c.A.length||""}</span></h3>${c.A.length?`<ul class="items lk">${c.A.map(a=>`<li data-open="zab:${esc(a.x.id)}"><span class="t">č. ${esc(a.x.ord||"")} ${esc(a.x.title||"")}</span><span class="num">${zbNum(a.r.ks||1)} ks</span></li>`).join("")}</ul>`:`<p class="meta" style="margin:0;white-space:normal">Zatiaľ nikde. Pridelíte pri diele v Zabezpečení – do poľa „Položka“ napíšte „${esc(invLabel(t))}“.</p>`}</section>
+    <section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${ICON.inventar}Kusy</span><span class="row" style="gap:6px"><span class="meta">${c.have}</span>${ed?`<button class="btn ghost sm" data-create="invTech" data-defs='${esc(JSON.stringify({name:t.name||"",param:t.param??null,unit:t.unit||"",kind:t.kind||"",place:t.place||"",cat:invCat(t),fromId:t.fromId||""}))}'>+ Pridať kus</button>`:""}</span></h3>
+      <ul class="items lk">${P.map((x,n)=>`<li data-open="invTech:${esc(x.id)}"><span class="t">${esc(x.code||("Kus "+(n+1)))}</span>${x.fromId&&get("contacts",x.fromId)?`<span class="meta">od ${esc(get("contacts",x.fromId).name||"")}</span>`:""}${x.place?`<span class="meta">${esc(x.place)}</span>`:""}${chip("istate",x.state||"ok")}</li>`).join("")}</ul></section>
+    ${invCat(t)!=="vlastne"?"":`<section class="dcard"><div class="facts" style="margin:0"><div><span>Máme</span><b>${c.have} ks</b></div><div><span>Pridelené</span><b>${c.used} ks</b></div><div><span>Voľné</span><b class="${c.free<0?"neg":""}">${c.free} ks</b></div></div></section>`}
+    ${invCat(t)!=="vlastne"?"":`<section class="dcard lkc"><h3 style="margin-bottom:6px"><span class="lkh">${ICON.podujatia}Kde je pridelené</span><span class="meta">${c.A.length||""}</span></h3>${c.A.length?`<ul class="items lk">${c.A.map(a=>`<li data-open="zab:${esc(a.x.id)}"><span class="t">č. ${esc(a.x.ord||"")} ${esc(a.x.title||"")}</span><span class="num">${zbNum(a.r.ks||1)} ks</span></li>`).join("")}</ul>`:`<p class="meta" style="margin:0;white-space:normal">Zatiaľ nikde. Pridelíte pri diele v Zabezpečení – do poľa „Položka“ napíšte „${esc(invLabel(t))}“.</p>`}</section>`}
 `;
   const box=host.querySelector("aside[data-invgbox] .dbody");   /* pri obnovení sa vymení len obsah – panel sa znova nevysúva */
   host.hidden=false;
@@ -86,7 +88,7 @@ function invGroupRefresh(force){
     inp.onchange=commit;if(inp.tagName==="INPUT")inp.onkeydown=e=>{if(e.key==="Enter")inp.blur();};});
   accBlur(host);
 }
-function invTechView(head){
+function invTechView(sec){
   invTechSplit();
   const f=S.inf,R=invTechRows(),items=[...new Map(S.d.invTech.map(t=>[invKey(t)||t.id,t])).values()].sort((a,b)=>(a.kind||"").localeCompare(b.kind||"","sk")||(a.name||"").localeCompare(b.name||"","sk"));
   const need=R.filter(a=>!a.r.ok&&((zbTyp(a.r)===""&&!zbKey(a.r.zdroj))||zbTyp(a.r)==="objednane"));
@@ -96,29 +98,35 @@ function invTechView(head){
   S.d.zabd.forEach(d=>grp(d.kto).L.push({n:d.nazov,ks:zbNum(d.ks),typ:d.typ,ok:!!d.ok,A:alloc[d.id]||[]}));
   R.forEach(a=>{const t=zbTyp(a.r);if(a.r.supplyId||!(zbLent(a.r)||(t===""&&zbKey(a.r.zdroj))))return;grp(a.r.zdroj).L.push({n:a.r.nazov,ks:zbNum(a.r.ks||1),typ:t,ok:!!a.r.ok,A:[a]});});
   const lent=Object.values(G).sort((a,b)=>!a.k-!b.k||a.name.localeCompare(b.name,"sk"));
-  const tabs=[["nase","Naše",items.length],["zohnat","Zohnať",need.length],["pozicane","Požičané",lent.length]];
-  if(!tabs.some(t=>t[0]===f.ttab))f.ttab="nase";
+  const TT={nase:"vlastne",zohnat:"zabezpecit"};if(TT[f.ttab])f.ttab=TT[f.ttab];   /* staré názvy záložiek */
+  const byCat=c=>items.filter(t=>invCat(t)===c);
+  const tabs=[["vlastne","Vlastné",byCat("vlastne").length],["pozicane","Požičané",byCat("pozicane").length+lent.length],["zabezpecit","Zabezpečiť",byCat("zabezpecit").length+need.length]];
+  if(!tabs.some(t=>t[0]===f.ttab))f.ttab="vlastne";
+  const cat=f.ttab,L=byCat(cat),C={};L.forEach(t=>C[t.id]=invTechCalc(t));
+  const head=`<div class="head"><div><h1>Inventár</h1><p class="sub">Technika – čo máme vlastné, čo máme požičané a čo treba zabezpečiť</p></div>
+    <div class="row"><button class="btn pri" data-create="invTech" data-defs='${esc(JSON.stringify({cat}))}'>Nová vec</button></div></div>${sec}`;
   const bar=`<div class="ctbar"><div class="ptabs" role="tablist" style="margin:0">${tabs.map(([k,l,n])=>`<button role="tab" data-ittab="${k}" aria-selected="${f.ttab===k}">${l}<span>${n||""}</span></button>`).join("")}</div></div>`;
-  if(f.ttab==="zohnat")return head+bar+`<div class="panel">${need.length?table([
+  const places=t=>esc([...new Set(C[t.id].P.map(x=>x.place).filter(Boolean))].join(", "));
+  const froms=t=>[...new Set(C[t.id].P.map(x=>x.fromId).filter(Boolean))].map(id=>get("contacts",id)).filter(Boolean).map(c=>`<span class="cut">${cIcon(c)}${esc(c.name||"")}</span>`).join(", ");
+  const stav=t=>C[t.id].fix?`<span class="chip"><i style="background:${optC("istate","oprava")}"></i>${C[t.id].fix===C[t.id].have?"Treba opraviť":C[t.id].fix+" ks treba opraviť"}</span>`:"";
+  const cols=cat==="vlastne"?[["Vec",t=>`<span class="cut">${esc(invLabel(t))}</span>`,"t"],["Druh",t=>esc(t.kind||"")],["Máme",t=>C[t.id].have,"num"],["Pridelené",t=>C[t.id].used||"","num"],["Voľné",t=>`<b class="${C[t.id].free<0?"neg":""}">${C[t.id].free}</b>`,"num"],["Kde je uložené",places],["Stav",stav]]
+    :[["Vec",t=>`<span class="cut">${esc(invLabel(t))}</span>`,"t"],["Druh",t=>esc(t.kind||"")],["Kusy",t=>C[t.id].have,"num"],[cat==="pozicane"?"Od koho":"Od koho / kde",t=>froms(t)||places(t)],["Stav",stav]];
+  const empty={vlastne:"Zatiaľ žiadne vlastné veci. Pridajte prvú tlačidlom „Nová vec“ – napríklad LED panel alebo kábel 20 m. Ďalšie kusy pridáte na karte veci („+ Pridať kus“).",
+    pozicane:"V inventári zatiaľ nie sú požičané veci. Pridajte ich tlačidlom „Nová vec“ a na karte kusu vyberte, od koho sú.",
+    zabezpecit:"V inventári zatiaľ nie je nič na zabezpečenie. Pridajte to tlačidlom „Nová vec“."}[cat];
+  const own=`<div class="panel">${L.length?table(cols,L,t=>"invg:"+esc(encodeURIComponent(invKey(t)))):`<div class="empty">${empty}</div>`}</div>`;
+  const sub=t=>`<h2 style="margin:26px 2px 10px">${t}</h2>`;
+  if(cat==="zabezpecit")return head+bar+own+(need.length?sub("Z dielov v Zabezpečení NOX:art")+`<div class="panel">${table([
       ["Položka",a=>`<span class="cut">${esc(a.r.nazov)}</span>`,"t"],["ks",a=>zbNum(a.r.ks||1),"num"],
-      ["Stav",a=>zbTyp(a.r)==="objednane"?`<span class="chip"><i style="background:${BLUE}"></i>Objednané</span>`:`<span class="chip"><i style="background:${RED}"></i>Treba zohnať</span>`],
+      ["Stav",a=>zbTyp(a.r)==="objednane"?`<span class="chip"><i style="background:${BLUE}"></i>Objednané</span>`:`<span class="chip"><i style="background:${RED}"></i>Treba zabezpečiť</span>`],
       ["Kam",a=>`<span class="meta">č. ${esc(a.x.ord||"")} ${esc(a.x.title||"")}</span>`],["Od koho / kde",a=>esc(a.r.zdroj||"")]
-    ],need,a=>"zab:"+esc(a.x.id),`<td>Spolu</td><td class="num">${sum(need,a=>zbNum(a.r.ks||1))}</td><td colspan="3"></td>`)
-    :`<div class="empty">Nič netreba zháňať – všetky položky pri dielach majú zdroj alebo sú zabezpečené.</div>`}</div>
-    <p class="small muted" style="margin:10px 2px 0">Sú tu položky pri dielach v Zabezpečení, ktoré nie sú z nášho inventára a nemajú vyplnené „od koho“, a položky s druhom „objednané“. Keď pri položke doplníte, od koho je, presunie sa do Požičané; keď ju odškrtnete ako zabezpečenú, zo zoznamu zmizne.</p>`;
-  if(f.ttab==="pozicane")return head+bar+`<div class="panel">${lent.length?`<div class="tw"><table><thead><tr><th class="t">Od koho</th><th>Čo a kam to ide</th><th class="num">ks</th></tr></thead><tbody>${lent.map(g=>{const c=g.k?S.d.contacts.find(x=>zbKey(x.name)===g.k):null;
+    ],need,a=>"zab:"+esc(a.x.id),`<td>Spolu</td><td class="num">${sum(need,a=>zbNum(a.r.ks||1))}</td><td colspan="3"></td>`)}</div>
+    <p class="small muted" style="margin:10px 2px 0">Položky pri dielach, ktoré nie sú z nášho inventára a nemajú vyplnené „od koho“, a položky s druhom „objednané“. Keď pri položke doplníte, od koho je, presunie sa do Požičané; keď ju odškrtnete ako zabezpečenú, zo zoznamu zmizne.</p>`:"");
+  if(cat==="pozicane")return head+bar+own+(lent.length?sub("Z dielov v Zabezpečení NOX:art")+`<div class="panel"><div class="tw"><table><thead><tr><th class="t">Od koho</th><th>Čo a kam to ide</th><th class="num">ks</th></tr></thead><tbody>${lent.map(g=>{const c=g.k?S.d.contacts.find(x=>zbKey(x.name)===g.k):null;
       return`<tr${c?` data-open="contacts:${esc(c.id)}"`:""}><td class="t">${g.k?(c?`<span class="cut">${cIcon(c)}${esc(c.name)}</span>`:`<span class="cut">${esc(g.name)}</span><div class="meta">nie je v kontaktoch</div>`):`<span class="meta">nezadané, od koho</span>`}</td>
       <td style="white-space:normal">${g.L.map(l=>`<div style="margin:3px 0"><b>${esc(l.n||"")}</b> · ${l.ks} ks${l.typ==="darovane"?` <span class="chip"><i style="background:${GREEN}"></i>darované</span>`:""}${l.ok?` <span class="chip"><i style="background:${GREEN}"></i>máme</span>`:` <span class="chip"><i style="background:${OCHRE}"></i>čaká</span>`} ${l.A.map(invWork).join(" ")}</div>`).join("")}</td>
-      <td class="num">${sum(g.L,l=>l.ks)}</td></tr>`;}).join("")}</tbody></table></div>`
-    :`<div class="empty">Zatiaľ nič požičané. Pri diele v Zabezpečení vyplňte pri položke „od koho“ a objaví sa tu.</div>`}</div>`;
-  const C={};items.forEach(t=>C[t.id]=invTechCalc(t));
-  return head+bar+`<div class="panel">${items.length?table([
-      ["Vec",t=>`<span class="cut">${esc(invLabel(t))}</span>`,"t"],["Druh",t=>esc(t.kind||"")],["Máme",t=>C[t.id].have,"num"],["Pridelené",t=>C[t.id].used||"","num"],
-      ["Voľné",t=>`<b class="${C[t.id].free<0?"neg":""}">${C[t.id].free}</b>`,"num"],["Kde je uložené",t=>esc([...new Set(C[t.id].P.map(x=>x.place).filter(Boolean))].join(", "))],
-      ["Stav",t=>C[t.id].fix?`<span class="chip"><i style="background:${optC("istate","oprava")}"></i>${C[t.id].fix===C[t.id].have?"Treba opraviť":C[t.id].fix+" ks treba opraviť"}</span>`:""]
-    ],items,t=>"invg:"+esc(encodeURIComponent(invKey(t))))
-    :`<div class="empty">Zatiaľ žiadne veci. Pridajte prvú tlačidlom „Nová vec“ – napríklad LED panel alebo kábel 30 m. Ďalšie kusy pridáte na karte veci („+ Pridať kus“).</div>`}</div>
-    <p class="small muted" style="margin:10px 2px 0">Kusy s rovnakým názvom a parametrom (napr. Kábel 20 m) sa spoja do jednej veci – kliknutím otvoríte jej kartu so zoznamom kusov. Vec pridelíte pri diele v Zabezpečení: do poľa „Položka“ začnite písať jej názov a vyberte ju z ponuky – riadok dostane druh „naše“ a kusy sa tu odpočítajú z voľných.</p>`;
+      <td class="num">${sum(g.L,l=>l.ks)}</td></tr>`;}).join("")}</tbody></table></div></div>`:"");
+  return head+bar+own+`<p class="small muted" style="margin:10px 2px 0">Kusy s rovnakým názvom a parametrom (napr. Kábel 20 m) sa spoja do jednej veci – kliknutím otvoríte jej kartu so zoznamom kusov. Vec pridelíte pri diele v Zabezpečení: do poľa „Položka“ začnite písať jej názov a vyberte ju z ponuky – riadok dostane druh „naše“ a kusy sa tu odpočítajú z voľných.</p>`;
 }
 VIEWS.inventar=()=>{
   const f=S.inf,M=S.d.invMoves,items=[...S.d.invItems].sort((a,b)=>(a.name||"").localeCompare(b.name||"","sk"));
@@ -126,10 +134,9 @@ VIEWS.inventar=()=>{
   const tabs=[["vydaj","Výdaj",M.length],["odovzdat","Na odovzdanie",wait.length],["sklad","Sklad",items.length]];
   if(!tabs.some(t=>t[0]===f.tab))f.tab="vydaj";
   const paid=p=>sum(M.filter(m=>m.pay===p),m=>m.amount);
-  const sec=`<div class="tabs" style="margin-bottom:18px">${[["predaj","Predaj"],["technika","Technika"]].map(([k,l])=>`<button data-isec="${k}" aria-pressed="${(f.sec==="technika"?"technika":"predaj")===k}">${l}</button>`).join("")}</div>`;
-  if(f.sec==="technika")return invTechView(`<div class="head"><div><h1>Inventár</h1><p class="sub">Technika – čo máme, čo treba zohnať a čo máme požičané</p></div>
-    <div class="row"><button class="btn pri" data-create="invTech">Nová vec</button></div></div>${sec}`);
-  const head=`<div class="head"><div><h1>Inventár</h1><p class="sub">Predaj a rozdávanie – risografiky, pohľadnice, mapy a ďalšie veci</p></div>
+  const sec=`<div class="tabs" style="margin-bottom:18px">${[["predaj","Merch"],["technika","Technika"]].map(([k,l])=>`<button data-isec="${k}" aria-pressed="${(f.sec==="technika"?"technika":"predaj")===k}">${l}</button>`).join("")}</div>`;
+  if(f.sec==="technika")return invTechView(sec);
+  const head=`<div class="head"><div><h1>Inventár</h1><p class="sub">Merch – risografiky, pohľadnice, mapy, tričká a ďalšie veci na predaj a rozdávanie</p></div>
     <div class="row"><button class="btn" data-create="invItems">Nový predmet</button><button class="btn pri" data-create="invMoves"${f.item?` data-defs='${esc(JSON.stringify({itemId:f.item}))}'`:""}>Zapísať výdaj</button></div></div>${sec}
   <div class="strip"><div><b>${eur(paid("hotovost")+paid("darujme"))}</b><span>zarobené spolu</span></div><div><b>${eur(paid("hotovost"))}</b><span>v hotovosti</span></div><div><b>${eur(paid("darujme"))}</b><span>cez Darujme.sk</span></div><div><b>${wait.length}</b><span>čaká na odovzdanie</span></div></div>
   <div class="ctbar"><div class="ptabs" role="tablist" style="margin:0">${tabs.map(([k,l,n])=>`<button role="tab" data-itab="${k}" aria-selected="${f.tab===k}">${l}<span>${n||""}</span></button>`).join("")}</div>${f.tab==="sklad"?"":`<div class="ctools"><input type="search" id="if-q" placeholder="Hľadať meno alebo poznámku" value="${esc(f.q||"")}">

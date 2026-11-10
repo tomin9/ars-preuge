@@ -23,6 +23,7 @@ const OPT={
   ipay:[["hotovost","Hotovosť",PURPLE],["darujme","Darujme.sk",BLUE],["zadarmo","Zadarmo",GREEN],["predaj","Predáva sa",PINK]],   /* Inventár – Predaj: ako sa za vec platilo; „Predáva sa“ = nechané u predajcu */
   ihand:[["pripravene","Pripravené",OCHRE],["odovzdane","Odovzdané",GREEN]],
   istate:[["ok","V poriadku",GREEN],["oprava","Treba opraviť",RED]],
+  icat:[["vlastne","Vlastné",GREEN],["pozicane","Požičané",BLUE],["zabezpecit","Zabezpečiť",RED]],   /* kategória kusu techniky v inventári (bez kategórie = vlastné) */
   iunit:[["m","m",GRAY],["cm","cm",GRAY],["mm","mm",GRAY],["W","W",GRAY],["kW","kW",GRAY],["V","V",GRAY],["A","A",GRAY],["Ah","Ah",GRAY],["kg","kg",GRAY],["l","l",GRAY],["ks","ks",GRAY]]   /* jednotka parametra veci v inventári (Kábel 20 m, Reflektor 500 W) */
 };
 const DEF_TTYPES=["Plagát","Podklady","Grafika","Web/Social","Fotenie","Tlač","Produkcia","Administratíva","Iné"];
@@ -78,7 +79,7 @@ const ENT={
   /* Inventár – Technika (od 1.104.0): naše veci (panely, svetlá, káble); od 1.105.0 je každý kus samostatný záznam, rovnaké názvy sa v zozname spoja.
      Prideľujú sa pri dielach v Zabezpečení: riadok techniky s druhom „naše“ a rovnakým názvom. Staré pole qty (počet kusov) sa rozdelí na kusy – invTechSplit. */
   invTech:{col:"invTech",one:"Kus",many:"Technika",title:"name",fields:[
-    {k:"param",l:"Parameter",t:"num"},{k:"unit",l:"Jednotka",t:"sel",o:"iunit"},{k:"kind",l:"Druh",t:"text",ph:"napr. Svetlo, Kábel, Panel"},{k:"code",l:"Označenie",t:"text",ph:"napr. číslo alebo štítok na kuse"},{k:"place",l:"Kde je uložené",t:"text"},{k:"state",l:"Stav",t:"sel",o:"istate"},{k:"note",l:"Poznámka",t:"long"}]},
+    {k:"cat",l:"Kategória",t:"sel",o:"icat"},{k:"param",l:"Parameter",t:"num"},{k:"unit",l:"Jednotka",t:"sel",o:"iunit"},{k:"fromId",l:"Od koho",t:"rel",e:"contacts"},{k:"kind",l:"Druh",t:"text",ph:"napr. Svetlo, Kábel, Panel"},{k:"code",l:"Označenie",t:"text",ph:"napr. číslo alebo štítok na kuse"},{k:"place",l:"Kde je uložené",t:"text"},{k:"state",l:"Stav",t:"sel",o:"istate"},{k:"note",l:"Poznámka",t:"long"}]},
   comments:{col:"comments"}
 };
 const KEYS=Object.keys(ENT);
