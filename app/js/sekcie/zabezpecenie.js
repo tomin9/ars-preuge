@@ -18,7 +18,7 @@ function zbVals(key,fld){const m={};S.d.zab.forEach(x=>(x[key]||[]).forEach(r=>{
   return Object.values(m).map(c=>Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0]).sort((a,b)=>a.localeCompare(b,"sk"));}
 function zbMerge(a,b){const m=new Map();[...a,...b].forEach(v=>{v=String(v||"").trim().replace(/\s+/g," ");if(v&&!m.has(zbKey(v)))m.set(zbKey(v),v);});return[...m.values()].sort((x,y)=>x.localeCompare(y,"sk"));}
 function zbLists(){const dl=(id,a)=>`<datalist id="${id}">${a.map(v=>`<option value="${esc(v)}"></option>`).join("")}</datalist>`;
-  return dl("zb-dl-tech",zbMerge(zbMerge(S.d.invTech.map(t=>t.name),zbVals("technika","nazov")),S.d.zabd.map(d=>d.nazov)))+dl("zb-dl-zdroj",zbMerge(zbMerge(zbVals("technika","zdroj"),S.d.zabd.map(d=>d.kto)),S.d.contacts.map(c=>c.name)))   /* ponuka: veci z Inventára (Technika) a mená z Kontaktov */+dl("zb-dl-rola",zbVals("personal","rola"))+dl("zb-dl-kto",zbVals("personal","kto"));}
+  return dl("zb-dl-tech",zbMerge(zbMerge(S.d.invTech.map(invLabel),zbVals("technika","nazov")),S.d.zabd.map(d=>d.nazov)))+dl("zb-dl-zdroj",zbMerge(zbMerge(zbVals("technika","zdroj"),S.d.zabd.map(d=>d.kto)),S.d.contacts.map(c=>c.name)))   /* ponuka: veci z Inventára (Technika) a mená z Kontaktov */+dl("zb-dl-rola",zbVals("personal","rola"))+dl("zb-dl-kto",zbVals("personal","kto"));}
 const zbMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||"");return m?(+m[1])*60+(+m[2]):null;};
 function zbOverlap(a,b){if(!a.den||a.den!==b.den)return false;const a1=zbMin(a.od),a2=zbMin(a.do),b1=zbMin(b.od),b2=zbMin(b.do);if(a1==null||b1==null)return false;
   const e1=a2==null?a1+1:(a2<=a1?a2+1440:a2),e2=b2==null?b1+1:(b2<=b1?b2+1440:b2);return a1<e2&&b1<e1;}

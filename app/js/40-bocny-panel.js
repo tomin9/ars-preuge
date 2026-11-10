@@ -2,10 +2,10 @@
    Časť spoločného programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/40-bocny-panel.js. Nie je to samostatný skript. ===== */
 /* ================= drawer (record peek, Notion-like) ================= */
 let DW=null;
-const DW_NEW=e=>e==="ledger"||e==="contacts"||e==="tasks";  /* panely v novej podobe (vzor: kontakt) – ikonové tlačidlá, karty */
+const DW_NEW=e=>e==="ledger"||e==="contacts"||e==="tasks"||e==="invTech";  /* panely v novej podobe (vzor: kontakt) – ikonové tlačidlá, karty */
 const DW_EDIT=e=>e==="contacts"||e==="tasks";               /* ceruzka = zobraziť všetky polia */
 function openDrawer(e,id,isNew){
-  if(!accRead(e))return;
+  if(!accRead(e))return;S.invG=null;
   {const r=get(e,id);if(r&&r._stub){toast("Tento záznam je mimo vášho prístupu – vidíte len jeho názov.");return;}}
   DW={e,id,isNew:!!isNew,edit:!!isNew&&accEditRec(e,get(e,id))};closeSide();
   const host=$("#drawer");
@@ -28,7 +28,7 @@ function openDrawer(e,id,isNew){
   drawerRefresh(true);
   if(isNew)setTimeout(()=>{const t=$("#dw-title");if(t)t.focus();},60);
 }
-function closeDrawer(){DW=null;const h=$("#drawer");if(h){h.innerHTML="";h.hidden=true;}}
+function closeDrawer(){DW=null;S.invG=null;const h=$("#drawer");if(h){h.innerHTML="";h.hidden=true;}}
 function drawerRefresh(force){
   if(!DW)return;const r=get(DW.e,DW.id);
   if(!r){if(S.live&&!force){$("#dw-head").innerHTML=`<div class="empty">Záznam sa nenašiel – možno ho niekto zmazal.</div>`;$("#dw-props").innerHTML="";$("#dw-extra").innerHTML="";}return;}
@@ -190,6 +190,7 @@ function bindPart(root,e,r){
     const i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);upd(e,r.id,{[k]:a});
   });
   root.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>upd(e,r.id,{color:b.dataset.color}));
+  root.querySelectorAll("[data-invg]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();invGroupOpen(decodeURIComponent(b.dataset.invg));});   /* kus → karta veci */
   root.querySelectorAll("[data-invtx]").forEach(sel=>sel.onchange=async()=>{if(!sel.value)return;await upd("invMoves",sel.value,{txId:r.id});drawerRefresh(true);});   /* platba: priradiť predaj z inventára */
   root.querySelectorAll("[data-invuntx]").forEach(b=>b.onclick=async ev=>{ev.stopPropagation();await upd("invMoves",b.dataset.invuntx,{txId:""});drawerRefresh(true);});
   root.querySelectorAll("[data-person]").forEach(box=>picker(box,get(e,r.id)[box.dataset.person],v=>upd(e,r.id,{[box.dataset.person]:v})));

@@ -31,6 +31,7 @@ function navBar(){
   <nav class="nb-path" aria-label="Kde som">${r?`<button data-go="${sec}">${esc(secL)}</button><span>/</span><b>${esc(ttl(ent,r))}</b>`:`<b>${esc(secL||"Prehľad")}</b>`}</nav></div>`;
 }
 function openRec(e,id){
+  if(e==="invg")return invGroupOpen(decodeURIComponent(id));   /* Inventár: karta veci (skupina rovnakých kusov) */
   {const r=get(e,id);if(r&&r._stub){toast("Tento záznam je mimo vášho prístupu – vidíte len jeho názov.");return;}}
   if(e==="zab")return zbOpenEvent();
   if(e==="projects")return go("projekt",id);
@@ -87,7 +88,7 @@ function render(){
   v.innerHTML=navBar()+notice+f();
   if(fid){const el=document.getElementById(fid);if(el){if(fval!==null&&el.value!==fval)el.value=fval;el.focus();if(sel&&el.setSelectionRange)try{el.setSelectionRange(sel[0],sel[1]);}catch(_){}}}
   bindView();accSweep();accLockView();accBlur(document.getElementById("view"));accBlur(document.getElementById("side"));
-  if(DW)drawerRefresh();
+  if(DW)drawerRefresh();else if(S.invG)invGroupRefresh();
 }
 function colSide(){try{return localStorage.getItem("arsp_sidecol")==="1";}catch(_){return false;}}
 function applySideCol(){const a=document.querySelector(".app");if(a)a.classList.toggle("sidecolp",colSide());}
