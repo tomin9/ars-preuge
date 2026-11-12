@@ -59,6 +59,15 @@ table.lt td.t{display:flex;gap:8px;align-items:baseline;min-width:0}
 .ptabs button.phadd{font-weight:500;font-size:14px;padding:5px 12px;border:1px dashed var(--line);border-radius:999px}
 .ptabs button.phadd:hover{background:none;color:var(--accent);border-color:var(--accent)}
 .phgrid{display:flex;flex-wrap:wrap;gap:6px}
+/* Médiá: odkazy zbierky (Spotify, YouTube…) nad fotkami */
+.mdlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-bottom:16px;align-items:start}
+.mdi{position:relative;border-radius:12px;overflow:hidden;background:var(--surface);border:1px solid var(--line)}
+.mdi iframe{display:block;width:100%;border:0}
+.mdi.vid iframe{aspect-ratio:16/9;height:auto}
+.mdi.lnk a{display:flex;flex-direction:column;gap:3px;padding:14px 16px;color:var(--ink);text-decoration:none;min-width:0}
+.mdi.lnk a .meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mdi:hover .mdrm,.mdrm:focus{opacity:1}
+.mdi .mdrm{z-index:2}
 .phgrid::after{content:"";flex-grow:1e9}
 .phi{all:unset;cursor:zoom-in;display:block;--r:1.5;flex:calc(var(--r)*1000) 1 calc(var(--r)*200px);max-width:100%;border-radius:6px;overflow:hidden;background:var(--surface2)}
 .phi img{width:100%;aspect-ratio:var(--r);height:auto;object-fit:cover;display:block;transition:transform .2s}

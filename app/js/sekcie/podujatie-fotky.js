@@ -1,25 +1,41 @@
-/* ===== Podujatie – záložka Fotky (album Google Fotiek, prezeranie).
+/* ===== Podujatie – záložka Médiá (do 2.0.33 Fotky): zbierky (albums) – každá môže mať album Google Fotiek (url) a ďalšie odkazy (links:
+   Spotify, YouTube, Vimeo… s náhľadom, ostatné ako odkaz). Kľúč záložky ostal „fotky“.
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-fotky.js. Nie je to samostatný skript. ===== */
 S._ph=S._ph||{};
 const phRow=id=>`https://lh3.googleusercontent.com/pw/${id}=w1400-h440`;   /* náhľad bez orezania – riadky ako v Google Fotkách */
 S._phr=S._phr||{};   /* pomer strán fotiek (šírka/výška), zistený po načítaní náhľadu */
 const phFull=id=>`https://lh3.googleusercontent.com/pw/${id}=w2000`;
 /* albumy podujatia: nové pole albums [{id,url}]; doterajšie photosUrl = prvý album (ostáva vyplnené kvôli kompatibilite) */
-const phAlbums=e=>Array.isArray(e.albums)&&e.albums.length?e.albums.filter(a=>a&&a.url):(e.photosUrl?[{id:"a0",url:e.photosUrl}]:[]);
+const phAlbums=e=>Array.isArray(e.albums)&&e.albums.length?e.albums.filter(a=>a&&(a.url||(Array.isArray(a.links)&&a.links.length))):(e.photosUrl?[{id:"a0",url:e.photosUrl}]:[]);
+/* odkaz → náhľad na prehranie (Spotify, YouTube, Vimeo, SoundCloud); null = obyčajný odkaz */
+function mdEmbed(u){u=String(u||"").trim();let m;
+  if((m=/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(episode|show|track|album|playlist|artist)\/([A-Za-z0-9]+)/.exec(u)))return{kind:"Spotify",src:`https://open.spotify.com/embed/${m[1]}/${m[2]}`,h:m[1]==="episode"||m[1]==="track"?152:352};
+  if((m=/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/.exec(u)))return{kind:"YouTube",src:`https://www.youtube-nocookie.com/embed/${m[1]}`,video:1};
+  if((m=/vimeo\.com\/(?:video\/)?(\d+)/.exec(u)))return{kind:"Vimeo",src:`https://player.vimeo.com/video/${m[1]}`,video:1};
+  if(/soundcloud\.com\//.test(u))return{kind:"SoundCloud",src:`https://w.soundcloud.com/player/?url=${encodeURIComponent(u)}&visual=false`,h:166};
+  return null;}
+const mdHost=u=>{try{return new URL(u).hostname.replace(/^www\./,"");}catch(_){return u;}};
+const mdLabel=u=>{const x=mdEmbed(u);return x?x.kind:phOkUrl(u)?"Fotky":mdHost(u);};
 S._phsel=S._phsel||{};
 const phCur=e=>{const A=phAlbums(e);return A.find(a=>a.id===S._phsel[e.id])||A[0]||null;};
 const phOkUrl=u=>/^https?:\/\/(photos\.app\.goo\.gl|photos\.google\.com|goo\.gl)\//i.test(u);
 function fotkyTab(e){
   const A=phAlbums(e),cur=phCur(e),eid=esc(e.id);
-  if(!A.length)return`<div class="phbar"><div class="ptabs phtabs"><button type="button" class="phadd" data-phadd="${eid}">+ Pridať album</button></div></div>`;
-  A.forEach(a=>{if(!S._ph[a.url])phFetch(a.url,false).then(()=>{const t=document.querySelector(`[data-phtab="${CSS.escape(a.id)}"]`);if(t&&S.view==="podujatie"&&S.id===e.id)t.outerHTML=phTabBtn(e,a,A,cur);}).catch(()=>{});});
-  setTimeout(()=>phLoad(e.id,false),0);
+  if(!A.length)return`<div class="phbar"><div class="ptabs phtabs"><button type="button" class="phadd" data-phadd="${eid}">+ Pridať</button></div></div><div class="empty">Pridajte album z Google Fotiek, video (YouTube, Vimeo) alebo podcast (Spotify) – vložte odkaz.</div>`;
+  A.forEach(a=>{if(a.url&&!S._ph[a.url])phFetch(a.url,false).then(()=>{const t=document.querySelector(`[data-phtab="${CSS.escape(a.id)}"]`);if(t&&S.view==="podujatie"&&S.id===e.id)t.outerHTML=phTabBtn(e,a,A,cur);}).catch(()=>{});});
+  if(cur.url)setTimeout(()=>phLoad(e.id,false),0);
   const IC={dl:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',rf:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>',ed:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',gp:'<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M12 12V3.2A4.4 4.4 0 0 0 7.6 7.6V12z" fill="currentColor"/><path d="M12 12h8.8A4.4 4.4 0 0 0 16.4 7.6H12z" fill="currentColor" opacity=".75"/><path d="M12 12v8.8a4.4 4.4 0 0 0 4.4-4.4V12z" fill="currentColor"/><path d="M12 12H3.2a4.4 4.4 0 0 0 4.4 4.4H12z" fill="currentColor" opacity=".75"/></svg>'};
-  return`<div class="phbar"><div class="ptabs phtabs" role="tablist">${A.map(a=>phTabBtn(e,a,A,cur)).join("")}<button type="button" class="phadd" data-phadd="${eid}">+ Pridať album</button></div>
-    <div class="row phic" style="gap:2px"><a class="tplus" href="${esc(cur.url)}" target="_blank" rel="noopener" title="Otvoriť v Google Fotkách" aria-label="Otvoriť v Google Fotkách">${IC.gp}</a><button class="tplus" data-phall="${eid}" title="Stiahnuť všetky fotky albumu (ZIP)" aria-label="Stiahnuť všetky fotky">${IC.dl}</button><button class="tplus" data-phchange="${eid}" title="Zmeniť odkaz na album" aria-label="Zmeniť odkaz na album">${IC.ed}</button><button class="tplus tdel" data-phdel="${eid}" title="Odobrať album z podujatia" aria-label="Odobrať album z podujatia">${TI.del}</button></div></div>
-    <div id="ph-box" class="phbox"><div class="empty">Načítavam fotky…</div></div>`;
+  return`<div class="phbar"><div class="ptabs phtabs" role="tablist">${A.map(a=>phTabBtn(e,a,A,cur)).join("")}<button type="button" class="phadd" data-phadd="${eid}">+ Pridať</button></div>
+    <div class="row phic" style="gap:2px"><button class="tplus" data-phlink="${eid}" title="Pridať odkaz do tejto zbierky (video, podcast, ďalší album…)" aria-label="Pridať odkaz"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></button>${cur.url?`<a class="tplus" href="${esc(cur.url)}" target="_blank" rel="noopener" title="Otvoriť v Google Fotkách" aria-label="Otvoriť v Google Fotkách">${IC.gp}</a><button class="tplus" data-phall="${eid}" title="Stiahnuť všetky fotky albumu (ZIP)" aria-label="Stiahnuť všetky fotky">${IC.dl}</button><button class="tplus" data-phchange="${eid}" title="Zmeniť odkaz na album" aria-label="Zmeniť odkaz na album">${IC.ed}</button>`:""}<button class="tplus tdel" data-phdel="${eid}" title="Odobrať album z podujatia" aria-label="Odobrať album z podujatia">${TI.del}</button></div></div>
+    ${mdLinks(e,cur)}${cur.url?`<div id="ph-box" class="phbox"><div class="empty">Načítavam fotky…</div></div>`:""}`;
 }
-const phName=(a,A)=>{const d=S._ph[a.url];return String(a.name||"").trim()||(d&&d.title)||"Album "+(A.indexOf(a)+1);};
+/* odkazy zbierky: podcasty a videá s prehrávačom, ostatné ako karta s odkazom */
+function mdLinks(e,a){const L=Array.isArray(a.links)?a.links:[];if(!L.length)return"";const eid=esc(e.id),ed=accEditRec("events",e)&&!S.readOnly;
+  const DEL='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
+  return`<div class="mdlist">${L.map(x=>{const m=mdEmbed(x.url),rm=ed?`<button type="button" class="gdrm mdrm" data-mdrm="${eid}|${esc(a.id)}|${esc(x.id)}" title="Odobrať odkaz" aria-label="Odobrať odkaz">${DEL}</button>`:"";
+    return m?`<div class="mdi${m.video?" vid":""}">${rm}<iframe src="${esc(m.src)}" title="${esc(m.kind)}" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen${m.h?` style="height:${m.h}px"`:""}></iframe></div>`
+      :`<div class="mdi lnk">${rm}<a href="${esc(x.url)}" target="_blank" rel="noopener"><b>${esc(x.name||mdHost(x.url))}</b><span class="meta">${esc(x.url)}</span></a></div>`;}).join("")}</div>`;}
+const phName=(a,A)=>{const d=a.url&&S._ph[a.url];return String(a.name||"").trim()||(d&&d.title)||(!a.url&&a.links&&a.links[0]?mdLabel(a.links[0].url):"")||"Album "+(A.indexOf(a)+1);};
 function phTabBtn(e,a,A,cur){const on=cur&&cur.id===a.id;
   return`<button role="tab" data-phtab="${esc(a.id)}" data-phev="${esc(e.id)}" aria-selected="${on}"${on?' title="Kliknutím premenujete album"':""}>${esc(phName(a,A))}</button>`;}
 async function phFetch(url,refresh){
@@ -54,6 +70,9 @@ document.addEventListener("click",async ev=>{const T=ev.target;if(!T.closest)ret
   if((el=T.closest("[data-phtab]"))){const eid=el.dataset.phev,aid=el.dataset.phtab;if(el.getAttribute("aria-selected")==="true"){phRename(el,eid,aid);return;}S._phsel[eid]=aid;render();return;}
   if((el=T.closest("[data-phadd]"))){phModal(el.dataset.phadd,"add");return;}
   if((el=T.closest("[data-phchange]"))){phModal(el.dataset.phchange,"edit");return;}
+  if((el=T.closest("[data-phlink]"))){phModal(el.dataset.phlink,"link");return;}
+  if((el=T.closest("[data-mdrm]"))){const[eid,aid,lid]=el.dataset.mdrm.split("|"),e=get("events",eid);if(!e)return;if(!await ask("Odobrať tento odkaz zo zbierky?","Odobrať"))return;
+    const N=phAlbums(e).map(a=>a.id===aid?Object.assign({},a,{links:(a.links||[]).filter(x=>x.id!==lid)}):a).filter(a=>a.url||(a.links&&a.links.length));await upd("events",eid,{albums:N,photosUrl:(N.find(a=>a.url)||{}).url||""});return;}
   if((el=T.closest("[data-phdel]"))){const e=get("events",el.dataset.phdel),c=e&&phCur(e);if(!c)return;
     if(!await ask(`Odobrať album „${phName(c,phAlbums(e))}“ z podujatia? V Google Fotkách ostane.`,"Odobrať"))return;
     const N=phAlbums(e).filter(a=>a.id!==c.id);delete S._phsel[e.id];await upd("events",e.id,{albums:N,photosUrl:N.length?N[0].url:""});return;}
@@ -70,18 +89,21 @@ function phRename(btn,eid,aid){const e=get("events",eid);if(!e)return;const A=ph
   inp.addEventListener("blur",()=>fin(true));}
 /* okno v strede: pridať album / zmeniť odkaz (prázdny odkaz = odobrať album z podujatia) */
 function phModal(eid,mode){const e=get("events",eid);if(!e)return;const cur=phCur(e),L=$("#layer2");
-  L.innerHTML=`<div class="scrim mid"><div class="modal" role="dialog" aria-modal="true" aria-label="${mode==="edit"?"Zmeniť odkaz na album":"Pridať album"}" style="max-width:520px"><h2 style="margin:0 0 6px">${mode==="edit"?"Zmeniť odkaz na album":"Pridať album"}</h2>
-    <p class="small muted" style="margin:0 0 12px">Vložte odkaz na zdieľaný album z Google Fotiek.${mode==="edit"?" Prázdny odkaz album z podujatia odoberie (v Google Fotkách ostane).":""}</p>
-    <input type="url" id="ph-url" value="${esc(mode==="edit"&&cur?cur.url:"")}" placeholder="https://photos.app.goo.gl/…" style="width:100%">
+  L.innerHTML=`<div class="scrim mid"><div class="modal" role="dialog" aria-modal="true" aria-label="${mode==="edit"?"Zmeniť odkaz na album":"Pridať"}" style="max-width:520px"><h2 style="margin:0 0 6px">${mode==="edit"?"Zmeniť odkaz na album":mode==="link"?"Pridať odkaz do zbierky":"Pridať"}</h2>
+    <p class="small muted" style="margin:0 0 12px">${mode==="edit"?"Vložte odkaz na zdieľaný album z Google Fotiek. Prázdny odkaz album z podujatia odoberie (v Google Fotkách ostane).":"Vložte odkaz – album z Google Fotiek, video (YouTube, Vimeo), podcast (Spotify, SoundCloud) alebo iný odkaz."}</p>
+    <input type="url" id="ph-url" value="${esc(mode==="edit"&&cur?cur.url:"")}" placeholder="https://…" style="width:100%">
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-a="0">Zrušiť</button><button class="btn pri" data-a="ok">Uložiť</button></div></div></div>`;
   const close=()=>{L.innerHTML="";},inp=L.querySelector("#ph-url");
   const save=async()=>{const u=inp.value.trim(),e1=get("events",eid);if(!e1)return close();const A=phAlbums(e1).map(a=>Object.assign({},a)),c=phCur(e1);
-    if(u&&!phOkUrl(u)){toast("Vložte odkaz na zdieľaný album z Google Fotiek.");inp.focus();return;}
-    let N;
+    if(u&&mode==="edit"&&!phOkUrl(u)){toast("Vložte odkaz na zdieľaný album z Google Fotiek.");inp.focus();return;}
+    if(u&&!/^https?:\/\//i.test(u)){toast("Vložte celý odkaz začínajúci https://");inp.focus();return;}
+    const lid="l"+Date.now().toString(36);let N;
     if(mode==="edit"&&c){if(!u){close();if(!await ask("Odobrať tento album z podujatia? V Google Fotkách ostane.","Odobrať"))return;N=A.filter(a=>a.id!==c.id);}else N=A.map(a=>a.id===c.id?Object.assign(a,{url:u}):a);}
-    else{if(!u){toast("Vložte odkaz na album.");inp.focus();return;}if(A.some(a=>a.url===u)){toast("Tento album už je pridaný.");return;}
-      const nid="a"+Date.now().toString(36);N=[...A,{id:nid,url:u}];S._phsel[eid]=nid;}
-    close();await upd("events",eid,{albums:N,photosUrl:N.length?N[0].url:""});};
+    else if(mode==="link"&&c){if(!u){toast("Vložte odkaz.");inp.focus();return;}   /* do vybranej zbierky: album Google Fotiek, ak ešte nemá; inak ďalší odkaz */
+      N=A.map(a=>a.id!==c.id?a:(!a.url&&phOkUrl(u)?Object.assign(a,{url:u}):Object.assign(a,{links:[...(a.links||[]),{id:lid,url:u}]})));}
+    else{if(!u){toast("Vložte odkaz.");inp.focus();return;}if(A.some(a=>a.url===u)){toast("Tento album už je pridaný.");return;}
+      const nid="a"+Date.now().toString(36);N=[...A,phOkUrl(u)?{id:nid,url:u}:{id:nid,url:"",links:[{id:lid,url:u}]}];S._phsel[eid]=nid;}
+    close();await upd("events",eid,{albums:N,photosUrl:(N.find(a=>a.url)||{}).url||""});};
   L.querySelector('[data-a="0"]').onclick=close;L.querySelector('[data-a="ok"]').onclick=save;
   inp.addEventListener("keydown",ev=>{if(ev.key==="Enter"){ev.preventDefault();save();}else if(ev.key==="Escape"){ev.stopPropagation();close();}});
   L.querySelector(".scrim").addEventListener("click",ev=>{if(ev.target===ev.currentTarget)close();});
