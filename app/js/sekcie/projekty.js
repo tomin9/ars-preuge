@@ -21,7 +21,7 @@ VIEWS.projekt=()=>{
   const TABS=[["podujatia","Podujatia",E.length,["events","Nové podujatie"]],["ulohy","Úlohy",c.open,["tasks","Nová úloha"]],["granty","Granty",G.length,["grants","Nový grant"]],["financie","Financie",c.L.length,["ledger","Zapísať platbu"]],["ludia","Ľudia",C.length,["contacts","Nový kontakt"]]].filter(t=>accRead(t[3][0]));
   const cur=TABS.find(t=>t[0]===tab)||TABS[0];
   /* hlavička s obrázkom vždy – bez titulného obrázka plocha vo farbe projektu (ako na karte v galérii) */
-  const head=`<div class="pcw">${coverUrl(p)?`<img class="pcover" src="${esc(coverUrl(p))}" alt="" style="object-position:${esc(posOf(p))}">`:`<div class="pcover" style="background:${esc(p.color||GRAY)}"></div>`}<button class="evedit pcedit" data-peek="projects:${pid}" title="Upraviť" aria-label="Upraviť projekt"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></div><h1 class="ptitle">${esc(p.name||"Bez názvu")}</h1>`;
+  const head=`<div class="pcw">${coverUrl(p)?`<img class="pcover" src="${esc(coverUrl(p,1600))}" alt="" style="object-position:${esc(posOf(p))}">`:`<div class="pcover" style="background:${esc(p.color||GRAY)}"></div>`}<button class="evedit pcedit" data-peek="projects:${pid}" title="Upraviť" aria-label="Upraviť projekt"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></div><h1 class="ptitle">${esc(p.name||"Bez názvu")}</h1>`;
   const bar_=`<div class="ptabs" role="tablist">${TABS.map(([k,l])=>`<button role="tab" data-ptab="${k}" aria-selected="${cur[0]===k}">${l}</button>`).join("")}${cur[3]&&!["podujatia","granty","ludia"].includes(cur[0])?`<span class="ptabs-r"><button class="btn pri sm" data-linknew="projects:${pid}|${cur[3][0]}">${cur[3][1]}</button></span>`:""}</div>`;
   let body="";
   if(cur[0]==="obsah"){
@@ -32,7 +32,7 @@ VIEWS.projekt=()=>{
       ${p.desc?`<p class="desc" style="margin-top:22px">${esc(p.desc)}</p>`:`<p class="muted" style="margin-top:22px">Popis projektu doplníte cez Upraviť.</p>`}`;
   }
   if(cur[0]==="podujatia"){
-    body=`<div class="gal">${E.map(e=>{const u=coverUrl(e);return`<div class="gcard" data-open="events:${esc(e.id)}" tabindex="0" role="link"><div class="gimg" style="background:linear-gradient(160deg,${esc(col)},${esc(col)}cc)">${u?`<img src="${esc(u)}" alt="" loading="lazy" style="object-position:${esc(posOf(e))}">`:""}</div>
+    body=`<div class="gal">${E.map(e=>{const u=coverUrl(e,640);return`<div class="gcard" data-open="events:${esc(e.id)}" tabindex="0" role="link"><div class="gimg" style="background:linear-gradient(160deg,${esc(col)},${esc(col)}cc)">${u?`<img src="${esc(u)}" alt="" loading="lazy" style="object-position:${esc(posOf(e))}">`:""}</div>
       <div class="gbody"><b>${esc(e.name||"Podujatie")}</b>${e.date?`<div class="gl">${fdate(e.date)}${e.time?" "+esc(e.time):""}${e.dateTo&&e.dateTo!==e.date?" → "+fdate(e.dateTo):""}</div>`:""}${e.place?`<div class="gl">${esc(e.place)}</div>`:""}</div></div>`;}).join("")}
       <button class="gnew" data-linknew="projects:${pid}|events">+ Nové podujatie</button></div>`;
   }

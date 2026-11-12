@@ -58,6 +58,9 @@ function refreshPeople(){
   },150);
 }
 
+/* zmeny dát (načítanie, zmeny od kolegov, vlastné uloženie) sa prekreslia raz za snímku obrazovky – pri štarte prišlo ~18 zbierok = 18 prekreslení (od 2.0.24) */
+let _rq=0;
+function renderSoon(){if(_rq)return;_rq=(window.requestAnimationFrame||setTimeout)(()=>{_rq=0;render();});}
 async function boot(){
   const now=new Date();S.cal={y:now.getFullYear(),m:now.getMonth()};
   {let hv=hashView()||"prehlad";if(!accView(hv))hv="prehlad";S.view=hv;try{history.replaceState(history.state,"",urlFor(hv));}catch(_){}}
@@ -71,9 +74,9 @@ async function boot(){
     KEYS.forEach(e=>db.collection(ENT[e].col).onSnapshot(snap=>{
       const all=snap.docs.map(d=>norm(e,Object.assign({id:d.id},d.data())));
       S.d[e]=all.filter(x=>!x._stub);S.stub=S.stub||{};S.stub[e]=all.filter(x=>x._stub);   /* menovky záznamov mimo rozsahu – nie v zoznamoch */
-      done();refreshPeople();loadTeam();render();
+      done();refreshPeople();loadTeam();renderSoon();
     },err=>{done();if(err&&err.code!=="revoked")toast("Spojenie s databázou sa prerušilo. Obnovte stránku.");render();}));
-    db.doc("settings/main").onSnapshot(s=>{S.settings=s.exists?Object.assign({},s.data()):{};done();render();},()=>{done();});
+    db.doc("settings/main").onSnapshot(s=>{S.settings=s.exists?Object.assign({},s.data()):{};done();renderSoon();},()=>{done();});
   }else S.loading=false;
   render();
 }

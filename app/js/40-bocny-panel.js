@@ -218,7 +218,7 @@ function bindPart(root,e,r){
   root.querySelectorAll("[data-imgdel]").forEach(b=>b.onclick=async()=>{await upd(e,r.id,{[b.dataset.imgdel]:""});drawerRefresh(true);});
   bindDnD(root);
 }
-function coverUrl(p){const c=p&&p.cover;if(!c)return"";return c.startsWith("data:")?c:ARSP_BLOB+c;}
+function coverUrl(p,w){const c=p&&p.cover;if(!c)return"";return c.startsWith("data:")?c:ARSP_BLOB+c+(w?"&w="+w:"");}   /* w = zmenšený náhľad zo servera (karty v galérii) */
 async function shrink(file,max){
   const url=URL.createObjectURL(file);
   try{const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url;});
@@ -234,7 +234,7 @@ async function uploadImage(file,max){
   catch(e){toast(e&&e.code==="too_large"?"Obrázok je príliš veľký.":"Obrázok sa nepodarilo nahrať. Skúste iný súbor.");return null;}
 }
 function projGallery(list){
-  return`<div class="gal">${list.map(p=>{const u=coverUrl(p),c=projCalc(p);return`<div class="gcard" data-open="projects:${esc(p.id)}" tabindex="0" role="link"><div class="gimg" style="background:${esc(p.color||GRAY)}">${u?`<img src="${esc(u)}" alt="" loading="lazy" style="object-position:${esc(posOf(p))}">`:""}</div><div class="gbody"><b>${esc(p.name||"Bez názvu")}</b><div class="cm">${c.open?`<span class="meta">${c.open} otvorených úloh</span>`:""}</div></div></div>`;}).join("")}<button class="gnew" data-create="projects">+ Nový projekt</button></div>`;
+  return`<div class="gal">${list.map(p=>{const u=coverUrl(p,640),c=projCalc(p);return`<div class="gcard" data-open="projects:${esc(p.id)}" tabindex="0" role="link"><div class="gimg" style="background:${esc(p.color||GRAY)}">${u?`<img src="${esc(u)}" alt="" loading="lazy" style="object-position:${esc(posOf(p))}">`:""}</div><div class="gbody"><b>${esc(p.name||"Bez názvu")}</b><div class="cm">${c.open?`<span class="meta">${c.open} otvorených úloh</span>`:""}</div></div></div>`;}).join("")}<button class="gnew" data-create="projects">+ Nový projekt</button></div>`;
 }
 function toggleCheck(key,i){
   const[e,id]=key.split(":");const cur=get(e,id);if(!cur)return;

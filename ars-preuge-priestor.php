@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 2.0.23
+ * Version: 2.0.24
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '2.0.23');
+define('ARSP_VER', '2.0.24');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -243,8 +243,31 @@ function arsp_serve_blob($id) {
     $path = arsp_upload_dir() . '/' . basename($map[$id]['file']);
     if (!file_exists($path)) { status_header(404); echo 'Not found'; return; }
     if (!arsp_acc_can_see_ref($id)) { status_header(403); echo 'Forbidden'; return; }   /* súbor patrí k záznamu, ktorý človek nesmie vidieť */
-    nocache_headers();
-    header('Content-Type: ' . $map[$id]['type']);
+    $type = $map[$id]['type'];
+    /* zmenšený náhľad obrázka (?arsp_blob=ID&w=640) – vyrobí sa raz a uloží vedľa originálu (od 2.0.24) */
+    $w = isset($_GET['w']) ? (int) $_GET['w'] : 0;
+    if ($w > 0 && strpos($type, 'image/') === 0 && $type !== 'image/svg+xml') {
+        $w = $w <= 480 ? 480 : ($w <= 960 ? 960 : 1600);
+        $thumb = arsp_upload_dir() . '/thumbs/' . $id . '-' . $w . '.jpg';
+        if (!file_exists($thumb)) {
+            wp_mkdir_p(dirname($thumb));
+            $ed = wp_get_image_editor($path);
+            if (!is_wp_error($ed)) {
+                $sz = $ed->get_size();
+                if (!empty($sz['width']) && $sz['width'] > $w) $ed->resize($w, null, false);
+                $ed->set_quality(82);
+                $sv = $ed->save($thumb, 'image/jpeg');
+                if (is_wp_error($sv)) $thumb = '';
+            } else $thumb = '';
+        }
+        if ($thumb && file_exists($thumb)) { $path = $thumb; $type = 'image/jpeg'; }
+    }
+    /* súbor s daným ID sa nikdy nemení (nový súbor = nové ID) → prehliadač si ho môže pamätať; „private“ = len v prehliadači používateľa */
+    $etag = '"' . $id . '-' . filesize($path) . '"';
+    header('Cache-Control: private, max-age=31536000, immutable');
+    header('ETag: ' . $etag);
+    if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && trim($_SERVER['HTTP_IF_NONE_MATCH']) === $etag) { status_header(304); return; }
+    header('Content-Type: ' . $type);
     header('Content-Length: ' . filesize($path));
     header('Content-Disposition: inline; filename="' . basename($path) . '"');
     header('X-Content-Type-Options: nosniff');

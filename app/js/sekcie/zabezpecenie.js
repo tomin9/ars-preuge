@@ -7,7 +7,7 @@ const ZB_KIND={vo:"VO",bud:"Budova",bat:"Batéria",gen:"Elektrocentrála",tbd:"T
 S.zb={f:"all",open:{},mode:"diela",sums:{},ns:{kto:"",naz:"",ks:"",typ:"pozicane"},give:{}};
 const zbNum=v=>{const n=parseFloat(String(v??"").replace(",","."));return isFinite(n)?n:0;};
 const zbList=()=>[...S.d.zab].sort((a,b)=>(+a.ord||0)-(+b.ord||0)||(a.createdAt||0)-(b.createdAt||0));
-const zbPhoto=x=>!x.photo?"":(String(x.photo).startsWith("data:")?x.photo:(typeof ARSP_BLOB!=="undefined"?ARSP_BLOB:"")+x.photo);
+const zbPhoto=x=>!x.photo?"":(String(x.photo).startsWith("data:")?x.photo:(typeof ARSP_BLOB!=="undefined"?ARSP_BLOB:"")+x.photo+"&w=960");
 const zbWD=["Ne","Po","Ut","St","Št","Pi","So"];
 function zbDay(den){const d=new Date(den+"T12:00:00");return isNaN(d)?esc(den):`${zbWD[d.getDay()]} ${d.getDate()}. ${d.getMonth()+1}.`;}
 function zbShort(p){if(!p.den)return"nastaviť čas";const d=new Date(p.den+"T12:00:00");const ds=isNaN(d)?p.den:`${d.getDate()}.${d.getMonth()+1}.`;return`${ds} ${p.od||"?"}–${p.do||"?"}`;}

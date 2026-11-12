@@ -11,7 +11,7 @@ const GTABS=[["planovane","Plánované",["priprava","podane","pozastavene","napa
 const GRADS=["linear-gradient(180deg,#8fd0d2,#e0726a)","linear-gradient(135deg,#2f5fa8 10%,#c2412f)","#efc06a","#df605a","linear-gradient(135deg,#5a4fd8,#e06a8c)","linear-gradient(165deg,#a8c3a6,#e2562f)","linear-gradient(135deg,#c7a7d8,#f1d9c9 60%,#8fc2c4)"];
 function gradFor(id){let h=0;for(const ch of String(id))h=(h*31+ch.charCodeAt(0))>>>0;return GRADS[h%GRADS.length];}
 function grantCard(g){
-  const u=coverUrl(g),amt=+g.approved||+g.requested||0;
+  const u=coverUrl(g,640),amt=+g.approved||+g.requested||0;
   return`<div class="gcard" data-open="grants:${esc(g.id)}" tabindex="0" role="link"><div class="gimg" style="background:${gradFor(g.id)}">${u?`<img src="${esc(u)}" alt="" loading="lazy" style="object-position:${esc(posOf(g))}">`:""}</div>
   <div class="gbody"><b>${esc(g.name||"Grant")}</b>${provName(g)?`<div class="gl">${provIcon(g)}${esc(provName(g))}</div>`:""}${g.program?`<div class="gl" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(g.program)}">${esc(g.program)}</div>`:""}${amt?`<div class="gl" style="color:var(--ink)">${eur(amt)}</div>`:""}</div></div>`;
 }
@@ -55,7 +55,7 @@ VIEWS.grant=()=>{
   else if(gtab==="dokumenty")body=gDocsTab(g);
   else{const ed={grantIds:[g.id]};if(g.projectId)ed.projectId=g.projectId;  /* podujatia ako karty – rovnako ako granty v podujatí */
     body=`<div class="gal">${E.map(eventCard).join("")}<button class="gnew" data-create="events" data-defs='${esc(JSON.stringify(ed))}'>+ Nové podujatie</button></div>`;}
-  const cov=coverUrl(g),PEN='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+  const cov=coverUrl(g,1600),PEN='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
   return`  <section class="hero evc cov" style="--pc:${esc(p?p.color:OCHRE)}">${cov?`<div class="evimg"><img src="${esc(cov)}" alt="" style="object-position:${esc(posOf(g))}"></div>`:`<div class="evimg" style="background:${gradFor(g.id)}"></div>`}
   <div class="evinfo ginfo"><div class="spread" style="align-items:flex-start;flex-wrap:nowrap"><div style="min-width:0"><h1>${esc(g.name||"Grant")}</h1><p class="sub">${provIcon(g)}${[provName(g),g.program].filter(Boolean).map(esc).join(" · ")}${p?` · projekt <button class="btn ghost sm" data-go="projekt" data-id="${esc(p.id)}">${esc(p.name)}</button>`:""}</p></div>
     <div class="row" style="flex:none;flex-wrap:nowrap;gap:8px">${chip("gstat",g.status)}${driveIco(folderId(g.driveFolder))}<button class="evedit" data-peek="grants:${esc(g.id)}" title="Upraviť" aria-label="Upraviť grant">${PEN}</button></div></div>

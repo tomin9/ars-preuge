@@ -61,7 +61,7 @@ const CSVG={osoba:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
   organizacia:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 9.5 12 4l9 5.5M5 10v8M9.7 10v8M14.3 10v8M19 10v8M3 20.5h18"/></svg>',
   media:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 4.5h11a1.5 1.5 0 0 1 1.5 1.5v13H6.5A2.5 2.5 0 0 1 4 16.5V6A1.5 1.5 0 0 1 5.5 4.5"/><path d="M17.5 9H20v8.5a2 2 0 0 1-2.5 2M8 8.5h6M8 12h6M8 15.5h3.5"/></svg>'};
 function cIcon(c,big){if(!c)return"";const cls=big?"cico big":"cico";
-  if(c.icon&&typeof c.icon==="string")return`<img class="${cls} img" src="${esc(c.icon.startsWith("data:")?c.icon:(typeof ARSP_BLOB!=="undefined"?ARSP_BLOB:"")+c.icon)}" alt="">`;
+  if(c.icon&&typeof c.icon==="string")return`<img class="${cls} img" src="${esc(c.icon.startsWith("data:")?c.icon:(typeof ARSP_BLOB!=="undefined"?ARSP_BLOB:"")+c.icon+"&w=480")}" alt="">`;
   const t=CSVG[c.ctype]?c.ctype:(c.ctype?"organizacia":"osoba");return`<span class="${cls} t-${t}" aria-hidden="true">${CSVG[t]}</span>`;}
 function provC(g){return g&&g.providerId?get("contacts",g.providerId):null;}
 function provName(g){const c=provC(g);return c?(c.name||""):((g&&g.provider)||"").trim();}
