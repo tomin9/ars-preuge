@@ -108,15 +108,22 @@ function gdThumb(d){   /* náhľad: obrázok, prvá strana PDF, náhľad z Googl
   if(d.asset&&ext==="pdf")return`${fb}<canvas data-pdfthumb="${esc(href)}" hidden></canvas>`;
   if(m)return`${fb}<img src="https://drive.google.com/thumbnail?id=${esc(m)}&sz=w300" alt="" loading="lazy" onerror="this.remove()">`;
   return fb;}
-function gDocsTab(g){
+S._gdsel=S._gdsel||{};
+function gDocsTab(g){   /* ako Výzva a Žiadosť: zoznam sekcií vľavo, vybraná sekcia s náhľadmi vpravo */
   const gid=esc(g.id),ed=accEditRec("grants",g)&&!S.readOnly,all=(g.docs||[]).map((d,i)=>({d,i})),S2=gdSecs(g),ids=new Set(S2.map(x=>x.id));
-  const other=all.filter(x=>!ids.has(x.d.kind||""));
-  const sec=(s,D,fixed)=>{const key=`grants:${gid}:${esc(s.id)}`;
-    return`<div class="panel docslot gdsec"><div class="gdhead">${ed&&!fixed?`<input class="gdname" data-gdname="${gid}|${esc(s.id)}" value="${esc(s.label)}" aria-label="Názov sekcie" title="Kliknutím premenujete">`:`<h2>${esc(s.label)}</h2>`}
-      ${ed?`<span class="row" style="gap:2px;flex:none"><label class="tplus" title="Nahrať súbor" aria-label="Nahrať súbor">${GD_I.up}<input type="file" multiple data-dfile="${key}" hidden></label><button type="button" class="tplus" data-dlink="${key}" title="Pridať odkaz" aria-label="Pridať odkaz">${GD_I.link}</button>${s.base||fixed?"":`<button type="button" class="tplus" data-gddel="${gid}|${esc(s.id)}" title="Odstrániť sekciu" aria-label="Odstrániť sekciu">${GD_I.del}</button>`}</span>`:""}</div>
-      ${D.length?`<div class="gdgrid">${D.map(({d,i})=>`<div class="gdt"><a class="gdth" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Dokument")}">${gdThumb(d)}</a>${ed?`<button type="button" class="gdrm" data-docrm="grants:${gid}:${i}" title="Odstrániť dokument" aria-label="Odstrániť dokument">${GD_I.del}</button>`:""}<a class="gdn" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Dokument")}">${esc(String(d.name||"Dokument").replace(/\.[a-z0-9]{2,4}$/i,""))}</a></div>`).join("")}</div>`
-        :`<div class="gdempty">${ed?"Zatiaľ prázdne – nahrajte súbor alebo pridajte odkaz ikonami hore.":"Zatiaľ prázdne."}</div>`}</div>`;};
-  return`<div class="docslots gdocs2">${S2.map(s=>sec(s,all.filter(x=>(x.d.kind||"")===s.id))).join("")}${other.length?sec({id:"",label:"Ostatné"},other,true):""}${ed?`<button type="button" class="gnew gdadd" data-gdadd="${gid}">+ Pridať sekciu</button>`:""}</div>`;
+  const other=all.filter(x=>!ids.has(x.d.kind||""));if(other.length)S2.push({id:"__ine",label:"Ostatné",fixed:true});
+  const docsOf=s=>s.id==="__ine"?other:all.filter(x=>(x.d.kind||"")===s.id);
+  const sel=S2.find(s=>s.id===S._gdsel[g.id])||S2[0];
+  const FOLDER='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H10l2 2.5h7.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>';
+  const list=S2.map(s=>`<button type="button" class="txi${s.id===sel.id?" on":""}" data-gdsel="${gid}|${esc(s.id)}">${FOLDER}<span class="txt"><b>${esc(s.label)}</b></span></button>`).join("")
+    +(ed?`<button type="button" class="txi txadd" data-gdadd="${gid}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať sekciu</b></span></button>`:"");
+  const D=docsOf(sel),kind=sel.id==="__ine"?"ostatne":sel.id,key=`grants:${gid}:${esc(kind)}`;
+  const main=`<div class="panel txmain docslot gdmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Dokumenty / ${esc(g.name||"Grant")}</div>
+      ${ed&&!sel.fixed?`<input type="text" class="txtitle" data-gdname="${gid}|${esc(sel.id)}" value="${esc(sel.label)}" aria-label="Názov sekcie" maxlength="80" placeholder="Názov sekcie">`:`<div class="txtitle" style="font-size:28px;font-weight:600">${esc(sel.label)}</div>`}</div>
+      ${ed?`<div class="row" style="flex:none;gap:4px"><label class="tplus" title="Nahrať súbor" aria-label="Nahrať súbor">${GD_I.up}<input type="file" multiple data-dfile="${key}" hidden></label><button type="button" class="tplus" data-dlink="${key}" title="Pridať odkaz" aria-label="Pridať odkaz">${GD_I.link}</button>${sel.base||sel.fixed?"":`<button type="button" class="tplus tdel" data-gddel="${gid}|${esc(sel.id)}" title="Odstrániť sekciu" aria-label="Odstrániť sekciu">${GD_I.del}</button>`}</div>`:""}</div>
+    <div class="gdbody">${D.length?`<div class="gdgrid">${D.map(({d,i})=>`<div class="gdt"><a class="gdth" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Dokument")}">${gdThumb(d)}</a>${ed?`<button type="button" class="gdrm" data-docrm="grants:${gid}:${i}" title="Odstrániť dokument" aria-label="Odstrániť dokument">${GD_I.del}</button>`:""}<a class="gdn" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Dokument")}">${esc(String(d.name||"Dokument").replace(/\.[a-z0-9]{2,4}$/i,""))}</a></div>`).join("")}</div>`
+      :`<div class="gdempty">${ed?"Zatiaľ prázdne – nahrajte súbor alebo pridajte odkaz ikonami vpravo hore.":"Zatiaľ prázdne."}</div>`}</div></div>`;
+  return`<div class="txm"><div class="txlist galist">${list}</div><div>${main}</div></div>`;
 }
 document.addEventListener("change",ev=>{const el=ev.target.closest&&ev.target.closest("[data-gdname]");if(!el)return;const[gid,sid]=el.dataset.gdname.split("|"),g=get("grants",gid);if(!g)return;
   const v=el.value.trim();if(!v){render();return;}
@@ -124,7 +131,8 @@ document.addEventListener("change",ev=>{const el=ev.target.closest&&ev.target.cl
   else upd("grants",gid,{docSecs:(g.docSecs||[]).map(x=>x.id===sid?Object.assign({},x,{label:v}):x)});});
 document.addEventListener("keydown",ev=>{const el=ev.target;if(el&&el.dataset&&el.dataset.gdname!==undefined&&ev.key==="Enter")el.blur();});
 document.addEventListener("click",async ev=>{const t=ev.target;if(!t.closest)return;let el;
-  if((el=t.closest("[data-gdadd]"))){const g=get("grants",el.dataset.gdadd);if(!g)return;const id="s"+Date.now().toString(36);
+  if((el=t.closest("[data-gdsel]"))){const[gid,sid]=el.dataset.gdsel.split("|");S._gdsel[gid]=sid;render();return;}
+  if((el=t.closest("[data-gdadd]"))){const g=get("grants",el.dataset.gdadd);if(!g)return;const id="s"+Date.now().toString(36);S._gdsel[g.id]=id;
     await upd("grants",g.id,{docSecs:[...(g.docSecs||[]),{id,label:"Nová sekcia"}]});
     setTimeout(()=>{const i=document.querySelector(`[data-gdname="${g.id}|${id}"]`);if(i){i.focus();i.select();}},80);return;}
   if((el=t.closest("[data-gddel]"))){const[gid,sid]=el.dataset.gddel.split("|"),g=get("grants",gid);if(!g)return;const x=(g.docSecs||[]).find(y=>y.id===sid);if(!x)return;

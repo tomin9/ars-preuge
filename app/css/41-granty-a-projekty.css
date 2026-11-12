@@ -88,6 +88,9 @@
 .gdhead input.gdname:hover{border-bottom-color:var(--line)}
 .gdhead input.gdname:focus{border-bottom-color:var(--accent)}
 .gdgrid{display:grid;grid-template-columns:repeat(auto-fill,88px);gap:14px 12px}
+.gdmain .gdbody{padding:22px 26px 26px}
+.gdmain .gdgrid{grid-template-columns:repeat(auto-fill,120px);gap:18px 16px}
+.gdmain .dform{padding:0 26px 18px}
 .gdt{position:relative;min-width:0}
 .gdth{display:block;position:relative;aspect-ratio:3/4;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface2);color:var(--muted);text-decoration:none}
 .gdth:hover{border-color:var(--accent)}
