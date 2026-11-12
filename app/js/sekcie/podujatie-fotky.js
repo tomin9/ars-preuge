@@ -9,10 +9,10 @@ const phFull=id=>`https://lh3.googleusercontent.com/pw/${id}=w2000`;
 const phAlbums=e=>Array.isArray(e.albums)&&e.albums.length?e.albums.filter(a=>a&&(a.url||(Array.isArray(a.links)&&a.links.length))):(e.photosUrl?[{id:"a0",url:e.photosUrl}]:[]);
 /* odkaz → náhľad na prehranie (Spotify, YouTube, Vimeo, SoundCloud); null = obyčajný odkaz */
 function mdEmbed(u){u=String(u||"").trim();let m;
-  if((m=/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(episode|show|track|album|playlist|artist)\/([A-Za-z0-9]+)/.exec(u)))return{kind:"Spotify",src:`https://open.spotify.com/embed/${m[1]}/${m[2]}`,h:m[1]==="episode"||m[1]==="track"?152:352};
+  if((m=/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(episode|show|track|album|playlist|artist)\/([A-Za-z0-9]+)/.exec(u)))return{kind:"Spotify",src:`https://open.spotify.com/embed/${m[1]}/${m[2]}`,h:152};
   if((m=/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/.exec(u)))return{kind:"YouTube",src:`https://www.youtube-nocookie.com/embed/${m[1]}`,video:1};
   if((m=/vimeo\.com\/(?:video\/)?(\d+)/.exec(u)))return{kind:"Vimeo",src:`https://player.vimeo.com/video/${m[1]}`,video:1};
-  if((m=/^https?:\/\/podcasts\.apple\.com\/(.+)$/.exec(u)))return{kind:"Apple Podcasts",src:"https://embed.podcasts.apple.com/"+m[1]};
+  if((m=/^https?:\/\/podcasts\.apple\.com\/(.+)$/.exec(u)))return{kind:"Apple Podcasts",src:"https://embed.podcasts.apple.com/"+m[1],h:175};
   if(/soundcloud\.com\//.test(u))return{kind:"SoundCloud",src:`https://w.soundcloud.com/player/?url=${encodeURIComponent(u)}&visual=false`,h:166};
   return null;}
 const mdHost=u=>{try{return new URL(u).hostname.replace(/^www\./,"");}catch(_){return u;}};
