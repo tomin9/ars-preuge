@@ -87,6 +87,6 @@ function teamTab(e){
   const other=P.filter(c=>!SECS.some(t=>t[0]===teamRole(e,c)));
   const oth=other.length?`<div class="panel" style="margin-top:16px"><h3 style="margin-bottom:6px">Ostatné</h3><ul class="items lk">${other.map(c=>`<li data-open="contacts:${esc(c.id)}"><span class="t">${cIcon(c)}${esc(c.name||"Bez mena")}</span><select class="rolesel" data-teamset="${esc(e.id)}|${esc(c.id)}" aria-label="Zaradiť do sekcie" style="padding:3px 6px;font-size:13px"><option value="">— zaradiť —</option>${SECS.map(([k,t])=>`<option value="${esc(k)}">${esc(t)}</option>`).join("")}</select>${rm(c)}</li>`).join("")}</ul></div>`:"";
   const NC=teamCols();S._tn=NC;
-  return`<div class="tcols" style="--nc:${NC}">${Array.from({length:NC},(_,n)=>`<div class="tcol">${SECS.filter((_,i)=>i%NC===n).map(card).join("")}</div>`).join("")}</div>${oth}<div style="margin-top:14px"><button class="btn sm ghost" data-secadd="${esc(e.id)}">+ Pridať sekciu</button></div>`;
+  return`<div class="tcols" style="--nc:${NC}">${Array.from({length:NC},(_,n)=>`<div class="tcol">${SECS.filter((_,i)=>i%NC===n).map(card).join("")}</div>`).join("")}</div>${oth}<button class="gnew" data-secadd="${esc(e.id)}" style="display:grid;width:100%;box-sizing:border-box;min-height:64px;margin-top:20px">+ Pridať sekciu</button>`;
 }
 /* ===== Texty podujatia ===== */
