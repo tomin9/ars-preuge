@@ -12,7 +12,7 @@ function eventTabs(e){
   else if(tab==="zabezpecenie")body=zbPanel();
   else if(tab==="ulohy")body=`<div class="panel">${linkBlock("events",e,"tasks")}</div>`;
   else if(tab==="fotky")body=fotkyTab(e);
-  else if(tab==="granty")body=`<div class="gal">${related("events",e,"grants").map(grantCard).join("")}<div class="gsel">${linkSel("events",e,"grants")}</div></div>`;
+  else if(tab==="granty")body=`<div class="gal">${related("events",e,"grants").map(grantCard).join("")}${linkSel("events",e,"grants")}</div>`;
   else if(tab==="dramaturgia"){
     body=`<div class="panel"><h2>Koncept</h2><textarea id="ev-dram" placeholder="Téma, idea, dramaturgická línia podujatia…" style="width:100%;min-height:110px;margin-top:8px">${esc(e.dramaturgy||"")}</textarea></div>${progPanel(e)}`;
   }
