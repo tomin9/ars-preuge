@@ -18,7 +18,7 @@ VIEWS.granty=()=>{
   const G=S.d.grants,tab=GTABS.find(t=>t[0]===S.gf.tab)||GTABS[1];
   const list=G.filter(g=>tab[2].includes(g.status||"napad")).sort((a,b)=>(b.realFrom||b.submitTo||"").localeCompare(a.realFrom||a.submitTo||"")||(b.createdAt||0)-(a.createdAt||0));
   const defs=esc(JSON.stringify({status:tab[2][0]}));
-  const head=`<div class="head"><h1>Granty</h1><div class="row"><div class="tabs"><button data-gmode="gallery" aria-pressed="${S.gf.mode!=="list"}">Galéria</button><button data-gmode="list" aria-pressed="${S.gf.mode==="list"}">Tabuľka</button></div><button class="btn pri" data-create="grants" data-defs='${defs}'>Nový grant</button></div></div>
+  const head=`<div class="head"><h1>Granty</h1><div class="row"><button class="btn pri" data-create="grants" data-defs='${defs}'>Nový grant</button></div></div>
   <div class="ptabs" role="tablist">${GTABS.map(([k,l])=>`<button role="tab" data-gtab="${k}" aria-selected="${tab[0]===k}">${l}</button>`).join("")}</div>`;
   if(S.gf.mode==="list")return head+`<div class="panel">${list.length?table([
     ["Grant",g=>`<span class="cut">${esc(g.name||"Grant")}</span>`,"t"],["Poskytovateľ",g=>provIcon(g)+esc(provName(g))],["Stav",g=>chip("gstat",g.status)],["Projekt",g=>pdot(g.projectId)],
