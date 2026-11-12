@@ -55,7 +55,7 @@ VIEWS.grant=()=>{
   else if(gtab==="dokumenty")body=gDocsTab(g);
   else{const ed={grantIds:[g.id]};if(g.projectId)ed.projectId=g.projectId;  /* podujatia ako karty – rovnako ako granty v podujatí */
     body=`<div class="gal">${E.map(eventCard).join("")}<button class="gnew" data-create="events" data-defs='${esc(JSON.stringify(ed))}'>+ Nové podujatie</button></div>`;}
-  const cov=coverUrl(g,1600),PEN='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+  const cov=coverUrl(g,640),PEN='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
   return`  <section class="hero evc cov" style="--pc:${esc(p?p.color:OCHRE)}">${cov?`<div class="evimg"><img src="${esc(cov)}" alt="" style="object-position:${esc(posOf(g))}"></div>`:`<div class="evimg" style="background:${gradFor(g.id)}"></div>`}
   <div class="evinfo ginfo"><div class="spread" style="align-items:flex-start;flex-wrap:nowrap"><div style="min-width:0"><h1>${esc(g.name||"Grant")}</h1><p class="sub">${provIcon(g)}${[provName(g),g.program].filter(Boolean).map(esc).join(" · ")}${p?` · projekt <button class="btn ghost sm" data-go="projekt" data-id="${esc(p.id)}">${esc(p.name)}</button>`:""}</p></div>
     <div class="row" style="flex:none;flex-wrap:nowrap;gap:8px">${chip("gstat",g.status)}${driveIco(folderId(g.driveFolder))}<button class="evedit" data-peek="grants:${esc(g.id)}" title="Upraviť" aria-label="Upraviť grant">${PEN}</button></div></div>

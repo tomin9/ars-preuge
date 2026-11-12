@@ -218,6 +218,8 @@ function bindPart(root,e,r){
   root.querySelectorAll("[data-imgdel]").forEach(b=>b.onclick=async()=>{await upd(e,r.id,{[b.dataset.imgdel]:""});drawerRefresh(true);});
   bindDnD(root);
 }
+/* široký obrázok: najprv sa ukáže malý náhľad z galérie (už načítaný), väčší sa dotiahne a vymení, keď je hotový */
+window.arspHi=im=>{const s=im.dataset.hi;if(!s)return;im.removeAttribute("data-hi");const x=new Image();x.onload=()=>{im.src=s;};x.src=s;};
 function coverUrl(p,w){const c=p&&p.cover;if(!c)return"";return c.startsWith("data:")?c:ARSP_BLOB+c+(w?"&w="+w:"");}   /* w = zmenšený náhľad zo servera (karty v galérii) */
 async function shrink(file,max){
   const url=URL.createObjectURL(file);

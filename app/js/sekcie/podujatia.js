@@ -33,7 +33,7 @@ VIEWS.podujatie=()=>{
   const tm=String(e.time||"").trim(),tmE=esc(tm)+(/h\s*$/i.test(tm)?"":" h"),tmS=tm?` o ${tmE}`:"",when=e.date?`${fdate(e.date)}${tmS}${e.dateTo&&e.dateTo!==e.date?" → "+fdate(e.dateTo):""}`:(tm?tmE:"");
   const rel=e.status==="zrealizovane"||n==null?"":n>0?`o ${n} ${n===1?"deň":n<5?"dni":"dní"}`:n===0?"dnes":"";
   const url=e.url?(/^https?:/.test(e.url)?e.url:"https://"+e.url):"";
-  const cov=coverUrl(e,1600),PEN='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+  const cov=coverUrl(e,640),PEN='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
   return`  <section class="hero evc cov" style="--pc:${esc(col)}">${cov?`<div class="evimg"><img src="${esc(cov)}" alt="" style="object-position:${esc(posOf(e))}"></div>`:`<div class="evimg" style="background:${gradFor(e.id)}"></div>`}
   <div class="evinfo"><div class="spread" style="align-items:flex-start;flex-wrap:nowrap"><div style="min-width:0"><h1>${esc(e.name||"Podujatie")}</h1>${p?`<p class="sub">projekt <button class="btn ghost sm" data-go="projekt" data-id="${esc(p.id)}">${esc(p.name)}</button></p>`:""}</div>
     <div class="row" style="flex:none;flex-wrap:nowrap;gap:8px">${chip("estat",e.status)}${driveIco(folderId(e.driveFolder))}<button class="evedit" data-peek="events:${id}" title="Upraviť" aria-label="Upraviť podujatie">${PEN}</button></div></div>
