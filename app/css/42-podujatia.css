@@ -60,7 +60,9 @@ table.lt td.t{display:flex;gap:8px;align-items:baseline;min-width:0}
 .ptabs button.phadd:hover{background:none;color:var(--accent);border-color:var(--accent)}
 .phgrid{display:flex;flex-wrap:wrap;gap:6px}
 /* Médiá: odkazy zbierky (Spotify, YouTube…) nad fotkami */
-.mdlist{display:grid;grid-template-columns:minmax(0,640px);gap:14px;margin-bottom:16px}   /* pod sebou, rovnaká šírka, prirodzená výška (od 2.0.39) */
+.mdlist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:16px;align-items:start}   /* tretina šírky, prirodzená výška (od 2.0.40) */
+@media (max-width:900px){.mdlist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.mdlist{grid-template-columns:minmax(0,1fr)}}
 .mdi{position:relative;border-radius:12px;overflow:hidden;background:var(--surface);border:1px solid var(--line)}
 .mdi.vid iframe{aspect-ratio:16/9;height:auto}
 .mdi iframe{display:block;width:100%;border:0;color-scheme:normal}   /* rovnaká farebná schéma ako vložená stránka → bez bieleho podkladu */
