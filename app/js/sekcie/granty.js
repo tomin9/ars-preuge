@@ -116,7 +116,7 @@ function gDocsTab(g){   /* ako Výzva a Žiadosť: zoznam sekcií vľavo, vybran
   const sel=S2.find(s=>s.id===S._gdsel[g.id])||S2[0];
   const FOLDER='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H10l2 2.5h7.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>';
   const list=S2.map(s=>`<button type="button" class="txi${s.id===sel.id?" on":""}" data-gdsel="${gid}|${esc(s.id)}">${FOLDER}<span class="txt"><b>${esc(s.label)}</b></span></button>`).join("")
-    +(ed?`<button type="button" class="txi txadd" data-gdadd="${gid}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať sekciu</b></span></button>`:"");
+    +(ed?`<div class="gdsep"></div><button type="button" class="txi txadd" data-gdadd="${gid}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať sekciu</b></span></button>`:"");
   const D=docsOf(sel),kind=sel.id==="__ine"?"ostatne":sel.id,key=`grants:${gid}:${esc(kind)}`;
   const main=`<div class="panel txmain docslot gdmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Dokumenty / ${esc(g.name||"Grant")}</div>
       ${ed&&!sel.fixed?`<input type="text" class="txtitle" data-gdname="${gid}|${esc(sel.id)}" value="${esc(sel.label)}" aria-label="Názov sekcie" maxlength="80" placeholder="Názov sekcie">`:`<div class="txtitle" style="font-size:28px;font-weight:600">${esc(sel.label)}</div>`}</div>
