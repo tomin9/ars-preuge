@@ -32,14 +32,25 @@ async function teamAddContact(eid,key,cid){const e0=teGet(eid);if(!e0)return;
     const e0=teGet(eid);if(!e0||to===key)return;const a=teamSecs(e0).slice(),from=a.findIndex(x=>x[0]===key);if(from<0)return;const[m]=a.splice(from,1);const ti=a.findIndex(x=>x[0]===to);a.splice(ti<0?a.length:ti,0,m);teUpd(eid,{teamSecs:a});});
   document.addEventListener("dragend",()=>{drag=null;document.querySelectorAll(".tpanel").forEach(x=>x.classList.remove("dropt","dragging"));});
 })();
+/* riadok (človek / organizácia) sa dá chytiť a presunúť: v rámci sekcie mení poradie, do inej sekcie mení zaradenie (od 2.0.26) */
 (()=>{let rd=null;
-  document.addEventListener("dragstart",ev=>{const g=ev.target.closest&&ev.target.closest("[data-trowdrag]");if(!g)return;const[eid,key,cid]=g.dataset.trowdrag.split("|");rd={eid,key,cid};const li=g.closest("li");try{ev.dataTransfer.effectAllowed="move";ev.dataTransfer.setData("text/plain",cid);if(li)ev.dataTransfer.setDragImage(li,20,14);}catch(_){}if(li)setTimeout(()=>li.classList.add("dragging"),0);ev.stopPropagation();});
-  document.addEventListener("dragover",ev=>{if(!rd)return;const li=ev.target.closest&&ev.target.closest("li[data-rowkey]");if(!li||li.dataset.rowkey!==rd.key||li.dataset.rowcid===rd.cid)return;ev.preventDefault();document.querySelectorAll("li.rowdrop").forEach(x=>x!==li&&x.classList.remove("rowdrop"));li.classList.add("rowdrop");});
-  document.addEventListener("dragleave",ev=>{const li=ev.target.closest&&ev.target.closest("li.rowdrop");if(li&&!li.contains(ev.relatedTarget))li.classList.remove("rowdrop");});
-  document.addEventListener("drop",ev=>{if(!rd)return;const li=ev.target.closest&&ev.target.closest("li[data-rowkey]");if(!li||li.dataset.rowkey!==rd.key)return;ev.preventDefault();const{eid,key,cid}=rd,to=li.dataset.rowcid;rd=null;
-    const ul=li.closest("ul"),ids=[...ul.querySelectorAll("li[data-rowcid]")].map(x=>x.dataset.rowcid);document.querySelectorAll("li.rowdrop,li.dragging").forEach(x=>x.classList.remove("rowdrop","dragging"));
-    if(to===cid)return;const a=ids.filter(x=>x!==cid),ti=a.indexOf(to);a.splice(ti<0?a.length:ti,0,cid);const e0=teGet(eid);if(!e0)return;teUpd(eid,{teamOrder:Object.assign({},e0.teamOrder||{},{[key]:a})});});
-  document.addEventListener("dragend",()=>{rd=null;document.querySelectorAll("li.rowdrop,li.dragging").forEach(x=>x.classList.remove("rowdrop","dragging"));});
+  const clear=()=>document.querySelectorAll("li.rowdrop,li.dragging,.tpanel.dropt").forEach(x=>x.classList.remove("rowdrop","dragging","dropt"));
+  document.addEventListener("dragstart",ev=>{const g=ev.target.closest&&ev.target.closest("[data-trowdrag]");if(!g)return;const[eid,key,cid]=g.dataset.trowdrag.split("|");rd={eid,key,cid};try{ev.dataTransfer.effectAllowed="move";ev.dataTransfer.setData("text/plain",cid);}catch(_){}setTimeout(()=>g.classList.add("dragging"),0);ev.stopPropagation();});
+  document.addEventListener("dragover",ev=>{if(!rd)return;const li=ev.target.closest&&ev.target.closest("li[data-rowkey]"),pn=ev.target.closest&&ev.target.closest(".tpanel");if(!pn&&!li)return;
+    if(li&&li.dataset.rowcid===rd.cid)return;ev.preventDefault();clear();document.querySelector(`li[data-rowcid="${CSS.escape(rd.cid)}"][data-rowkey="${CSS.escape(rd.key)}"]`)?.classList.add("dragging");
+    if(li)li.classList.add("rowdrop");else if(pn.dataset.seckey!==rd.key)pn.classList.add("dropt");});
+  document.addEventListener("drop",async ev=>{if(!rd)return;const li=ev.target.closest&&ev.target.closest("li[data-rowkey]"),pn=ev.target.closest&&ev.target.closest(".tpanel");if(!li&&!pn)return;ev.preventDefault();
+    const{eid,key,cid}=rd;rd=null;const to=li?li.dataset.rowkey:pn.dataset.seckey,before=li?li.dataset.rowcid:null;
+    const ul=(li?li.closest("ul"):pn.querySelector("ul"));const ids=ul?[...ul.querySelectorAll("li[data-rowcid]")].map(x=>x.dataset.rowcid):[];clear();
+    const e0=teGet(eid);if(!e0||(to===key&&(!before||before===cid)))return;
+    const a=ids.filter(x=>x!==cid),ti=before?a.indexOf(before):-1;a.splice(ti<0?a.length:ti,0,cid);
+    const patch={teamOrder:Object.assign({},e0.teamOrder||{},{[to]:a})};
+    if(to!==key){patch.roles=Object.assign({},e0.roles||{},{[cid]:to});
+      const od=((e0.teamOrder||{})[key]||[]).filter(x=>x!==cid);patch.teamOrder[key]=od;}
+    await teUpd(eid,patch);
+    if(to!==key&&teKind(eid)==="events"&&(to==="partner"||to==="sponzor")&&!S.d.partnerships.some(p=>p.eventId===eid&&p.contactId===cid))await add("partnerships",{eventId:eid,contactId:cid,state:"oslovit"});
+  });
+  document.addEventListener("dragend",()=>{rd=null;clear();});
 })();
 const nrm=v=>String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 document.addEventListener("click",async ev=>{const dd=ev.target.closest&&ev.target.closest("[data-dutydel]");if(dd){ev.stopPropagation();ev.preventDefault();const[eid,cid,ix]=dd.dataset.dutydel.split("|"),e0=teGet(eid);if(e0)teUpd(eid,{duties:Object.assign({},e0.duties||{},{[cid]:dutyArr(e0,cid).filter((_,i)=>i!==+ix)})});return;}
@@ -76,7 +87,7 @@ function teamTab(e){
   const rm=c=>`<button class="x" data-teamrm="${esc(e.id)}|${esc(c.id)}" aria-label="Odobrať" title="Odobrať">×</button>`;
   const stSel=(c)=>{const pt=S.d.partnerships.find(p=>p.eventId===e.id&&p.contactId===c.id),st=pt?pt.state:"",o=OPT.pstav.find(x=>x[0]===st)||OPT.pstav[0],attr=pt?`data-pstate="${esc(pt.id)}"`:`data-pnewstate="${esc(e.id)}|${esc(c.id)}"`;
     return`<label class="sem" title="${esc(st?o[1]:"Stav spolupráce")}" style="--sc:${o[2]}"><i></i><select ${attr} aria-label="Stav spolupráce">${pt?"":`<option value="">—</option>`}${OPT.pstav.map(x=>`<option value="${x[0]}" ${x[0]===st?"selected":""}>${x[1]}</option>`).join("")}</select></label>`;};
-  const li=(key,c)=>`<li data-open="contacts:${esc(c.id)}" data-rowcid="${esc(c.id)}" data-rowkey="${esc(key)}">${tEd(e.id,key)&&key!=="partner"&&key!=="sponzor"?`<span class="tgrip rowgrip" draggable="true" data-trowdrag="${esc(e.id)}|${esc(key)}|${esc(c.id)}" title="Presunúť riadok" aria-label="Presunúť riadok">⠿</span>`:""}<span class="t">${cIcon(c)}${esc(c.name||"Bez mena")}</span>${key==="tim"?`<span class="dutychips">${dutyArr(e,c.id).map((d,i)=>`<span class="tg sm" style="--tc:${dutyCol(d)}">${esc(d)}${tEd(e.id,key)?`<button type="button" class="dutyx" data-dutydel="${esc(e.id)}|${esc(c.id)}|${i}" aria-label="Odobrať úlohu" title="Odobrať">×</button>`:""}</span>`).join("")}${tEd(e.id,key)?`<input type="text" class="tg add dutynew" list="duty-dl" data-dutynew="${esc(e.id)}|${esc(c.id)}" placeholder="+ pridať" aria-label="Pridať úlohu" maxlength="40">`:""}</span>`:(key==="partner"||key==="sponzor")&&teKind(e.id)==="events"?stSel(c):""}${tEd(e.id,key)?rm(c):""}</li>`;
+  const li=(key,c)=>`<li data-open="contacts:${esc(c.id)}" data-rowcid="${esc(c.id)}" data-rowkey="${esc(key)}" draggable="true" data-trowdrag="${esc(e.id)}|${esc(key)}|${esc(c.id)}" title="Potiahnutím presuniete do inej sekcie alebo zmeníte poradie"><span class="t">${cIcon(c)}${esc(c.name||"Bez mena")}</span>${key==="tim"?`<span class="dutychips">${dutyArr(e,c.id).map((d,i)=>`<span class="tg sm" style="--tc:${dutyCol(d)}">${esc(d)}${tEd(e.id,key)?`<button type="button" class="dutyx" data-dutydel="${esc(e.id)}|${esc(c.id)}|${i}" aria-label="Odobrať úlohu" title="Odobrať">×</button>`:""}</span>`).join("")}${tEd(e.id,key)?`<input type="text" class="tg add dutynew" list="duty-dl" data-dutynew="${esc(e.id)}|${esc(c.id)}" placeholder="+ pridať" aria-label="Pridať úlohu" maxlength="40">`:""}</span>`:(key==="partner"||key==="sponzor")&&teKind(e.id)==="events"?stSel(c):""}${tEd(e.id,key)?rm(c):""}</li>`;
   const opts=key=>{const pool=S.d.contacts.filter(c=>!have.has(c.id)&&((key==="tim"||key==="dobrovolnik")?(c.ctype||"osoba")==="osoba":true));
     pool.sort((a,b)=>((tagList(b).includes(key)?1:0)-(tagList(a).includes(key)?1:0))||(a.name||"").localeCompare(b.name||"","sk"));return pool;};
   const SECS=teamSecs(e);
