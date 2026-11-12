@@ -19,7 +19,7 @@ VIEWS.granty=()=>{
   const list=G.filter(g=>tab[2].includes(g.status||"napad")).sort((a,b)=>(b.realFrom||b.submitTo||"").localeCompare(a.realFrom||a.submitTo||"")||(b.createdAt||0)-(a.createdAt||0));
   const defs=esc(JSON.stringify({status:tab[2][0]}));
   const head=`<div class="head"><h1>Granty</h1><div class="row"><div class="tabs"><button data-gmode="gallery" aria-pressed="${S.gf.mode!=="list"}">Galéria</button><button data-gmode="list" aria-pressed="${S.gf.mode==="list"}">Tabuľka</button></div><button class="btn pri" data-create="grants" data-defs='${defs}'>Nový grant</button></div></div>
-  <div class="ptabs" role="tablist">${GTABS.map(([k,l,sts])=>{const n=G.filter(g=>sts.includes(g.status||"napad")).length;return`<button role="tab" data-gtab="${k}" aria-selected="${tab[0]===k}">${l}${n?`<span>${n}</span>`:""}</button>`;}).join("")}</div>`;
+  <div class="ptabs" role="tablist">${GTABS.map(([k,l])=>`<button role="tab" data-gtab="${k}" aria-selected="${tab[0]===k}">${l}</button>`).join("")}</div>`;
   if(S.gf.mode==="list")return head+`<div class="panel">${list.length?table([
     ["Grant",g=>`<span class="cut">${esc(g.name||"Grant")}</span>`,"t"],["Poskytovateľ",g=>provIcon(g)+esc(provName(g))],["Stav",g=>chip("gstat",g.status)],["Projekt",g=>pdot(g.projectId)],
     ["Žiadané",g=>g.requested?eur0(g.requested):"","num"],["Schválené",g=>g.approved?eur0(g.approved):"","num"],["Zaplatené",g=>{const c=grantCalc(g);return c.paidG?eur0(c.paidG):"";},"num"],
