@@ -9,6 +9,13 @@ function eventCard(e){
   return`<div class="gcard" data-open="events:${esc(e.id)}" tabindex="0" role="link"><div class="gimg" style="background:${gradFor(e.id)}">${u?`<img src="${esc(u)}" alt="" loading="lazy" style="object-position:${esc(posOf(e))}">`:""}</div>
   <div class="gbody"><b>${esc(e.name||"Podujatie")}</b>${d?`<div class="gl">${d}</div>`:""}${e.place?`<div class="gl">${esc(e.place)}</div>`:""}</div></div>`;
 }
+/* podujatie po termíne (posledný deň je už za nami) v stave „V príprave“ alebo „Prebieha“ sa samo prepne na „Zrealizované“ (od 2.0.41);
+   nápady sa nemenia. Robí sa raz po načítaní, len u toho, kto smie upravovať podujatia. */
+function evAutoDone(){
+  if(S.evAuto||S.loading||!S.live||S.readOnly||!accEdit("events"))return;S.evAuto=true;
+  const td=today(),L=S.d.events.filter(e=>["priprava","prebieha"].includes(e.status||"priprava")&&(e.dateTo||e.date)&&(e.dateTo||e.date)<td);
+  if(L.length)setTimeout(async()=>{for(const e of L)await upd("events",e.id,{status:"zrealizovane"});},0);
+}
 VIEWS.podujatia=()=>{
   const A=S.d.events,tabs=ETABS;
   const tab=tabs.find(t=>t[0]===S.ef.tab)||tabs[0];
