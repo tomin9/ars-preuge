@@ -102,9 +102,11 @@ const gdSecs=g=>[...GD_BASE.filter(([k])=>!(g.docHidden||[]).includes(k)).map(([
 function gdThumb(d){   /* náhľad: obrázok, prvá strana PDF, náhľad z Google Disku, inak ikona s príponou */
   const nm=d.name||"Dokument",ext=(nm.split(".").pop()||"").toLowerCase(),href=docHref(d);
   const m=String(d.driveId||"").trim()||((/drive\.google\.com\/file\/d\/([\w-]{10,})/.exec(d.url||"")||[])[1]||"");
-  const FI='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg>';
-  const lbl=d.asset&&ext&&ext.length<=4?ext.toUpperCase():/drive\.google|docs\.google/.test(d.url||"")?"DISK":"ODKAZ";
-  const fb=`<div class="dfi">${FI}<span>${esc(lbl)}</span></div>`;
+  /* bez náhľadu len ikona: súbor / Google Disk / odkaz (bez textu) */
+  const FI=d.asset?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg>'
+    :/drive\.google|docs\.google/.test(d.url||"")?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8.6 3.5h6.8l6.1 10.6H14.7z"/><path d="M8.6 3.5 2.5 14.1l3.4 5.9 6.1-10.6z"/><path d="M5.9 20h12.2l3.4-5.9H9.3z"/></svg>'
+    :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>';
+  const fb=`<div class="dfi">${FI}</div>`;
   if(d.asset&&/^(png|jpe?g|gif|webp|avif|svg)$/.test(ext))return`${fb}<img src="${esc(href)}" alt="" loading="lazy" onerror="this.remove()">`;
   if(d.asset&&ext==="pdf")return`${fb}<canvas data-pdfthumb="${esc(href)}" hidden></canvas>`;
   if(m)return`${fb}<img src="https://drive.google.com/thumbnail?id=${esc(m)}&sz=w300" alt="" loading="lazy" onerror="this.remove()">`;

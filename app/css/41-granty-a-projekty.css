@@ -90,7 +90,8 @@
 .gdgrid{display:grid;grid-template-columns:repeat(auto-fill,88px);gap:14px 12px}
 .gdmain .gdbody{padding:22px 26px 26px}
 .gdsep{height:1px;background:var(--line);margin:10px 16px 0}   /* oddelenie sekcií od „Pridať sekciu“ */
-.gdmain .gdgrid{grid-template-columns:repeat(auto-fill,120px);gap:18px 16px}
+.gdmain .gdgrid{grid-template-columns:repeat(auto-fill,170px);gap:18px 16px}
+.gdmain .gdth{aspect-ratio:4/3}   /* dlaždica dokumentu na šírku */
 .gdmain .dform{padding:0 26px 18px}
 .gdt{position:relative;min-width:0}
 .gdth{display:block;position:relative;aspect-ratio:3/4;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface2);color:var(--muted);text-decoration:none}
