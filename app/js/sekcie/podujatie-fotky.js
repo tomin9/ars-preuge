@@ -80,7 +80,7 @@ function phModal(eid,mode){const e=get("events",eid);if(!e)return;const cur=phCu
     let N;
     if(mode==="edit"&&c){if(!u){close();if(!await ask("Odobrať tento album z podujatia? V Google Fotkách ostane.","Odobrať"))return;N=A.filter(a=>a.id!==c.id);}else N=A.map(a=>a.id===c.id?Object.assign(a,{url:u}):a);}
     else{if(!u){toast("Vložte odkaz na album.");inp.focus();return;}if(A.some(a=>a.url===u)){toast("Tento album už je pridaný.");return;}
-      const nid="a"+Date.now().toString(36);N=[...A,{id:nid,url:u}];S._phsel[eid]=nid;if(S._gdsel)S._gdsel[eid]="ph:"+nid;}
+      const nid="a"+Date.now().toString(36);N=[...A,{id:nid,url:u}];S._phsel[eid]=nid;}
     close();await upd("events",eid,{albums:N,photosUrl:N.length?N[0].url:""});};
   L.querySelector('[data-a="0"]').onclick=close;L.querySelector('[data-a="ok"]').onclick=save;
   inp.addEventListener("keydown",ev=>{if(ev.key==="Enter"){ev.preventDefault();save();}else if(ev.key==="Escape"){ev.stopPropagation();close();}});

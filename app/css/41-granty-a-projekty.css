@@ -89,9 +89,6 @@
 .gdhead input.gdname:focus{border-bottom-color:var(--accent)}
 .gdgrid{display:grid;grid-template-columns:repeat(auto-fill,88px);gap:14px 12px}
 .gdmain .gdbody{padding:22px 26px 26px}
-.gdalb .phtabs{display:none}   /* album v Dokumentoch: albumy sú v zozname vľavo, z lišty ostanú len ikony */
-.gdalb{position:relative}
-.gdalb .phbar{position:absolute;top:22px;right:22px;margin:0}   /* ikony albumu vpravo hore v hlavičke, ako pri dokumentoch */
 .gdsep{height:1px;background:var(--line);margin:10px 16px 0}   /* oddelenie sekcií od „Pridať sekciu“ */
 .gdmain .gdgrid{grid-template-columns:repeat(auto-fill,170px);gap:18px 16px}
 .gdmain .gdth{aspect-ratio:4/3}   /* dlaždica dokumentu na šírku */

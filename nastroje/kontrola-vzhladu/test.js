@@ -29,7 +29,7 @@ const DESK=[
  ['granty',async p=>{await go(p,'granty');await cl(p,'[data-gtab="schvalene"]');}],
  ...['vyzva','ziadost','rozpocet','ulohy','podujatia','dokumenty'].map(t=>['grant-'+t,async p=>{await go(p,'granty');await cl(p,'[data-gtab="schvalene"]');await cl(p,'.gcard[data-open="grants:g1"]');await cl(p,`[data-grtab="${t}"]`);}]),
  ['podujatia',async p=>{await go(p,'podujatia');await cl(p,'[data-etab="planovane"]');}],
- ...['texty','rozpocet','ulohy','granty','dramaturgia','marketing','spoluprace','dokumenty','zabezpecenie'].map(t=>['podujatie-'+t,async p=>{await go(p,'podujatia');await cl(p,'[data-etab="planovane"]');await cl(p,'.gcard[data-open="events:e1"]');await cl(p,`[data-evtab="${t}"]`);}]),
+ ...['texty','rozpocet','ulohy','granty','dramaturgia','marketing','spoluprace','dokumenty','fotky','zabezpecenie'].map(t=>['podujatie-'+t,async p=>{await go(p,'podujatia');await cl(p,'[data-etab="planovane"]');await cl(p,'.gcard[data-open="events:e1"]');await cl(p,`[data-evtab="${t}"]`);}]),
  ['podujatie-rozpocet-granty',async p=>{await cl(p,'[data-evtab="rozpocet"]');await cl(p,'[data-evbmode="granty"]');}],
  ['podujatie-spoluprace-uprava',async p=>{await cl(p,'[data-evtab="spoluprace"]');await cl(p,'[data-secedit]');}],
  ['zabezpecenie-ludia',async p=>{await cl(p,'[data-evtab="zabezpecenie"]');await cl(p,'[data-zbmode="ludia"]');}],
