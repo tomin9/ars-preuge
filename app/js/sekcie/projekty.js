@@ -22,7 +22,7 @@ VIEWS.projekt=()=>{
   const cur=TABS.find(t=>t[0]===tab)||TABS[0];
   const head=coverUrl(p)?`<div class="pcw"><img class="pcover" src="${esc(coverUrl(p))}" alt="" style="object-position:${esc(posOf(p))}"><button class="btn pcedit" data-peek="projects:${pid}">Upraviť</button></div><h1 class="ptitle">${esc(p.name||"Bez názvu")}</h1>`
     :`<div class="spread ptitle" style="align-items:center;flex-wrap:nowrap"><h1>${esc(p.name||"Bez názvu")}</h1><button class="btn" style="flex:none" data-peek="projects:${pid}">Upraviť</button></div>`;
-  const bar_=`<div class="ptabs" role="tablist">${TABS.map(([k,l,n])=>`<button role="tab" data-ptab="${k}" aria-selected="${cur[0]===k}">${l}${n?`<span>${n}</span>`:""}</button>`).join("")}${cur[3]&&!["podujatia","granty","ludia"].includes(cur[0])?`<span class="ptabs-r"><button class="btn pri sm" data-linknew="projects:${pid}|${cur[3][0]}">${cur[3][1]}</button></span>`:""}</div>`;
+  const bar_=`<div class="ptabs" role="tablist">${TABS.map(([k,l])=>`<button role="tab" data-ptab="${k}" aria-selected="${cur[0]===k}">${l}</button>`).join("")}${cur[3]&&!["podujatia","granty","ludia"].includes(cur[0])?`<span class="ptabs-r"><button class="btn pri sm" data-linknew="projects:${pid}|${cur[3][0]}">${cur[3][1]}</button></span>`:""}</div>`;
   let body="";
   if(cur[0]==="obsah"){
     const row=(l,v)=>`<div class="pl">${l}</div><div class="pv2">${v||'<span class="muted">—</span>'}</div>`;
@@ -39,7 +39,7 @@ VIEWS.projekt=()=>{
   if(cur[0]==="ulohy"){
     body=`<div class="board">${OPT.tstat.map(([st,label,cc])=>{let L=c.T.filter(t=>(t.status||"inbox")===st);const n=L.length;
       L.sort((a,b)=>st==="hotove"?(b.doneAt||b.updatedAt||0)-(a.doneAt||a.updatedAt||0):(a.priority==="urgentne"?0:1)-(b.priority==="urgentne"?0:1)||byDue(a,b));if(st==="hotove")L=L.slice(0,8);
-      return`<div class="col" data-drop="tasks:status:${st}"><h3><span class="row" style="gap:7px;color:var(--ink);font-weight:700"><i class="dot" style="background:${cc}"></i>${label}</span><span>${n}</span></h3>${L.map(taskCard).join("")}</div>`;}).join("")}</div>${linkSel("projects",p,"tasks")}`;
+      return`<div class="col" data-drop="tasks:status:${st}"><h3><span class="row" style="gap:7px;color:var(--ink);font-weight:700"><i class="dot" style="background:${cc}"></i>${label}</span><span>${n}</span></h3>${L.map(taskCard).join("")}</div>`;}).join("")}</div>`;
   }
   if(cur[0]==="granty"){
     body=`<div class="gal">${G.map(grantCard).join("")}
