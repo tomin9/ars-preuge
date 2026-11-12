@@ -12,6 +12,7 @@ function mdEmbed(u){u=String(u||"").trim();let m;
   if((m=/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(episode|show|track|album|playlist|artist)\/([A-Za-z0-9]+)/.exec(u)))return{kind:"Spotify",src:`https://open.spotify.com/embed/${m[1]}/${m[2]}`,h:m[1]==="episode"||m[1]==="track"?152:352};
   if((m=/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/.exec(u)))return{kind:"YouTube",src:`https://www.youtube-nocookie.com/embed/${m[1]}`,video:1};
   if((m=/vimeo\.com\/(?:video\/)?(\d+)/.exec(u)))return{kind:"Vimeo",src:`https://player.vimeo.com/video/${m[1]}`,video:1};
+  if((m=/^https?:\/\/podcasts\.apple\.com\/(.+)$/.exec(u)))return{kind:"Apple Podcasts",src:"https://embed.podcasts.apple.com/"+m[1]};
   if(/soundcloud\.com\//.test(u))return{kind:"SoundCloud",src:`https://w.soundcloud.com/player/?url=${encodeURIComponent(u)}&visual=false`,h:166};
   return null;}
 const mdHost=u=>{try{return new URL(u).hostname.replace(/^www\./,"");}catch(_){return u;}};
@@ -38,8 +39,8 @@ function mdLinks(e,a){const L=Array.isArray(a.links)?a.links:[],eid=esc(e.id),ed
   if(!L.length&&!tiles)return"";
   const DEL='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
   return`<div class="mdlist">${L.map(x=>{const m=mdEmbed(x.url),rm=ed?`<button type="button" class="gdrm mdrm" data-mdrm="${eid}|${esc(a.id)}|${esc(x.id)}" title="Odobrať odkaz" aria-label="Odobrať odkaz">${DEL}</button>`:"";
-    return m?`<div class="mdi${m.video?" vid":""}">${rm}<iframe src="${esc(m.src)}" title="${esc(m.kind)}" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen${m.h?` style="height:${m.h}px"`:""}></iframe></div>`
-      :`<div class="mdi lnk">${rm}<a href="${esc(x.url)}" target="_blank" rel="noopener"><b>${esc(x.name||mdHost(x.url))}</b><span class="meta">${esc(x.url)}</span></a></div>`;}).join("")}${tiles}</div>`;}
+    return m?`<div class="mdi">${rm}<iframe src="${esc(m.src)}" title="${esc(m.kind)}" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`
+      :`<div class="mdi lnk">${rm}<a href="${esc(x.url)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><b>${esc(x.name||mdHost(x.url))}</b><span class="meta">${esc(x.url)}</span></a></div>`;}).join("")}${tiles}</div>`;}
 const phName=(a,A)=>{const d=a.url&&S._ph[a.url];return String(a.name||"").trim()||(d&&d.title)||(!a.url&&a.links&&a.links[0]?mdLabel(a.links[0].url):"")||"Album "+(A.indexOf(a)+1);};
 function phTabBtn(e,a,A,cur){const on=cur&&cur.id===a.id;
   return`<button role="tab" data-phtab="${esc(a.id)}" data-phev="${esc(e.id)}" aria-selected="${on}"${on?' title="Kliknutím premenujete album"':""}>${esc(phName(a,A))}</button>`;}

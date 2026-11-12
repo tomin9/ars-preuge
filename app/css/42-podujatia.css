@@ -62,12 +62,14 @@ table.lt td.t{display:flex;gap:8px;align-items:baseline;min-width:0}
 /* Médiá: odkazy zbierky (Spotify, YouTube…) nad fotkami */
 .mdlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-bottom:16px;align-items:start}
 .mdi{position:relative;border-radius:12px;overflow:hidden;background:var(--surface);border:1px solid var(--line)}
-.mdi iframe{display:block;width:100%;border:0}
-.mdi.vid iframe{aspect-ratio:16/9;height:auto}
-.mdi.lnk a{display:flex;flex-direction:column;gap:3px;padding:14px 16px;color:var(--ink);text-decoration:none;min-width:0}
+.mdi{aspect-ratio:16/9}   /* všetky odkazy v rovnakom formáte (od 2.0.36) */
+.mdi iframe{display:block;width:100%;height:100%;border:0}
+.mdi.lnk a{height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 20px;color:var(--ink);text-decoration:none;min-width:0;text-align:center}
+.mdi.lnk a svg{color:var(--muted)}
+.mdi.lnk a .meta{max-width:100%}
 .mdi.lnk a .meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mdi .mdrm{opacity:1}   /* kôš len v režime úprav albumu (inak sa nevykreslí) */
-.mdadd{min-height:120px;display:grid;place-content:center;gap:4px;text-align:center}
+.mdadd{aspect-ratio:16/9;min-height:0;display:grid;place-content:center;gap:4px;text-align:center}
 .mdadd small{font-weight:400;font-size:12px;color:var(--muted)}
 .mdi .mdrm{z-index:2}
 .phgrid::after{content:"";flex-grow:1e9}
