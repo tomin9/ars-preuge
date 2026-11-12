@@ -1,7 +1,8 @@
 /* ===== Sekcia Podujatia: zoznam (galéria/tabuľka) a hlavná karta detailu podujatia.
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatia.js. Nie je to samostatný skript. ===== */
 /* ----- Podujatia ----- */
-const ETABS=[["planovane","Plánované",["napad","priprava"]],["prebieha","Prebieha",["prebieha"]],["zrealizovane","Zrealizované",["zrealizovane"]],["zrusene","Zrušené",["zrusene"]]];
+/* od 2.0.15 len dve záložky: V príprave (nápad, príprava, prebieha) · Zrealizované (aj zrušené); posledný stav v zozname = stav nového podujatia */
+const ETABS=[["planovane","V príprave",["napad","prebieha","priprava"]],["zrealizovane","Zrealizované",["zrusene","zrealizovane"]]];
 function eventCard(e){
   const u=coverUrl(e);
   const d=e.date?`${fdate(e.date)}${e.time?" "+esc(e.time):""}${e.dateTo&&e.dateTo!==e.date?" → "+fdate(e.dateTo):""}`:"";
@@ -9,7 +10,7 @@ function eventCard(e){
   <div class="gbody"><b>${esc(e.name||"Podujatie")}</b>${d?`<div class="gl">${d}</div>`:""}${e.place?`<div class="gl">${esc(e.place)}</div>`:""}</div></div>`;
 }
 VIEWS.podujatia=()=>{
-  const A=S.d.events,tabs=ETABS.filter(t=>t[0]!=="zrusene"||A.some(e=>e.status==="zrusene"));
+  const A=S.d.events,tabs=ETABS;
   const tab=tabs.find(t=>t[0]===S.ef.tab)||tabs[0];
   let list=A.filter(e=>tab[2].includes(e.status||"priprava"));
   list.sort(tab[0]==="zrealizovane"||tab[0]==="zrusene"?(a,b)=>(b.date||"").localeCompare(a.date||""):(a,b)=>(a.date||"9999").localeCompare(b.date||"9999"));
