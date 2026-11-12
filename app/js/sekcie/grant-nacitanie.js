@@ -76,7 +76,7 @@ function grantCallTab(g){
   const fresh=!GV_SEC.some(([f])=>String(g[f]||"").trim());  /* nový grant: len Údaje o výzve a Načítať výzvu, časti pribudnú po načítaní */
   const list=item("udaje",GV_IC,"Údaje o výzve","termíny, sumy, spolufinancovanie",filled)
     +(fresh?"":GV_SEC.map(([f,l,,i])=>{const n=String(g[f]||"").length;return item(f,TXI.ic[i],l,n?`${n.toLocaleString("sk-SK")} znakov`:"zatiaľ prázdne",n>0);}).join(""))
-    +`<button type="button" class="txi txadd" data-aivyzva="${gid}" title="Claude prečíta výzvu (odkaz alebo PDF) a navrhne údaje">${svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>')}<span class="txt"><b>Načítať výzvu</b></span></button>`
+    +`<div class="gdsep"></div><button type="button" class="txi txadd" data-aivyzva="${gid}" title="Claude prečíta výzvu (odkaz alebo PDF) a navrhne údaje">${svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>')}<span class="txt"><b>Načítať výzvu</b></span></button>`
     +(fresh?"":`<button type="button" class="txi txadd" style="margin-top:0" data-callimp="${gid}" title="Vložiť údaje o výzve ručne (text od Claude)">${svg('<path d="M12 5v14M5 12h14"/>')}<span class="txt"><b>Vložiť ručne</b></span></button>`);
   const kick=`<div class="kick">Výzva / ${esc(g.name||"Grant")}</div>`;
   let main;
