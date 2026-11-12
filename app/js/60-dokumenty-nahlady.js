@@ -26,11 +26,14 @@ function docRow(e,r,kind,label){
   const D=(r.docs||[]).map((d,i)=>({d,i})).filter(x=>(x.d.kind||"")===kind),key=`${e}:${esc(r.id)}:${kind}`;
   return`<div class="docslot dr2"><div class="dr2-h"><b>${DOCICO[kind]||""}${esc(label)}</b>${kind==="zmluva"?`<button class="btn sm pri" data-mkcontract="${esc(r.id)}">Vytvoriť zmluvu</button>`:""}<label class="btn sm" style="cursor:pointer">Nahrať súbor<input type="file" data-dfile="${key}" hidden></label><button class="btn sm ghost" data-dlink="${key}">+ Odkaz</button></div><div class="dr2-t">${D.map(({d,i})=>docThumb(e,r,d,i)).join("")}</div></div>`;
 }
+const PDFTH={};   /* náhľady PDF už vykreslené v tejto relácii (aby sa pri prekreslení stránky nesťahovali znova) */
 function renderPdfThumbs(root){
+  if(!root)return;
   root.querySelectorAll("canvas[data-pdfthumb]").forEach(async cv=>{
     const href=cv.dataset.pdfthumb;cv.removeAttribute("data-pdfthumb");
+    if(PDFTH[href]){const im=document.createElement("img");im.src=PDFTH[href];im.alt="";cv.replaceWith(im);const f=im.parentNode&&im.parentNode.querySelector(".dfi");if(f)f.remove();return;}
     try{const lib=await loadPdfJs();const buf=await (await fetch(href)).arrayBuffer();const pdf=await lib.getDocument({data:buf}).promise;const pg=await pdf.getPage(1);
       const v0=pg.getViewport({scale:1}),sc=220/v0.width,vp=pg.getViewport({scale:sc});cv.width=vp.width;cv.height=vp.height;
-      await pg.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;cv.hidden=false;const f=cv.parentNode.querySelector(".dfi");if(f)f.remove();}catch(_){}
+      await pg.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;cv.hidden=false;try{PDFTH[href]=cv.toDataURL("image/jpeg",.8);}catch(_){}const f=cv.parentNode.querySelector(".dfi");if(f)f.remove();}catch(_){}
   });
 }

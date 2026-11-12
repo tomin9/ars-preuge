@@ -51,7 +51,7 @@ VIEWS.grant=()=>{
         <ul class="cl">${cl.map((x,i)=>`<li class="${x.d?"on":""}"><button class="check ${x.d?"on":""}" data-ck-toggle="grants:${esc(g.id)}" data-i="${i}" aria-label="Splnené"></button><span>${esc(x.t)}</span></li>`).join("")}</ul>
         <input type="text" id="g-ck-add" placeholder="+ Pridať krok a Enter" style="width:100%;margin-top:6px"></div><div class="panel">${linkBlock("grants",g,"contacts")}</div></div>`;
   else if(gtab==="rozpocet")body=grantBudgetTab(g);
-  else if(gtab==="dokumenty")body=`<div class="docslots">${docSlot("grants",g,"vyzva","Výzva","text výzvy, podmienky, prílohy")}${GDOCS.map(([k,l,h])=>docSlot("grants",g,k,l,h)).join("")}${(g.docs||[]).some(d=>!["vyzva","ziadost","zmluva","vyuctovanie"].includes(d.kind||""))?docSlot("grants",g,"","Ostatné",""):""}</div>`;
+  else if(gtab==="dokumenty")body=gDocsTab(g);
   else{const ed={grantIds:[g.id]};if(g.projectId)ed.projectId=g.projectId;  /* podujatia ako karty – rovnako ako granty v podujatí */
     body=`<div class="gal">${E.map(eventCard).join("")}<button class="gnew" data-create="events" data-defs='${esc(JSON.stringify(ed))}'>+ Nové podujatie</button><div class="gsel">${linkSel("grants",g,"events")}</div></div>`;}
   const cov=coverUrl(g),PEN='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
@@ -89,3 +89,46 @@ function callImport(id){
 }
 const GRTABS=[["vyzva","Výzva"],["ziadost","Žiadosť"],["rozpocet","Rozpočet"],["ulohy","Úlohy"],["podujatia","Podujatia"],["dokumenty","Dokumenty"]];  /* záložka Zmluva zrušená (1.70.0): dokumenty sú v hlavnej karte, Postup a kontakty v Úlohách */
 const GDOCS=[["ziadost","Žiadosť","podaná žiadosť, prílohy, rozpočet zo žiadosti"],["zmluva","Zmluva","zmluva o poskytnutí dotácie, dodatky"],["vyuctovanie","Vyúčtovanie","vyúčtovanie, záverečná správa, doklady"]];
+
+/* ===== Grant – záložka Dokumenty (od 2.0.8): sekcie s náhľadmi dokumentov. Pevné sekcie Výzva · Žiadosť · Zmluva · Vyúčtovanie sa dajú
+   premenovať (g.docNames {druh: názov}), vlastné sekcie sú v g.docSecs [{id,label}] (dokument má kind = id sekcie).
+   Dokumenty bez známej sekcie sa ukážu v „Ostatné“. Nahrávanie a odkazy idú cez spoločné data-dfile / data-dlink (64-dokumenty-nahravanie.js). */
+const GD_BASE=[["vyzva","Výzva"],["ziadost","Žiadosť"],["zmluva","Zmluva"],["vyuctovanie","Vyúčtovanie"]];
+const GD_I={up:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7 10l5-5 5 5M5 20h14"/></svg>',
+  link:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
+  del:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>'};
+const gdSecs=g=>[...GD_BASE.map(([k,l])=>({id:k,label:(g.docNames||{})[k]||l,base:true})),...(Array.isArray(g.docSecs)?g.docSecs:[]).map(x=>({id:x.id,label:x.label||"Nová sekcia"}))];
+function gdThumb(d){   /* náhľad: obrázok, prvá strana PDF, náhľad z Google Disku, inak ikona s príponou */
+  const nm=d.name||"Dokument",ext=(nm.split(".").pop()||"").toLowerCase(),href=docHref(d);
+  const m=String(d.driveId||"").trim()||((/drive\.google\.com\/file\/d\/([\w-]{10,})/.exec(d.url||"")||[])[1]||"");
+  const FI='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg>';
+  const lbl=d.asset&&ext&&ext.length<=4?ext.toUpperCase():/drive\.google|docs\.google/.test(d.url||"")?"DISK":"ODKAZ";
+  const fb=`<div class="dfi">${FI}<span>${esc(lbl)}</span></div>`;
+  if(d.asset&&/^(png|jpe?g|gif|webp|avif|svg)$/.test(ext))return`${fb}<img src="${esc(href)}" alt="" loading="lazy" onerror="this.remove()">`;
+  if(d.asset&&ext==="pdf")return`${fb}<canvas data-pdfthumb="${esc(href)}" hidden></canvas>`;
+  if(m)return`${fb}<img src="https://drive.google.com/thumbnail?id=${esc(m)}&sz=w300" alt="" loading="lazy" onerror="this.remove()">`;
+  return fb;}
+function gDocsTab(g){
+  const gid=esc(g.id),ed=accEditRec("grants",g)&&!S.readOnly,all=(g.docs||[]).map((d,i)=>({d,i})),S2=gdSecs(g),ids=new Set(S2.map(x=>x.id));
+  const other=all.filter(x=>!ids.has(x.d.kind||""));
+  const sec=(s,D,fixed)=>{const key=`grants:${gid}:${esc(s.id)}`;
+    return`<div class="panel docslot gdsec"><div class="gdhead">${ed&&!fixed?`<input class="gdname" data-gdname="${gid}|${esc(s.id)}" value="${esc(s.label)}" aria-label="Názov sekcie" title="Kliknutím premenujete">`:`<h2>${esc(s.label)}</h2>`}
+      ${ed?`<span class="row" style="gap:2px;flex:none"><label class="tplus" title="Nahrať súbor" aria-label="Nahrať súbor">${GD_I.up}<input type="file" multiple data-dfile="${key}" hidden></label><button type="button" class="tplus" data-dlink="${key}" title="Pridať odkaz" aria-label="Pridať odkaz">${GD_I.link}</button>${s.base||fixed?"":`<button type="button" class="tplus" data-gddel="${gid}|${esc(s.id)}" title="Odstrániť sekciu" aria-label="Odstrániť sekciu">${GD_I.del}</button>`}</span>`:""}</div>
+      ${D.length?`<div class="gdgrid">${D.map(({d,i})=>`<div class="gdt"><a class="gdth" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Dokument")}">${gdThumb(d)}</a>${ed?`<button type="button" class="gdrm" data-docrm="grants:${gid}:${i}" title="Odstrániť dokument" aria-label="Odstrániť dokument">${GD_I.del}</button>`:""}<a class="gdn" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Dokument")}">${esc(String(d.name||"Dokument").replace(/\.[a-z0-9]{2,4}$/i,""))}</a></div>`).join("")}</div>`
+        :`<div class="gdempty">${ed?"Zatiaľ prázdne – nahrajte súbor alebo pridajte odkaz ikonami hore.":"Zatiaľ prázdne."}</div>`}</div>`;};
+  return`<div class="docslots gdocs2">${S2.map(s=>sec(s,all.filter(x=>(x.d.kind||"")===s.id))).join("")}${other.length?sec({id:"",label:"Ostatné"},other,true):""}${ed?`<button type="button" class="gnew gdadd" data-gdadd="${gid}">+ Pridať sekciu</button>`:""}</div>`;
+}
+document.addEventListener("change",ev=>{const el=ev.target.closest&&ev.target.closest("[data-gdname]");if(!el)return;const[gid,sid]=el.dataset.gdname.split("|"),g=get("grants",gid);if(!g)return;
+  const v=el.value.trim();if(!v){render();return;}
+  if(GD_BASE.some(b=>b[0]===sid))upd("grants",gid,{docNames:Object.assign({},g.docNames||{},{[sid]:v})});
+  else upd("grants",gid,{docSecs:(g.docSecs||[]).map(x=>x.id===sid?Object.assign({},x,{label:v}):x)});});
+document.addEventListener("keydown",ev=>{const el=ev.target;if(el&&el.dataset&&el.dataset.gdname!==undefined&&ev.key==="Enter")el.blur();});
+document.addEventListener("click",async ev=>{const t=ev.target;if(!t.closest)return;let el;
+  if((el=t.closest("[data-gdadd]"))){const g=get("grants",el.dataset.gdadd);if(!g)return;const id="s"+Date.now().toString(36);
+    await upd("grants",g.id,{docSecs:[...(g.docSecs||[]),{id,label:"Nová sekcia"}]});
+    setTimeout(()=>{const i=document.querySelector(`[data-gdname="${g.id}|${id}"]`);if(i){i.focus();i.select();}},80);return;}
+  if((el=t.closest("[data-gddel]"))){const[gid,sid]=el.dataset.gddel.split("|"),g=get("grants",gid);if(!g)return;const x=(g.docSecs||[]).find(y=>y.id===sid);if(!x)return;
+    const n=(g.docs||[]).filter(d=>d.kind===sid).length;
+    if(!await ask(`Odstrániť sekciu „${x.label||"Nová sekcia"}“?${n?` Jej dokumenty (${n}) sa presunú do sekcie „Ostatné“.`:""}`,"Odstrániť"))return;
+    const p={docSecs:(g.docSecs||[]).filter(y=>y.id!==sid)};if(n)p.docs=(g.docs||[]).map(d=>d.kind===sid?Object.assign({},d,{kind:"ostatne"}):d);upd("grants",gid,p);return;}
+});
