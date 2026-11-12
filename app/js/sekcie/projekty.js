@@ -4,7 +4,7 @@
 VIEWS.projekty=()=>{
   let list=[...S.d.projects];
   list.sort((a,b)=>(a.end||"9999").localeCompare(b.end||"9999"));
-  return`<div class="head"><div><h1>Projekty</h1><p class="sub">${S.d.projects.length} projektov združenia</p></div><button class="btn pri" data-create="projects">Nový projekt</button></div>
+  return`<div class="head"><div><h1>Projekty</h1><p class="sub">${S.d.projects.length} projektov združenia</p></div></div>
   ${list.length?projGallery(list):`<div class="panel">${list.length?table([
     ["Projekt",p=>`<span class="row" style="gap:9px;flex-wrap:nowrap"><i class="dot" style="background:${esc(p.color||GRAY)}"></i><span class="cut">${esc(p.name||"Bez názvu")}</span></span>`,"t"],
     
@@ -22,7 +22,7 @@ VIEWS.projekt=()=>{
   const cur=TABS.find(t=>t[0]===tab)||TABS[0];
   const head=coverUrl(p)?`<div class="pcw"><img class="pcover" src="${esc(coverUrl(p))}" alt="" style="object-position:${esc(posOf(p))}"><button class="btn pcedit" data-peek="projects:${pid}">Upraviť</button></div><h1 class="ptitle">${esc(p.name||"Bez názvu")}</h1>`
     :`<div class="spread ptitle" style="align-items:center;flex-wrap:nowrap"><h1>${esc(p.name||"Bez názvu")}</h1><button class="btn" style="flex:none" data-peek="projects:${pid}">Upraviť</button></div>`;
-  const bar_=`<div class="ptabs" role="tablist">${TABS.map(([k,l,n])=>`<button role="tab" data-ptab="${k}" aria-selected="${cur[0]===k}">${l}${n?`<span>${n}</span>`:""}</button>`).join("")}${cur[3]?`<span class="ptabs-r"><button class="btn pri sm" data-linknew="projects:${pid}|${cur[3][0]}">${cur[3][1]}</button></span>`:""}</div>`;
+  const bar_=`<div class="ptabs" role="tablist">${TABS.map(([k,l,n])=>`<button role="tab" data-ptab="${k}" aria-selected="${cur[0]===k}">${l}${n?`<span>${n}</span>`:""}</button>`).join("")}${cur[3]&&!["podujatia","granty","ludia"].includes(cur[0])?`<span class="ptabs-r"><button class="btn pri sm" data-linknew="projects:${pid}|${cur[3][0]}">${cur[3][1]}</button></span>`:""}</div>`;
   let body="";
   if(cur[0]==="obsah"){
     const row=(l,v)=>`<div class="pl">${l}</div><div class="pv2">${v||'<span class="muted">—</span>'}</div>`;

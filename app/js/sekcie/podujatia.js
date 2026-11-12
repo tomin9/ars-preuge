@@ -14,7 +14,7 @@ VIEWS.podujatia=()=>{
   let list=A.filter(e=>tab[2].includes(e.status||"priprava"));
   list.sort(tab[0]==="zrealizovane"||tab[0]==="zrusene"?(a,b)=>(b.date||"").localeCompare(a.date||""):(a,b)=>(a.date||"9999").localeCompare(b.date||"9999"));
   const defs=esc(JSON.stringify({status:tab[2][tab[2].length-1]}));
-  const head=`<div class="head"><h1>Podujatia</h1><div class="row"><button class="btn pri" data-create="events" data-defs='${defs}'>Nové podujatie</button></div></div>
+  const head=`<div class="head"><h1>Podujatia</h1></div>
   <div class="ptabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" data-etab="${k}" aria-selected="${tab[0]===k}">${l}</button>`).join("")}</div>`;
   if(S.ef.mode==="list")return head+`<div class="panel">${list.length?table([
     ["Dátum",e=>e.date?`<b>${fdateS(e.date)}</b>${e.dateTo&&e.dateTo!==e.date?` – ${fdateS(e.dateTo)}`:""}${e.time?`<div class="meta">${esc(e.time)}</div>`:""}`:'<span class="meta">bez dátumu</span>'],
