@@ -206,8 +206,8 @@ function eventLi(e){
 }
 function emptyBox(text,e,label,defs){return`<div class="empty">${esc(text)}${e?`<div style="margin-top:8px"><button class="btn pri" data-create="${e}" ${defs?`data-defs='${esc(JSON.stringify(defs))}'`:""}>${esc(label)}</button></div>`:""}</div>`;}
 const ctLink=id=>{const c=get("contacts",id);return c?`<span class="rlink" data-open="contacts:${esc(c.id)}" title="Otvoriť kontakt">${cIcon(c)}${esc(ttl("contacts",c))}</span>`:"";};
-/* ikona „Priečinok na Disku“ v hlavičke grantu a podujatia (vedľa ceruzky) */
-const driveIco=fid=>fid?`<a class="evedit" href="https://drive.google.com/drive/folders/${esc(fid)}" target="_blank" rel="noopener" title="Priečinok na Disku" aria-label="Priečinok na Disku"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H10l2 2.5h7.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg></a>`:"";
+/* ikona Google Disku (sivá, ako ikona Google Fotiek) – priečinok na Disku v hlavičke grantu a podujatia (vedľa ceruzky) */
+const driveIco=fid=>fid?`<a class="evedit" href="https://drive.google.com/drive/folders/${esc(fid)}" target="_blank" rel="noopener" title="Priečinok na Disku" aria-label="Priečinok na Disku"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M8.6 3.5h6.8l6.1 10.6H14.7z"/><path d="M8.6 3.5 2.5 14.1l3.4 5.9 6.1-10.6z"/><path d="M5.9 20h12.2l3.4-5.9H9.3z"/></svg></a>`:"";
 function table(cols,rows,open,foot){
   return`<div class="tw"><table><thead><tr>${cols.map(c=>`<th class="${c[2]||""}">${esc(c[0])}</th>`).join("")}</tr></thead><tbody>
   ${rows.map(r=>`<tr data-open="${open(r)}">${cols.map(c=>`<td class="${c[2]||""}">${c[1](r)}</td>`).join("")}</tr>`).join("")}</tbody>${foot?`<tfoot><tr>${foot}</tr></tfoot>`:""}</table></div>`;
