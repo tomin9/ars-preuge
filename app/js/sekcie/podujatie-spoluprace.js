@@ -100,7 +100,10 @@ function teamTab(e){
   const NC=teamCols();S._tn=NC;
   /* „+ Pridať sekciu“ v kratšom stĺpci (najvyššie voľné miesto pod sekciami), šírka jedného stĺpca; výška stĺpca ≈ sekcie + počet ľudí v nich */
   const add=`<button class="gnew" data-secadd="${esc(e.id)}" style="display:grid;width:100%;box-sizing:border-box;min-height:64px">+ Pridať sekciu</button>`;
-  const colH=Array.from({length:NC},(_,n)=>SECS.filter((_,i)=>i%NC===n).reduce((h,[key])=>h+2+P.filter(c=>teamRole(e,c)===key).length,0)),nx=colH.indexOf(Math.min(...colH));
-  return`<div class="tcols" style="--nc:${NC}">${Array.from({length:NC},(_,n)=>`<div class="tcol">${SECS.filter((_,i)=>i%NC===n).map(card).join("")}${n===nx?add:""}</div>`).join("")}</div>${oth}`;
+  /* sekcie sa ukladajú do stĺpcov postupne vždy do kratšieho (výška ≈ 2 + počet ľudí), aby stĺpce boli vyrovnané (od 2.0.27) */
+  const colH=Array(NC).fill(0),cols=Array.from({length:NC},()=>[]);
+  SECS.forEach(sec=>{const n=colH.indexOf(Math.min(...colH));cols[n].push(sec);colH[n]+=2+P.filter(c=>teamRole(e,c)===sec[0]).length;});
+  const nx=colH.indexOf(Math.min(...colH));
+  return`<div class="tcols" style="--nc:${NC}">${cols.map((L,n)=>`<div class="tcol">${L.map(card).join("")}${n===nx?add:""}</div>`).join("")}</div>${oth}`;
 }
 /* ===== Texty podujatia ===== */
