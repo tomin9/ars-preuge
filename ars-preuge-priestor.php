@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 2.0.29
+ * Version: 2.0.30
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '2.0.29');
+define('ARSP_VER', '2.0.30');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -244,7 +244,7 @@ function arsp_serve_blob($id) {
     if (!file_exists($path)) { status_header(404); echo 'Not found'; return; }
     if (!arsp_acc_can_see_ref($id)) { status_header(403); echo 'Forbidden'; return; }   /* súbor patrí k záznamu, ktorý človek nesmie vidieť */
     $type = $map[$id]['type'];
-    /* zmenšený náhľad obrázka (?arsp_blob=ID&w=640) – vyrobí sa raz a uloží vedľa originálu (od 2.0.29) */
+    /* zmenšený náhľad obrázka (?arsp_blob=ID&w=640) – vyrobí sa raz a uloží vedľa originálu (od 2.0.30) */
     $w = isset($_GET['w']) ? (int) $_GET['w'] : 0;
     if ($w > 0 && strpos($type, 'image/') === 0 && $type !== 'image/svg+xml') {
         $w = $w <= 480 ? 480 : ($w <= 960 ? 960 : 1600);

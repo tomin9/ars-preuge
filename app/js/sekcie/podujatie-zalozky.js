@@ -24,12 +24,7 @@ function eventTabs(e){
       <div class="panel"><h2>Texty a poznámky</h2><textarea id="ev-mkt" placeholder="Anotácia, texty na sociálne siete, hashtagy, kontakty na médiá…" style="width:100%;min-height:220px;margin-top:8px">${esc(e.marketing||"")}</textarea></div></div>`;
   }
   else if(tab==="spoluprace")body=teamTab(e);
-  else if(tab==="dokumenty"){
-    const D=e.docs||[];
-    body=`<div class="panel"><div class="spread"><h2>Dokumenty</h2><div class="row"><label class="btn sm" style="cursor:pointer">Nahrať súbor<input type="file" id="ev-doc-file" hidden></label><button class="btn sm" id="ev-doc-link">+ Odkaz</button></div></div>
-    ${D.length?`<ul class="items">${D.map((d,i)=>{const href=d.asset?ARSP_BLOB+d.asset:(/^https?:/.test(d.url||"")?d.url:"https://"+(d.url||""));return`<li><a class="t" href="${esc(href)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${esc(d.name||"Dokument")}</a><span class="meta">${d.asset?"súbor":esc((d.url||"").replace(/^https?:\/\//,"").split("/")[0])}</span><button class="x" data-docdel="${i}" aria-label="Odstrániť">×</button></li>`;}).join("")}</ul>`
-      :`<div class="empty">Zmluvy, technický rider, scenár, plagát v PDF… Nahrajte PDF či obrázok, alebo vložte odkaz na Google Drive.</div>`}
-    <div id="ev-doc-form" hidden style="margin-top:10px"><div class="row"><input type="text" id="ev-doc-name" placeholder="Názov" style="flex:1"><input type="url" id="ev-doc-url" placeholder="https://…" style="flex:2"><button class="btn sm pri" id="ev-doc-save">Uložiť</button></div></div></div>`;
+  else if(tab==="dokumenty"){body=gDocsTab(e);   /* ako pri grante: sekcie vľavo, náhľady vpravo (od 2.0.30) */
   }
   return tbar+body;
 }
