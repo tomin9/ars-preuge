@@ -72,11 +72,7 @@ VIEWS.projekt=()=>{
         :`<div class="empty">Zatiaľ žiadne platby.</div>`}</div>`;
     }
   }
-  if(cur[0]==="ludia"){
-    body=`<div class="gal">${C.map(x=>`<div class="gcard" data-open="contacts:${esc(x.id)}" tabindex="0" role="link"><div class="gbody" style="padding-top:14px"><div class="spread" style="flex-wrap:nowrap;align-items:flex-start"><b>${esc(x.name||"Bez mena")}</b></div>
-      ${x.position||x.org?`<div class="gl">${esc([x.position,x.org].filter(Boolean).join(", "))}</div>`:""}${x.email?`<div class="gl"><a href="mailto:${esc(x.email)}">${esc(x.email)}</a></div>`:""}${x.phone?`<div class="gl">${esc(x.phone)}</div>`:""}</div></div>`).join("")}
-      <button class="gnew" data-linknew="projects:${pid}|contacts">+ Nový kontakt</button></div>`;
-  }
+  if(cur[0]==="ludia")body=teamTab(p);   /* ako Spolupráce pri podujatí: sekcie Tím, Partneri, Sponzori, Dobrovoľníci (od 2.0.18) */
   return`${head}${bar_}${body}`;
 };
 /* „Prepojiť existujúce“ v záložkách grantu, podujatia a projektu zrušené (2.0.13) – prepája sa v bočnom paneli záznamu (ceruzka: Projekt, Granty, Podujatia). */
