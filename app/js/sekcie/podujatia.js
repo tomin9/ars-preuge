@@ -35,10 +35,10 @@ VIEWS.podujatie=()=>{
   const cov=coverUrl(e),PEN='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
   return`  <section class="hero evc cov" style="--pc:${esc(col)}">${cov?`<div class="evimg"><img src="${esc(cov)}" alt="" style="object-position:${esc(posOf(e))}"></div>`:`<div class="evimg" style="background:${gradFor(e.id)}"></div>`}
   <div class="evinfo"><div class="spread" style="align-items:flex-start;flex-wrap:nowrap"><div style="min-width:0"><h1>${esc(e.name||"Podujatie")}</h1>${p?`<p class="sub">projekt <button class="btn ghost sm" data-go="projekt" data-id="${esc(p.id)}">${esc(p.name)}</button></p>`:""}</div>
-    <div class="row" style="flex:none;flex-wrap:nowrap;gap:8px">${chip("estat",e.status)}<button class="evedit" data-peek="events:${id}" title="Upraviť" aria-label="Upraviť podujatie">${PEN}</button></div></div>
+    <div class="row" style="flex:none;flex-wrap:nowrap;gap:8px">${chip("estat",e.status)}${driveIco(folderId(e.driveFolder))}<button class="evedit" data-peek="events:${id}" title="Upraviť" aria-label="Upraviť podujatie">${PEN}</button></div></div>
     <div class="facts evf"><div><span>Dátum</span><b>${when||"—"}</b>${rel?`<span>${rel}</span>`:""}</div>
       <div class="evmiesto"><span>Miesto</span><b>${esc(e.place||"—")}</b></div></div>
-    ${url||folderId(e.driveFolder)?`<div class="row" style="margin-top:14px">${url?`<a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">Odkaz na podujatie</a>`:""}${folderId(e.driveFolder)?`<a class="btn sm" href="https://drive.google.com/drive/folders/${esc(folderId(e.driveFolder))}" target="_blank" rel="noopener">Priečinok na Disku</a>`:""}</div>`:""}
+    ${url?`<div class="row" style="margin-top:14px"><a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">Odkaz na podujatie</a></div>`:""}
     ${e.note?`<p class="desc">${esc(e.note)}</p>`:""}</div></section>
   ${eventTabs(e)}`;
 };
