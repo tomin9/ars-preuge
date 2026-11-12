@@ -5,8 +5,7 @@ VIEWS.projekty=()=>{
   let list=[...S.d.projects];
   list.sort((a,b)=>(a.end||"9999").localeCompare(b.end||"9999"));
   return`<div class="head"><div><h1>Projekty</h1><p class="sub">${S.d.projects.length} projektov združenia</p></div><button class="btn pri" data-create="projects">Nový projekt</button></div>
-  <div class="tools"><div class="tabs"><button data-pm="gallery" aria-pressed="${S.pm!=="table"}">Galéria</button><button data-pm="table" aria-pressed="${S.pm==="table"}">Tabuľka</button></div></div>
-  ${S.pm!=="table"&&list.length?projGallery(list):`<div class="panel">${list.length?table([
+  ${list.length?projGallery(list):`<div class="panel">${list.length?table([
     ["Projekt",p=>`<span class="row" style="gap:9px;flex-wrap:nowrap"><i class="dot" style="background:${esc(p.color||GRAY)}"></i><span class="cut">${esc(p.name||"Bez názvu")}</span></span>`,"t"],
     
     ["Granty",p=>{const g=S.d.grants.filter(x=>x.projectId===p.id);return g.length?`<span class="meta">${g.length} · ${eur0(sum(g,x=>x.approved))}</span>`:"";}],
