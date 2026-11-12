@@ -12,7 +12,7 @@ function gradFor(id){let h=0;for(const ch of String(id))h=(h*31+ch.charCodeAt(0)
 function grantCard(g){
   const u=coverUrl(g),amt=+g.approved||+g.requested||0;
   return`<div class="gcard" data-open="grants:${esc(g.id)}" tabindex="0" role="link"><div class="gimg" style="background:${gradFor(g.id)}">${u?`<img src="${esc(u)}" alt="" loading="lazy" style="object-position:${esc(posOf(g))}">`:""}</div>
-  <div class="gbody"><b>${esc(g.name||"Grant")}</b>${provName(g)?`<div class="gl">${provIcon(g)}${esc(provName(g))}</div>`:""}${amt?`<div class="gl" style="color:var(--ink)">${eur(amt)}</div>`:""}</div></div>`;
+  <div class="gbody"><b>${esc(g.name||"Grant")}</b>${provName(g)?`<div class="gl">${provIcon(g)}${esc(provName(g))}</div>`:""}${g.program?`<div class="gl" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(g.program)}">${esc(g.program)}</div>`:""}${amt?`<div class="gl" style="color:var(--ink)">${eur(amt)}</div>`:""}</div></div>`;
 }
 VIEWS.granty=()=>{
   const G=S.d.grants,tab=GTABS.find(t=>t[0]===S.gf.tab)||GTABS[1];
