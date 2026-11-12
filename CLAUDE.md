@@ -105,5 +105,5 @@ Rozdelenie je hotové. Pravidlo do budúcna: plugin skladá súbory do jednej st
 2. **Zoznam úprav:** nájdené nedostatky sa zapisujú do `ZOZNAM-UPRAV.md`, opravené sa tam odškrtnú.
 3. **Dáta:** nemeniť názvy polí, kolekcií ani kľúče stavov v `OPT`, kým sa nerieši prevod existujúcich záznamov – inak sa v živých dátach tímu „stratia“.
 4. **Jedna vec naraz:** pri väčších zmenách najprv navrhnúť, počkať na súhlas majiteľa, až potom robiť.
-5. **Overenie:** po zmene overiť, že sa aplikácia otvorí bez chýb a sekcia funguje – svetlý aj tmavý režim, počítač aj mobil. Na to slúži `nastroje/kontrola-vzhladu/` (pri úpravách, ktoré nemajú meniť vzhľad, musí ukázať 0 rozdielov).
+5. **Overenie:** po zmene overiť, že sa aplikácia otvorí bez chýb a sekcia funguje – svetlý aj tmavý režim, počítač aj mobil. Na to slúži `nastroje/kontrola-vzhladu/` (pri úpravách, ktoré nemajú meniť vzhľad, musí ukázať 0 rozdielov). Celú kontrolu všetkých obrazoviek spúšťať len vtedy, keď zmena môže zasiahnuť aj iné obrazovky (spoločné štýly, spoločné časti programu, väčšie presuny); pri úprave jednej sekcie stačí vyskúšať tú sekciu (želanie majiteľa).
 6. **Verzia:** pri každej zmene, ktorá ide do WordPressu, zvýšiť číslo verzie v `ars-preuge-priestor.php` (`Version` a `ARSP_VER`).
