@@ -51,13 +51,6 @@
 .pcw .pcover{margin:0}
 .gal .gsel{align-self:start}
 .gal .gsel .linksel{width:100%;margin:0}
-.glink{color:var(--muted)}   /* „Prepojiť existujúce“ – dlaždica ako „+ Nové …“, po kliknutí hľadanie */
-.glink.open{display:flex;flex-direction:column;align-items:stretch;place-items:initial;cursor:default;padding:10px;gap:8px;border-style:solid;background:var(--surface);min-height:0;max-height:330px}
-.glink.open input{width:100%;box-sizing:border-box}
-.glink .glist{overflow:auto;display:flex;flex-direction:column;gap:2px}
-.glink .glist button{all:unset;cursor:pointer;padding:7px 10px;border-radius:8px;display:flex;flex-direction:column;gap:2px;font-weight:500;color:var(--ink)}
-.glink .glist button:hover{background:var(--surface3)}
-.glink .glist small{font-size:12px;font-weight:400;color:var(--muted)}
 .gl{font-size:13.5px;color:var(--muted);margin-top:2px}
 @media (max-width:760px){
   .pcover{height:150px}

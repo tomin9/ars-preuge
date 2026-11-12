@@ -34,7 +34,7 @@ VIEWS.projekt=()=>{
   if(cur[0]==="podujatia"){
     body=`<div class="gal">${E.map(e=>{const u=coverUrl(e);return`<div class="gcard" data-open="events:${esc(e.id)}" tabindex="0" role="link"><div class="gimg" style="background:linear-gradient(160deg,${esc(col)},${esc(col)}cc)">${u?`<img src="${esc(u)}" alt="" loading="lazy" style="object-position:${esc(posOf(e))}">`:""}</div>
       <div class="gbody"><b>${esc(e.name||"Podujatie")}</b>${e.date?`<div class="gl">${fdate(e.date)}${e.time?" "+esc(e.time):""}${e.dateTo&&e.dateTo!==e.date?" → "+fdate(e.dateTo):""}</div>`:""}${e.place?`<div class="gl">${esc(e.place)}</div>`:""}</div></div>`;}).join("")}
-      <button class="gnew" data-linknew="projects:${pid}|events">+ Nové podujatie</button>${linkSel("projects",p,"events")}</div>`;
+      <button class="gnew" data-linknew="projects:${pid}|events">+ Nové podujatie</button></div>`;
   }
   if(cur[0]==="ulohy"){
     body=`<div class="board">${OPT.tstat.map(([st,label,cc])=>{let L=c.T.filter(t=>(t.status||"inbox")===st);const n=L.length;
@@ -43,7 +43,7 @@ VIEWS.projekt=()=>{
   }
   if(cur[0]==="granty"){
     body=`<div class="gal">${G.map(grantCard).join("")}
-      <button class="gnew" data-linknew="projects:${pid}|grants">+ Nový grant</button>${linkSel("projects",p,"grants")}</div>`;
+      <button class="gnew" data-linknew="projects:${pid}|grants">+ Nový grant</button></div>`;
   }
   if(cur[0]==="financie"){
     const pf=S.pf2=S.pf2||{},yrs=[...new Set(c.L.map(x=>(x.date||"").slice(0,4)).filter(Boolean))].sort();
@@ -75,31 +75,9 @@ VIEWS.projekt=()=>{
   if(cur[0]==="ludia"){
     body=`<div class="gal">${C.map(x=>`<div class="gcard" data-open="contacts:${esc(x.id)}" tabindex="0" role="link"><div class="gbody" style="padding-top:14px"><div class="spread" style="flex-wrap:nowrap;align-items:flex-start"><b>${esc(x.name||"Bez mena")}</b></div>
       ${x.position||x.org?`<div class="gl">${esc([x.position,x.org].filter(Boolean).join(", "))}</div>`:""}${x.email?`<div class="gl"><a href="mailto:${esc(x.email)}">${esc(x.email)}</a></div>`:""}${x.phone?`<div class="gl">${esc(x.phone)}</div>`:""}</div></div>`).join("")}
-      <button class="gnew" data-linknew="projects:${pid}|contacts">+ Nový kontakt</button>${linkSel("projects",p,"contacts")}</div>`;
+      <button class="gnew" data-linknew="projects:${pid}|contacts">+ Nový kontakt</button></div>`;
   }
   return`${head}${bar_}${body}`;
 };
-function linkSel(e,r,t){
-  const ids=new Set(related(e,r,t).map(x=>x.id));
-  const avail=S.d[t].filter(x=>!ids.has(x.id)&&(t!=="grants"||x.status==="schvalene")).sort((a,b)=>ttl(t,a).localeCompare(ttl(t,b),"sk"));
-  /* dlaždica ako „+ Nové …“; po kliknutí sa v nej ukáže hľadanie so zoznamom (2.0.12, predtým rozbaľovací zoznam) */
-  return avail.length?`<div class="gnew glink" data-glink="${e}:${esc(r.id)}|${t}" tabindex="0" role="button">↗ Prepojiť existujúce</div>`:"";
-}
-function glinkOpen(box){
-  const[a,t]=box.dataset.glink.split("|"),[e,id]=a.split(":"),r=get(e,id);if(!r||box.classList.contains("open"))return;
-  const ids=new Set(related(e,r,t).map(x=>x.id));
-  const avail=S.d[t].filter(x=>!ids.has(x.id)&&(t!=="grants"||x.status==="schvalene")).sort((x,y)=>ttl(t,x).localeCompare(ttl(t,y),"sk"));
-  const sub=x=>t==="grants"?provName(x):t==="events"?[fdateS(x.date),x.place].filter(Boolean).join(" · "):t==="contacts"?(x.position||x.org||""):"";
-  box.classList.add("open");box.innerHTML=`<input type="search" placeholder="Hľadať…" aria-label="Hľadať"><div class="glist"></div>`;
-  const inp=box.querySelector("input"),L=box.querySelector(".glist");
-  const draw=()=>{const q=cnorm(inp.value.trim());const F=avail.filter(x=>!q||cnorm(ttl(t,x)+" "+sub(x)).includes(q)).slice(0,40);
-    L.innerHTML=F.length?F.map(x=>`<button type="button" data-glpick="${esc(x.id)}"><b>${esc(ttl(t,x))}</b>${sub(x)?`<small>${esc(sub(x))}</small>`:""}</button>`).join(""):`<div class="meta" style="padding:8px 10px">Nič sa nenašlo.</div>`;};
-  draw();inp.addEventListener("input",draw);inp.focus();
-  L.addEventListener("mousedown",ev=>ev.preventDefault());
-  L.addEventListener("click",ev=>{const b=ev.target.closest("[data-glpick]");if(b)link(e,id,t,b.dataset.glpick,true);});
-  inp.addEventListener("keydown",ev=>{if(ev.key==="Escape")render();if(ev.key==="Enter"){const b=L.querySelector("[data-glpick]");if(b)link(e,id,t,b.dataset.glpick,true);}});
-  inp.addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==inp)render();},150));
-}
-document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest("[data-glink]");if(b&&!b.classList.contains("open"))glinkOpen(b);});
-document.addEventListener("keydown",ev=>{const b=ev.target.closest&&ev.target.closest("[data-glink]");if(b&&!b.classList.contains("open")&&(ev.key==="Enter"||ev.key===" ")){ev.preventDefault();glinkOpen(b);}});
+/* „Prepojiť existujúce“ v záložkách grantu, podujatia a projektu zrušené (2.0.13) – prepája sa v bočnom paneli záznamu (ceruzka: Projekt, Granty, Podujatia). */
 
