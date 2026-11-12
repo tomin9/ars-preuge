@@ -121,10 +121,18 @@ function gDocsTab(g){   /* ako Výzva a Žiadosť: zoznam sekcií vľavo, vybran
   const gid=esc(g.id),ed=accEditRec(gdKind(g.id),g)&&!S.readOnly,all=(g.docs||[]).map((d,i)=>({d,i})),S2=gdSecs(g),ids=new Set(S2.map(x=>x.id));
   const other=all.filter(x=>!ids.has(x.d.kind||""));if(other.length)S2.push({id:"__ine",label:"Ostatné",fixed:true});
   const docsOf=s=>s.id==="__ine"?other:all.filter(x=>(x.d.kind||"")===s.id);
-  const sel=S2.find(s=>s.id===S._gdsel[g.id])||S2[0];
+  /* podujatie: albumy Google Fotiek sú tiež v Dokumentoch (od 2.0.31, predtým samostatná záložka Fotky) */
+  const isEv=gdKind(g.id)==="events",AL=isEv?phAlbums(g):[],selA=String(S._gdsel[g.id]||"").startsWith("ph:")?AL.find(a=>"ph:"+a.id===S._gdsel[g.id]):null;
+  const GP='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 12V3.2A4.4 4.4 0 0 0 7.6 7.6V12z" fill="currentColor"/><path d="M12 12h8.8A4.4 4.4 0 0 0 16.4 7.6H12z" fill="currentColor" opacity=".75"/><path d="M12 12v8.8a4.4 4.4 0 0 0 4.4-4.4V12z" fill="currentColor" opacity=".55"/><path d="M12 12H3.2a4.4 4.4 0 0 0 4.4 4.4H12z" fill="currentColor" opacity=".35"/></svg>';
+  const sel=selA?{id:"ph:"+selA.id,label:phName(selA,AL),album:selA}:(S2.find(s=>s.id===S._gdsel[g.id])||S2[0]);
   const FOLDER='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H10l2 2.5h7.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>';
   const list=S2.map(s=>`<button type="button" class="txi${s.id===sel.id?" on":""}" data-gdsel="${gid}|${esc(s.id)}">${FOLDER}<span class="txt"><b>${esc(s.label)}</b></span></button>`).join("")
-    +(ed?`<div class="gdsep"></div><button type="button" class="txi txadd" data-gdadd="${gid}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať sekciu</b></span></button>`:"");
+    +AL.map(a=>`<button type="button" class="txi${"ph:"+a.id===sel.id?" on":""}" data-gdsel="${gid}|ph:${esc(a.id)}">${GP}<span class="txt"><b>${esc(phName(a,AL))}</b></span></button>`).join("")
+    +(ed?`<div class="gdsep"></div>${isEv?`<button type="button" class="txi txadd" data-phadd="${gid}">${GP}<span class="txt"><b>Pridať album fotiek</b></span></button>`:""}<button type="button" class="txi txadd" style="margin-top:0" data-gdadd="${gid}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať sekciu</b></span></button>`:"");
+  if(sel.album){S._phsel[g.id]=sel.album.id;   /* vybraný album: fotky ako v doterajšej záložke Fotky (ikony vpravo hore) */
+    return`<div class="txm"><div class="txlist galist">${list}</div><div><div class="panel txmain gdmain gdalb"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Dokumenty / ${esc(g.name||"")}</div>
+      ${ed?`<input type="text" class="txtitle" data-gdalb="${gid}|${esc(sel.album.id)}" value="${esc(sel.label)}" aria-label="Názov albumu" maxlength="80">`:`<div class="txtitle" style="font-size:28px;font-weight:600">${esc(sel.label)}</div>`}</div></div>
+      <div class="gdbody">${fotkyTab(g)}</div></div></div></div>`;}
   const D=docsOf(sel),kind=sel.id==="__ine"?"ostatne":sel.id,key=`${gdKind(g.id)}:${gid}:${esc(kind)}`;
   const main=`<div class="panel txmain docslot gdmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Dokumenty / ${esc(g.name||"")}</div>
       ${ed&&!sel.fixed?`<input type="text" class="txtitle" data-gdname="${gid}|${esc(sel.id)}" value="${esc(sel.label)}" aria-label="Názov sekcie" maxlength="80" placeholder="Názov sekcie">`:`<div class="txtitle" style="font-size:28px;font-weight:600">${esc(sel.label)}</div>`}</div>
@@ -137,7 +145,10 @@ document.addEventListener("change",ev=>{const el=ev.target.closest&&ev.target.cl
   const v=el.value.trim();if(!v){render();return;}
   if(gdBase(g).some(b=>b[0]===sid))gdUpd(gid,{docNames:Object.assign({},g.docNames||{},{[sid]:v})});
   else gdUpd(gid,{docSecs:(g.docSecs||[]).map(x=>x.id===sid?Object.assign({},x,{label:v}):x)});});
-document.addEventListener("keydown",ev=>{const el=ev.target;if(el&&el.dataset&&el.dataset.gdname!==undefined&&ev.key==="Enter")el.blur();});
+document.addEventListener("keydown",ev=>{const el=ev.target;if(el&&el.dataset&&(el.dataset.gdname!==undefined||el.dataset.gdalb!==undefined)&&ev.key==="Enter")el.blur();});
+document.addEventListener("change",async ev=>{const el=ev.target.closest&&ev.target.closest("[data-gdalb]");if(!el)return;const[eid,aid]=el.dataset.gdalb.split("|"),e=get("events",eid);if(!e)return;   /* premenovanie albumu (prázdne = názov z Google Fotiek) */
+  const A=phAlbums(e),a=A.find(x=>x.id===aid);if(!a)return;const d=S._ph[a.url],auto=(d&&d.title)||"",nv=el.value.trim(),name=nv&&nv!==auto?nv:"";if(name===String(a.name||""))return;
+  await upd("events",eid,{albums:A.map(x=>x.id===aid?Object.assign({},x,{name}):x),photosUrl:(A[0]||{}).url||""});});
 document.addEventListener("click",async ev=>{const t=ev.target;if(!t.closest)return;let el;
   if((el=t.closest("[data-gdren]"))){ev.preventDefault();ev.stopPropagation();   /* premenovanie dokumentu: názov pod náhľadom sa zmení na políčko; prípona súboru ostane */
     const[gid,i]=el.dataset.gdren.split("|"),g=gdGet(gid),d=g&&(g.docs||[])[+i];if(!d)return;const box=el.closest(".gdt"),nm=box&&box.querySelector(".gdn");if(!nm)return;
