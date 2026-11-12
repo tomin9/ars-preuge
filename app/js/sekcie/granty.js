@@ -6,7 +6,8 @@ function nextGrantDate(g){
   const c=[["Uzávierka",g.submitTo,["napad","priprava"]],["Koniec realizácie",g.realTo,["schvalene"]],["Vyúčtovanie",g.settleDue,["schvalene","zrealizovane"]]];
   for(const[l,d,st]of c)if(d&&st.includes(g.status))return[l,d];return null;
 }
-const GTABS=[["planovane","Plánované",["napad","priprava","pozastavene"]],["prebieha","Prebieha",["podane","schvalene"]],["zrealizovane","Zrealizované",["zrealizovane","vyuctovane"]],["nepodporene","Nepodporené",["nepodporene"]]];
+/* od 2.0.16: Plánované (aj podané – čaká sa na rozhodnutie) · Schválené · Zrealizované · Nepodporené; posledný stav = stav nového grantu v záložke */
+const GTABS=[["planovane","Plánované",["priprava","podane","pozastavene","napad"]],["schvalene","Schválené",["schvalene"]],["zrealizovane","Zrealizované",["vyuctovane","zrealizovane"]],["nepodporene","Nepodporené",["nepodporene"]]];
 const GRADS=["linear-gradient(180deg,#8fd0d2,#e0726a)","linear-gradient(135deg,#2f5fa8 10%,#c2412f)","#efc06a","#df605a","linear-gradient(135deg,#5a4fd8,#e06a8c)","linear-gradient(165deg,#a8c3a6,#e2562f)","linear-gradient(135deg,#c7a7d8,#f1d9c9 60%,#8fc2c4)"];
 function gradFor(id){let h=0;for(const ch of String(id))h=(h*31+ch.charCodeAt(0))>>>0;return GRADS[h%GRADS.length];}
 function grantCard(g){
