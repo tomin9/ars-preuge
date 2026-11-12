@@ -66,7 +66,9 @@ table.lt td.t{display:flex;gap:8px;align-items:baseline;min-width:0}
 .mdi.vid iframe{aspect-ratio:16/9;height:auto}
 .mdi.lnk a{display:flex;flex-direction:column;gap:3px;padding:14px 16px;color:var(--ink);text-decoration:none;min-width:0}
 .mdi.lnk a .meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mdi:hover .mdrm,.mdrm:focus{opacity:1}
+.mdi .mdrm{opacity:1}   /* kôš len v režime úprav albumu (inak sa nevykreslí) */
+.mdadd{min-height:120px;display:grid;place-content:center;gap:4px;text-align:center}
+.mdadd small{font-weight:400;font-size:12px;color:var(--muted)}
 .mdi .mdrm{z-index:2}
 .phgrid::after{content:"";flex-grow:1e9}
 .phi{all:unset;cursor:zoom-in;display:block;--r:1.5;flex:calc(var(--r)*1000) 1 calc(var(--r)*200px);max-width:100%;border-radius:6px;overflow:hidden;background:var(--surface2)}
