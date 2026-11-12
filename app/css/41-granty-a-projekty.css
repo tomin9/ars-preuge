@@ -103,6 +103,8 @@
 .gdn:hover{color:var(--accent)}
 .gdrm{all:unset;position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:var(--surface);color:var(--muted);border:1px solid var(--line);cursor:pointer;opacity:0;transition:opacity .15s}
 .gdt:hover .gdrm,.gdrm:focus{opacity:1}
+.gdrm.gdren{right:36px}   /* ceruzka vedľa koša */
+.gdnin{display:block;width:100%;box-sizing:border-box;margin-top:6px;font-size:13px;padding:3px 6px}
 .gdrm:hover{color:var(--bad)}
 @media (hover:none){.gdrm{opacity:1}}
 .gdempty{font-size:13.5px;color:var(--muted);padding:18px 0 6px}
