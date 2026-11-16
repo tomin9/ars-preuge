@@ -190,7 +190,9 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .drf{min-width:0;display:grid;gap:4px;align-content:start}
 .drf>label:first-child{font-size:12.5px;color:var(--muted)}
 .drf input[type=text],.drf select{width:100%}
-.drlist .txlh{padding-top:10px}
+.drlist .txlh{display:flex;align-items:center;gap:6px;padding:14px 12px 6px 16px}
+.drlist .txlh .cnt{margin-left:0}
+.drlist .txlh .addic{margin-left:auto}
 .pkchips{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
 .pkchips .tg .txdot{width:8px;height:8px}
 .mksplit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;align-items:start;min-width:0}
