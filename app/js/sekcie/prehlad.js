@@ -6,7 +6,7 @@ VIEWS.prehlad=()=>{
   const mine=open.filter(t=>isMine(t.assignee)).sort((a,b)=>(a.status==="tyzden"?0:1)-(b.status==="tyzden"?0:1)||byDue(a,b));
   const late=open.filter(t=>t.due&&t.due<td);
   const lc=ledgerCalc();
-  const ag=agenda().filter(a=>a.kind!=="mkt"&&!a.done&&a.d>=addDays(td,-30)&&a.d<=addDays(td,30)&&(a.kind!=="task"||a.d<=addDays(td,14)));
+  const ag=agenda().filter(a=>a.kind!=="mkt"&&a.kind!=="pk"&&!a.done&&a.d>=addDays(td,-30)&&a.d<=addDays(td,30)&&(a.kind!=="task"||a.d<=addDays(td,14)));
   const activeG=S.d.grants.filter(g=>["schvalene","zrealizovane"].includes(g.status));
   const unpaid=S.d.ledger.filter(x=>x.paid===false||x.state==="nevybavene");
   const feed=[];KEYS.filter(k=>k!=="comments"&&k!=="partnerships"&&k!=="zab"&&k!=="zabd"&&k!=="invItems"&&k!=="invMoves"&&k!=="invTech").forEach(k=>S.d[k].forEach(r=>feed.push({k,r,t:r.updatedAt||r.createdAt||0})));
