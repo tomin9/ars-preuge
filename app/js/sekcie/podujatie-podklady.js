@@ -60,7 +60,7 @@ function podkladyTab(e){
 /* vybraný podklad v strede stránky: hlavička (bodka stavu pred názvom – klik zmení stav; vpravo termín, človek a kôš ako ikony), potom Zadanie · Výstup · Prepojenie */
 function pkMain(e,P,sec,it,ed){
   const k=`${esc(e.id)}|${esc(it.id)}`,f=n=>`data-pkf="${k}|${n}"`,ro=ed?"":" readonly";
-  const st=pkSt(it),sd=pkStDef(it),docs=Array.isArray(it.docs)?it.docs:[],long=sec.kind==="text",hasTxt=sec.kind!=="file"||pkHasText(it);
+  const st=pkSt(it),sd=pkStDef(it),docs=Array.isArray(it.docs)?it.docs:[],hasTxt=sec.kind!=="file"||pkHasText(it);
   const MP=evPlan(e),M=pkMk(e,it),mAvail=MP.items.filter(x=>!(it.mk||[]).includes(x.id));
   const due=it.due?dueHtml(it.due,st==="hotove"):"",wn=it.who?personName(it.who):"";
   const act=ed?`<span class="gbndate"><button type="button" class="tplus pkv" data-gbndate title="Termín${it.due?": "+esc(fdateS(it.due)):""} – kliknutím vyberiete" aria-label="Termín">${PK_CAL}${due?`<span>${due}</span>`:""}</button><input type="date" id="pk-due" ${f("due")} value="${esc(it.due||"")}" tabindex="-1" aria-hidden="true"></span>
@@ -71,18 +71,19 @@ function pkMain(e,P,sec,it,ed){
   return`<div class="panel txmain gdmain" id="pk-main" data-pkmain="${k}"><div class="txhead pkhead"><div class="pkttl"><div class="kick">${esc(sec.title)} / ${esc(e.name||"Podujatie")}</div>
       <div class="pkt"><label class="gastdot" title="Stav: ${sd[1]}${ed?" – kliknutím zmeníte":""}"><i class="txdot" style="background:${sd[2]};width:12px;height:12px"></i>${ed?`<select id="pk-st" ${f("st")} aria-label="Stav podkladu">${PK_ST.map(([v,l])=>`<option value="${v}"${v===st?" selected":""}>${l}</option>`).join("")}</select>`:""}</label><input type="text" class="txtitle" id="pk-t" data-keep ${f("t")} value="${esc(it.t||"")}" aria-label="Názov podkladu" maxlength="120"${ro}></div></div>
       <div class="row pkact">${act}</div></div>
-    <div class="pkb"><div class="pkh">Zadanie</div><textarea id="pk-brief" data-keep ${f("brief")} placeholder="Čo treba pripraviť – formát a rozmery, čo tam má byť, pre koho, kde sa použije…"${ro}>${esc(it.brief||"")}</textarea></div>
-    <div class="pkb pkout docslot" id="pk-out"><div class="pkh">Výstup${ed?`<span class="row" style="gap:6px"><label class="btn sm" style="cursor:pointer">Nahrať súbor<input type="file" multiple data-sdfile hidden></label><button type="button" class="btn sm ghost" data-sdlink>+ Odkaz</button></span>`:""}</div>
-      ${hasTxt?`<div class="txw"><textarea class="txbody" id="pk-body" data-keep ${f("body")} placeholder="Napíšte text…" style="min-height:${long?360:140}px"${ro}>${esc(it.body||"")}</textarea><button type="button" class="tplus txcp" data-pkcopy title="Kopírovať text" aria-label="Kopírovať text">${TXI.copy}</button></div>
-      <div class="txfoot" id="txstat">${txStat(it.body)}</div>`:""}
+    <div class="pkb pkout"><div class="pkh">Zadanie</div><textarea class="pkta" id="pk-brief" rows="3" data-keep ${f("brief")} placeholder="Čo treba pripraviť – formát a rozmery, čo tam má byť, pre koho, kde sa použije…"${ro}>${esc(it.brief||"")}</textarea></div>
+    <div class="pkb pkout docslot" id="pk-out"><div class="pkh"><span>Výstup${hasTxt?`<span class="pkcnt" id="pk-cnt">${txStat(it.body)}</span>`:""}</span><span class="row" style="gap:2px;flex-wrap:nowrap">${ed?`<label class="tplus" title="Nahrať súbor" aria-label="Nahrať súbor">${GD_I.up}<input type="file" multiple data-sdfile hidden></label><button type="button" class="tplus" data-sdlink title="Pridať odkaz" aria-label="Pridať odkaz">${GD_I.link}</button>`:""}${hasTxt?`<button type="button" class="tplus" data-pkcopy title="Kopírovať text" aria-label="Kopírovať text">${TXI.copy}</button>`:""}</span></div>
+      ${hasTxt?`<textarea class="pkta" id="pk-body" rows="3" data-keep ${f("body")} placeholder="Napíšte text…"${ro}>${esc(it.body||"")}</textarea>`:""}
       ${docs.length?`<div class="gdbody">${pkGrid(docs,ed)}</div>`:(hasTxt?"":`<div class="gdbody"><div class="gdempty" style="padding:0">${ed?"Sem patrí hotová vec – nahrajte súbor alebo pridajte odkaz. Veľké videá vložte radšej odkazom (napr. z Disku).":"Zatiaľ prázdne."}</div></div>`)}</div>
     <div class="pkb"><div class="pkh">Prepojenie</div><div class="pklinks"><div class="dr2-h"><b>${PK_MKT}Marketing</b></div>
         ${M.length?`<ul class="items">${M.map(x=>{const a=MP.areas.find(y=>y.id===x.a);return`<li><span class="t" data-open="mkt:${esc(e.id)}~${esc(x.id)}">${esc(x.t||"Bez názvu")}</span>${a?`<span class="tg sm" style="--tc:${mkCol(MP,x.a)}">${esc(a.title)}</span>`:""}${x.date?`<span class="meta">${dueHtml(x.date,x.d)}</span>`:""}${ed?`<button type="button" class="tplus" data-pkmkrm="${k}|${esc(x.id)}" title="Odpojiť" aria-label="Odpojiť" style="width:22px;height:22px;font-size:17px">×</button>`:""}</li>`;}).join("")}</ul>`:`<p class="meta" style="margin:0;white-space:normal">Zatiaľ sa nepoužíva v žiadnom výstupe.</p>`}
         ${ed&&mAvail.length?`<select class="linksel" data-pkmkadd="${k}" style="width:100%;max-width:420px;margin-top:8px"><option value="">↗ Pripojiť k výstupu v Marketingu…</option>${MP.areas.map(a=>{const L=mAvail.filter(x=>x.a===a.id);return L.length?`<optgroup label="${esc(a.title)}">${L.map(x=>`<option value="${esc(x.id)}">${esc(x.t||"Bez názvu")}</option>`).join("")}</optgroup>`:"";}).join("")}</select>`:""}</div></div></div>`;
 }
 /* ovládanie, ktoré sa pripája po každom vykreslení stránky (volá bindView): súbory a odkazy vo Výstupe */
+const pkGrow=(t,fresh)=>{if(!t)return;if(fresh)t.style.height="auto";if(t.scrollHeight>t.clientHeight+1)t.style.height=t.scrollHeight+"px";};   /* pole na text má 3 riadky a rastie s obsahom (dá sa aj potiahnuť) */
 function pkBind(v){
   const m=v.querySelector("#pk-main"),out=m&&m.querySelector("#pk-out");if(!out)return;
+  m.querySelectorAll("textarea.pkta").forEach(t=>pkGrow(t,true));
   const[eid,iid]=m.dataset.pkmain.split("|");sdBind(out,eid,fn=>pkOne(eid,iid,x=>{x.docs=fn(Array.isArray(x.docs)?x.docs:[]);}),()=>{});
 }
 /* otvorenie podkladu odinakiaľ (položka marketingu, úloha): prejde na záložku Podklady a vyberie ho */
@@ -132,6 +133,7 @@ document.addEventListener("change",ev=>{const t=ev.target;if(!t||!t.dataset)retu
     (async()=>{const out=[];for(const f of fs){const d=await uploadDoc(f,{en:"events",id:eid,kind:""});if(d)out.push(pkNew(mkId(),sid,pkExt(String(f.name||"Súbor")),{st:"hotove",docs:[Object.assign(d,{at:Date.now()})]}));}t.value="";
       if(out.length){pkUi(eid).sel[sid]=out[out.length-1].id;pkSet(eid,N=>{N.items.push(...out);});}})();}});
 document.addEventListener("keydown",ev=>{const t=ev.target;if(t&&t.id==="pk-t"&&ev.key==="Enter")t.blur();});
+document.addEventListener("input",ev=>{const t=ev.target;if(!t||!t.classList||!t.classList.contains("pkta"))return;pkGrow(t);if(t.id==="pk-body"){const c=document.getElementById("pk-cnt");if(c)c.innerHTML=txStat(t.value);}});
 document.addEventListener("click",async ev=>{const q=s=>ev.target.closest&&ev.target.closest(s);let x;
   {const pop=document.getElementById("pk-whopop");if(pop&&!pop.hidden&&!q("#pk-whopop")&&!q("[data-pkwhobtn]"))pop.hidden=true;}   /* klik mimo zavrie výber človeka */
   if((x=q("[data-pkwhobtn]"))){const pop=document.getElementById("pk-whopop");if(!pop)return;if(!pop.hidden){pop.hidden=true;return;}
