@@ -1,7 +1,7 @@
 /* ===== Dokumenty – náhľady: odkaz na súbor, náhľad (obrázok, PDF, Disk), logo kontaktu, riadok dokladov platby.
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/60-dokumenty-nahlady.js. Nie je to samostatný skript. ===== */
 function docHref(d){return d.asset?ARSP_BLOB+d.asset:(/^https?:/.test(d.url||"")?d.url:"https://"+(d.url||""));}
-function docThumb(e,r,d,i){
+function docThumb(e,r,d,i,noRm){
   const nm=d.name||"Dokument",ext=((nm.split(".").pop()||"").toLowerCase()),href=docHref(d);
   const m=String(d.driveId||"").trim()||((/drive\.google\.com\/file\/d\/([\w-]{10,})/.exec(d.url||"")||[])[1]||"");
   const isImg=/^(png|jpe?g|gif|webp|avif|svg)$/.test(ext),isPdf=ext==="pdf";
@@ -11,7 +11,7 @@ function docThumb(e,r,d,i){
   if(d.asset&&isImg)inner=`${fb}<img src="${esc(href)}" alt="" loading="lazy" onerror="this.remove()" style="position:absolute;inset:0">`;
   else if(d.asset&&isPdf)inner=`${fb}<canvas data-pdfthumb="${esc(href)}" hidden></canvas>`;
   else if(m)inner=`${fb}<img src="https://drive.google.com/thumbnail?id=${esc(m)}&sz=w300" alt="" loading="lazy" onerror="this.remove()" style="position:absolute;inset:0">`;
-  return`<div class="dth"><a href="${esc(href)}" target="_blank" rel="noopener" title="${esc(nm)}" aria-label="${esc(nm)}">${inner}</a><button type="button" class="x" data-docrm="${e}:${esc(r.id)}:${i}" aria-label="Odstrániť" title="Odstrániť">×</button></div>`;
+  return`<div class="dth"><a href="${esc(href)}" target="_blank" rel="noopener" title="${esc(nm)}" aria-label="${esc(nm)}">${inner}</a>${noRm?"":`<button type="button" class="x" data-docrm="${e}:${esc(r.id)}:${i}" aria-label="Odstrániť" title="Odstrániť">×</button>`}</div>`;
 }
 const DOCICO={
   zmluva:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 12h6M9 16h4"/></svg>',
@@ -24,7 +24,7 @@ function logoCard(r,ed){
 }
 function docRow(e,r,kind,label){
   const D=(r.docs||[]).map((d,i)=>({d,i})).filter(x=>(x.d.kind||"")===kind),key=`${e}:${esc(r.id)}:${kind}`;
-  return`<div class="docslot dr2"><div class="dr2-h"><b>${DOCICO[kind]||""}${esc(label)}</b>${kind==="zmluva"?`<button class="btn sm pri" data-mkcontract="${esc(r.id)}">Vytvoriť zmluvu</button>`:""}<label class="btn sm" style="cursor:pointer">Nahrať súbor<input type="file" data-dfile="${key}" hidden></label><button class="btn sm ghost" data-dlink="${key}">+ Odkaz</button></div><div class="dr2-t">${D.map(({d,i})=>docThumb(e,r,d,i)).join("")}</div></div>`;
+  return`<div class="docslot dr2"><div class="dr2-h"><b>${DOCICO[kind]||""}${esc(label)}</b>${kind==="zmluva"?`<button class="btn sm pri" data-mkcontract="${esc(r.id)}">Vytvoriť zmluvu</button>`:""}<label class="tplus" title="Nahrať súbor" aria-label="Nahrať súbor"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7 10l5-5 5 5M5 20h14"/></svg><input type="file" multiple data-dfile="${key}" hidden></label><button type="button" class="tplus" data-dlink="${key}" title="Pridať odkaz" aria-label="Pridať odkaz"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></button></div><div class="dr2-t">${D.map(({d,i})=>docThumb(e,r,d,i,!(DW&&DW.edit))).join("")}</div></div>`;   /* nahrať / odkaz ako ikony; krížik na dokumente len pri úpravách (ceruzka) – od 2.0.44 */
 }
 const PDFTH={};   /* náhľady PDF už vykreslené v tejto relácii (aby sa pri prekreslení stránky nesťahovali znova) */
 function renderPdfThumbs(root){
