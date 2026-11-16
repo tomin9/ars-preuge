@@ -156,7 +156,7 @@ function dExtra(e,r){
   if(e==="invTech")h+=invTechExtra(r);
   if(e==="lines"){const c=lineCalc(r),pd=x=>x.paid!==false&&!!x.date,pG=sum(c.L.filter(x=>!cofinG(x)&&pd(x)),x=>x.amount),plG=c.sg-pG;h+=`<div class="sec"><div class="facts" style="margin:0"><div><span>Zaplatené z dotácie</span><b>${eur(pG)}</b>${plG?`<span>+ plánované ${eur(plG)}</span>`:""}</div><div><span>Ostáva z dotácie</span><b class="${(+r.fromGrant||0)-c.sg<0?"neg":""}">${eur((+r.fromGrant||0)-c.sg)}</b>${plG?`<span>po zaplatení plánovaných</span>`:""}</div><div><span>Spolufinancovanie</span><b>${eur(c.sc)}</b></div></div></div>`;
     h+=miniList("Výdavky na položku","ledger",c.L,ledgerLi,{lineId:r.id,grantId:r.grantId||"",projectId:(get("grants",r.grantId)||{}).projectId||""});}
-  if(e!=="comments"&&(e!=="contacts"||(DW&&DW.edit)||S.d.comments.some(c=>c.parent===e+":"+r.id)))h+=commentsHtml(e,r,e==="tasks");
+  if(e!=="comments"&&(e!=="contacts"||(DW&&DW.edit)||S.d.comments.some(c=>c.parent===e+":"+r.id)))h+=commentsHtml(e,r,e==="tasks"||e==="ledger");
   const meta=[r.createdAt?`Vytvorené ${rel(r.createdAt)}${r.createdBy?" · "+esc(personName(r.createdBy)):""}`:"",r.updatedAt&&r.updatedAt!==r.createdAt?`upravené ${rel(r.updatedAt)}${r.updatedBy?" · "+esc(personName(r.updatedBy)):""}`:""].filter(Boolean).join(", ");
   return h+(meta&&e!=="contacts"&&e!=="ledger"?`<p class="meta" style="margin-top:20px;white-space:normal">${meta}</p>`:"");
 }

@@ -262,7 +262,7 @@ function checklistHtml(e,r,title,asCard){
 function commentsHtml(e,r,asCard){
   const list=S.d.comments.filter(c=>c.parent===e+":"+r.id).sort((a,b)=>(a.at||0)-(b.at||0));
   return`${asCard?`<section class="dcard"><h3>${DI.note}Komentáre<span class="meta" style="margin-left:auto;font-weight:400">${list.length||""}</span></h3>`:`<div class="sec"><h3>Komentáre<span class="meta">${list.length||""}</span></h3>`}
-  ${list.map(c=>`<div class="cmt"><div class="h">${avatar(c.by)}<b>${esc(personName(c.by)||"Niekto")}</b><span>${rel(c.at)}</span>${c.by&&c.by===meId()?`<button class="btn ghost sm" style="margin-left:auto" data-cmt-del="${esc(c.id)}">Zmazať</button>`:""}</div><p>${esc(c.text)}</p></div>`).join("")}
+  ${list.map(c=>`<div class="cmt"><div class="h">${avatar(c.by)}<b>${esc(personName(c.by)||"Niekto")}</b><span>${rel(c.at)}</span>${c.by&&c.by===meId()&&(!asCard||e!=="ledger"||(DW&&DW.edit))?(asCard?`<button type="button" class="tplus tdel" style="margin-left:auto" data-cmt-del="${esc(c.id)}" title="Zmazať komentár" aria-label="Zmazať komentár"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>`:`<button class="btn ghost sm" style="margin-left:auto" data-cmt-del="${esc(c.id)}">Zmazať</button>`):""}</div><p>${esc(c.text)}</p></div>`).join("")}
   <textarea id="cmt-text" placeholder="Napíšte komentár pre tím…" style="margin-top:8px;min-height:60px"></textarea>
   <div class="row" style="justify-content:flex-end;margin-top:6px"><button class="btn sm pri" data-cmt-send>Pridať komentár</button></div>${asCard?"</section>":"</div>"}`;
 }
