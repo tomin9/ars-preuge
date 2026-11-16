@@ -46,10 +46,6 @@ table.lt td.t{display:flex;gap:8px;align-items:baseline;min-width:0}
 @media(max-width:860px){
   .evimg{min-height:170px;border-right:0;border-bottom:1px solid var(--line)}
 }
-.tcols{display:grid;grid-template-columns:repeat(var(--nc,3),minmax(0,1fr));gap:20px;align-items:start}
-.tcol{display:flex;flex-direction:column;gap:24px;min-width:0}
-.tgrip{cursor:grab;color:var(--muted);font-size:16px;line-height:1;padding:2px 2px;margin-left:-4px;user-select:none;opacity:.6}
-.tgrip:hover{opacity:1}
 .txcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;align-items:start}
 .txbody{min-height:96px;resize:vertical}
 .phbar{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px}
@@ -81,12 +77,20 @@ table.lt td.t{display:flex;gap:8px;align-items:baseline;min-width:0}
 .phi:hover img{transform:scale(1.03)}
 .phi:focus-visible{outline:2px solid var(--accent)}
 .rowgrip{margin-left:-2px}
-.tpanel.dragging{opacity:.4}
-.tpanel.dropt{box-shadow:0 0 0 2px var(--accent)}
-.secname{all:unset;box-sizing:border-box;flex:1;min-width:0;font:inherit;font-weight:700;font-size:16px;padding:2px 6px;margin-left:-6px;border-radius:6px;cursor:text}
-input[type=text].secname{border:0;background:transparent;padding:2px 6px;border-radius:6px;box-shadow:none;outline:none;font-size:16px;font-weight:700}
-input[type=text].secname:not([readonly]):hover,input[type=text].secname:not([readonly]):focus{background:var(--surface3)}
-input[type=text].secname[readonly]{cursor:default;pointer-events:none}
+/* Spolupráce (od 2.0.75 vľavo zoznam sekcií, vpravo vybraná sekcia): sekcia sa dá v zozname chytiť a presunúť, človek pustiť na inú sekciu */
+.txi.dragging{opacity:.4}
+.txi.dropt{box-shadow:0 0 0 2px var(--accent)}
+.temain{overflow:visible}   /* ponuka kontaktov pri pridávaní môže presiahnuť panel */
+.temain .mkadd{padding-bottom:10px}
+.telist{padding:6px 26px 12px}
+.temain>.empty{padding:16px 26px 22px}
+@media(max-width:860px){
+  .telist{padding:6px 16px 10px}
+  .temain>.empty{padding:14px 16px 18px}
+  .telist li{flex-wrap:wrap}   /* na mobile idú úlohy človeka pod jeho meno, aby sa meno neskracovalo */
+  .telist .dutychips{order:2;flex:1 1 100%;max-width:100%;justify-content:flex-start;margin-left:28px}
+  .telist .dutychips:empty{display:none}
+}
 .dutychips{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;margin-left:auto;max-width:60%;align-items:center}
 .dutychips .tg.sm{padding:1px 8px;font-size:12px}
 .dutychips .tg.add{width:74px;padding:1px 8px;font-size:12px}
