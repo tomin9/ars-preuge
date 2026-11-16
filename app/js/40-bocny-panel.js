@@ -5,7 +5,7 @@ let DW=null;
 const DW_NEW=e=>e==="ledger"||e==="contacts"||e==="tasks"||e==="invTech";  /* panely v novej podobe (vzor: kontakt) – ikonové tlačidlá, karty */
 const DW_EDIT=e=>e==="contacts"||e==="tasks"||e==="ledger";               /* ceruzka = zobraziť všetky polia */
 function openDrawer(e,id,isNew){
-  if(!accRead(e))return;S.invG=null;S.mkD=null;
+  if(!accRead(e))return;S.invG=null;S.mkD=null;S.pkD=null;
   {const r=get(e,id);if(r&&r._stub){toast("Tento záznam je mimo vášho prístupu – vidíte len jeho názov.");return;}}
   DW={e,id,isNew:!!isNew,edit:!!isNew&&accEditRec(e,get(e,id))};closeSide();
   const host=$("#drawer");
@@ -28,7 +28,7 @@ function openDrawer(e,id,isNew){
   drawerRefresh(true);
   if(isNew)setTimeout(()=>{const t=$("#dw-title");if(t)t.focus();},60);
 }
-function closeDrawer(){DW=null;S.invG=null;S.mkD=null;const h=$("#drawer");if(h){h.innerHTML="";h.hidden=true;}}
+function closeDrawer(){DW=null;S.invG=null;S.mkD=null;S.pkD=null;const h=$("#drawer");if(h){h.innerHTML="";h.hidden=true;}}
 function drawerRefresh(force){
   if(!DW)return;const r=get(DW.e,DW.id);
   if(!r){if(S.live&&!force){$("#dw-head").innerHTML=`<div class="empty">Záznam sa nenašiel – možno ho niekto zmazal.</div>`;$("#dw-props").innerHTML="";$("#dw-extra").innerHTML="";}return;}
@@ -119,6 +119,7 @@ function dProps(e,r){
     const pat=rw(["projectId","grantId","eventId","types","org","from"],false);
     return card("cal","Termín a zodpovedný",rw(["status","assignee","due","priority"],true))
       +(pat?card("tag","Patrí k",pat):`<section class="dcard"><h3>${DI.tag}Patrí k</h3><p class="meta" style="margin:0;white-space:normal">Úloha zatiaľ nepatrí k projektu, grantu ani podujatiu. Doplníte cez ceruzku vpravo hore.</p></section>`)
+      +pkTaskCard(r)
       +`<section class="dcard note"><textarea aria-label="Poznámka" id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`;
   }
   if(e==="contacts"){

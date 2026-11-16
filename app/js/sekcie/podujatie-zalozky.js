@@ -17,6 +17,7 @@ function eventTabs(e){
     body=`<div class="panel"><h2>Koncept</h2><textarea id="ev-dram" placeholder="Téma, idea, dramaturgická línia podujatia…" style="width:100%;min-height:110px;margin-top:8px">${esc(e.dramaturgy||"")}</textarea></div>${progPanel(e)}`;
   }
   else if(tab==="marketing")body=marketingTab(e);
+  else if(tab==="podklady")body=podkladyTab(e);
   else if(tab==="spoluprace")body=teamTab(e);
   else if(tab==="dokumenty"){body=gDocsTab(e);   /* ako pri grante: sekcie vľavo, náhľady vpravo (od 2.0.30) */
   }

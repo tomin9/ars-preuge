@@ -1,6 +1,6 @@
 /* ===== Podujatie – záložka Marketing: Plán (oblasti vľavo, položky vpravo) a Harmonogram (všetko podľa dátumu).
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-marketing.js. Nie je to samostatný skript.
-   Uložené v podujatí v poli mktPlan = {areas:[{id,title}],items:[{id,a,t,d,date,who,note,url,body,txid,docs}]} (body = krátky text výstupu, txid = prepojený dlhý text zo záložky Texty, docs = podklady ako pri dokumentoch). Staré pole mkt (odškrtávací zoznam) ostáva – kým sa plán prvý raz neuloží, skladá sa z neho. ===== */
+   Uložené v podujatí v poli mktPlan = {areas:[{id,title}],items:[{id,a,t,d,date,who,note,url,body,txid,docs}]} (body = krátky text výstupu, txid = prepojený dlhý text zo záložky Texty, docs = vlastné súbory a odkazy; zadania zo záložky Podklady sa pripájajú z ich strany – pole mk v zadaní). Staré pole mkt (odškrtávací zoznam) ostáva – kým sa plán prvý raz neuloží, skladá sa z neho. ===== */
 const MKA_DEF=[["pr","PR a médiá"],["soc","Sociálne siete"],["out","Reklama vonku"],["news","Newsletter"],["video","Video a reels"],["camp","Kampane"]];
 const MKA_RX=[["soc",/facebook|instagram|stories|tiktok|sociáln/i],["news",/newsletter/i],["video",/video|reel|foto/i],["out",/výlep|plagát|billboard|citylight|vizuál/i],["pr",/tlačov|rádi|médi|článok|web|kalendár/i]];
 function evPlan(e){
@@ -19,7 +19,7 @@ function mkSet(eid,fn){const e0=get("events",eid);if(!e0||!mkEd(e0))return Promi
 const mkSort=(a,b)=>(a.date||"9999").localeCompare(b.date||"9999");
 function mkRow(e,P,it,harm){
   const k=`${esc(e.id)}|${esc(it.id)}`,ed=mkEd(e),a=P.areas.find(x=>x.id===it.a);
-  return`<li class="${it.d?"on":""}">${harm?`<span class="dt">${it.date?dueHtml(it.date,it.d):""}</span>`:""}<button class="check ${it.d?"on":""}" data-mkdone="${k}" aria-label="Hotové"></button><button type="button" class="t" data-mkopen="${k}">${esc(it.t||"Bez názvu")}</button>${String(it.body||"").trim()||it.txid?`<span class="meta mki" title="Má text"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${TXI.ic[0]}</svg></span>`:""}${clip(it)}${harm&&a?`<span class="tg sm" style="--tc:${mkCol(P,it.a)}">${esc(a.title)}</span>`:""}${it.who?`<span class="meta who">${who(it.who)}</span>`:""}${harm?"":`<input type="date" value="${esc(it.date||"")}" data-mkdate="${k}" aria-label="Dátum"${ed?"":" disabled"}>`}</li>`;
+  return`<li class="${it.d?"on":""}">${harm?`<span class="dt">${it.date?dueHtml(it.date,it.d):""}</span>`:""}<button class="check ${it.d?"on":""}" data-mkdone="${k}" aria-label="Hotové"></button><button type="button" class="t" data-mkopen="${k}">${esc(it.t||"Bez názvu")}</button>${String(it.body||"").trim()||it.txid?`<span class="meta mki" title="Má text"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${TXI.ic[0]}</svg></span>`:""}${clip({docs:mkAllDocs(e,it)})}${harm&&a?`<span class="tg sm" style="--tc:${mkCol(P,it.a)}">${esc(a.title)}</span>`:""}${it.who?`<span class="meta who">${who(it.who)}</span>`:""}${harm?"":`<input type="date" value="${esc(it.date||"")}" data-mkdate="${k}" aria-label="Dátum"${ed?"":" disabled"}>`}</li>`;
 }
 function marketingTab(e){
   const P=evPlan(e),id=esc(e.id),st=mkSt(e.id),ed=mkEd(e);
@@ -67,8 +67,7 @@ function mkDrawer(force){
       <textarea data-mkf="body" placeholder="Krátky text výstupu – príspevok, text na plagát, popis k videu…" style="display:block;width:100%;box-sizing:border-box;min-height:150px"${ed?"":" readonly"}>${esc(it.body||"")}</textarea>
       <div class="meta" id="mk-cnt" style="margin-top:6px">${String(it.body||"").length} znakov</div>
       <div class="props cprops" style="margin:10px 0 0">${fld("Dlhý text",`<select data-mkf="txid"${ro}><option value="">— žiadny —</option>${T.map(t=>`<option value="${esc(t.id)}" ${t.id===it.txid?"selected":""}>${esc(t.title)}</option>`).join("")}</select>${tx?`<button type="button" class="meta" data-mktx="${esc(D.eid)}|${esc(tx.id)}" style="all:unset;cursor:pointer;display:block;margin-top:4px;font-size:13px;color:var(--muted);text-decoration:underline">Otvoriť „${esc(tx.title)}“ v Textoch →</button>`:""}`)}</div></section>
-    <section class="dcard lkc docslot"><h3 style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="lkh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>Podklady</span>${ed?`<span class="row" style="gap:6px"><label class="btn sm" style="cursor:pointer">Nahrať súbor<input type="file" multiple data-mkfile hidden></label><button type="button" class="btn sm ghost" data-mklink>+ Odkaz</button></span>`:""}</h3>
-      ${docs.length?`<div class="dr2-t">${docs.map((d,i)=>docThumb("events",e0,d,i,true).replace(/<\/div>$/,ed?`<button type="button" class="x" data-mkdocrm="${i}" aria-label="Odstrániť" title="Odstrániť">×</button></div>`:"</div>")).join("")}</div>`:`<div class="meta" style="margin-top:4px;white-space:normal">Grafika, fotka, video… Veľké videá vložte radšej odkazom (napr. z Disku).</div>`}</section>
+    ${mkPkCard(e0,it,ed)}
     <section class="dcard note"><textarea data-mkf="note" placeholder="Poznámka…" style="min-height:70px"${ed?"":" readonly"}>${esc(it.note||"")}</textarea></section>`;
   const box=host.querySelector("aside[data-mkbox] .dbody");
   host.hidden=false;
@@ -79,19 +78,13 @@ function mkDrawer(force){
   const dl=host.querySelector("[data-mkidel]");if(dl)dl.onclick=async()=>{if(!await ask(`Zmazať položku „${it.t||"Bez názvu"}“?`,"Zmazať"))return;const d=S.mkD;closeDrawer();if(d)mkSet(d.eid,N=>{N.items=N.items.filter(x=>x.id!==d.iid);});};
   host.querySelectorAll("[data-mkf]").forEach(inp=>{const f=inp.dataset.mkf;
     inp.onchange=()=>{let v=String(inp.value).trim();if(f==="t"&&!v){inp.value=it.t||"";return;}
-      mkSet(D.eid,N=>{const x=N.items.find(y=>y.id===D.iid);if(x)x[f]=v;}).then(()=>mkDrawer(true));};
+      mkSet(D.eid,N=>{const x=N.items.find(y=>y.id===D.iid);if(x)x[f]=v;}).then(()=>{if(f==="a"||f==="txid"||f==="url")mkDrawer(true);});};
     if(inp.tagName==="INPUT")inp.onkeydown=ev=>{if(ev.key==="Enter")inp.blur();};});
   const item=N=>N.items.find(y=>y.id===D.iid);
   const bd=host.querySelector('[data-mkf="body"]'),cn=host.querySelector("#mk-cnt");if(bd&&cn)bd.oninput=()=>{cn.textContent=bd.value.length+" znakov";};
   const cp=host.querySelector("[data-mkcopy]");if(cp)cp.onclick=async()=>{try{await navigator.clipboard.writeText(bd.value);toast("Text skopírovaný.");}catch(_){toast("Kopírovanie sa nepodarilo.");}};
   const tb=host.querySelector("[data-mktx]");if(tb)tb.onclick=()=>{const[eid,tid]=tb.dataset.mktx.split("|");closeDrawer();S._txsel=S._txsel||{};S._txsel[eid]=tid;S.evtab="texty";if(S.view==="podujatie"&&S.id===eid)render();else go("podujatie",eid);};
-  const fi=host.querySelector("[data-mkfile]");if(fi)fi.onchange=async()=>{const fs=[...(fi.files||[])],out=[];for(const f of fs){const d=await uploadDoc(f,{en:"events",id:D.eid,kind:""});if(d)out.push(Object.assign(d,{at:Date.now()}));}fi.value="";
-    if(out.length){await mkSet(D.eid,N=>{const x=item(N);if(x)x.docs=[...(Array.isArray(x.docs)?x.docs:[]),...out];});mkDrawer(true);}};
-  const lk=host.querySelector("[data-mklink]");if(lk)lk.onclick=()=>{const box=lk.closest(".docslot");if(box.querySelector(".dform"))return;
-    const f=document.createElement("div");f.className="dform";f.style.marginTop="8px";f.innerHTML=`<input type="text" placeholder="Názov" style="width:100%;margin-bottom:6px"><div class="row" style="gap:6px"><input type="url" placeholder="https://…" style="flex:1"><button type="button" class="btn sm pri">Uložiť</button></div>`;box.appendChild(f);
-    const[n,u]=f.querySelectorAll("input");n.focus();f.querySelector("button").onclick=async()=>{const v=u.value.trim();if(!v){toast("Vložte odkaz.");return;}await mkSet(D.eid,N=>{const x=item(N);if(x)x.docs=[...(Array.isArray(x.docs)?x.docs:[]),{name:n.value.trim()||v,url:v,at:Date.now()}];});mkDrawer(true);};};
-  host.querySelectorAll("[data-mkdocrm]").forEach(b=>b.onclick=async ev=>{ev.preventDefault();ev.stopPropagation();if(!await ask("Odstrániť podklad?","Odstrániť"))return;await mkSet(D.eid,N=>{const x=item(N);if(x)x.docs=(x.docs||[]).filter((_,j)=>j!==+b.dataset.mkdocrm);});mkDrawer(true);});
-  renderPdfThumbs(host);
+  mkPkBind(host,D);
   const wb=host.querySelector("[data-mkwho]");if(wb)picker(wb,it.who||"",v=>mkSet(D.eid,N=>{const x=N.items.find(y=>y.id===D.iid);if(x)x.who=v||"";}));
 }
 document.addEventListener("change",ev=>{const t=ev.target;if(!t||!t.dataset)return;
