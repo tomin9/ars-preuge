@@ -89,14 +89,19 @@ function zbCard(x){
       <input class="zb-author" id="zb-${id}-author" data-zb="${id}|author" value="${esc(x.author||"")}" placeholder="Autor" aria-label="Autor">
       ${x.srcPower||x.srcNote?`<div class="zb-src">${x.srcKind?`<span class="zb-tag k-${esc(x.srcKind)}">${esc(ZB_KIND[x.srcKind]||x.srcKind)}</span>`:""}<b>Podľa podkladu:</b> ${esc(x.srcPower||"")}${x.srcNote?`<div class="pp">${esc(x.srcNote)}</div>`:""}</div>`:""}
     </div></div>
-  <div class="zb-plan">
+  ${zbPlan(x)}</article>`;
+}
+/* plán diela (napájanie, technika, ľudia, úlohy, poznámky) – v karte Zabezpečenia aj rozbalený pod dielom v Dramaturgii (tam bez tlačidla na zmazanie) */
+function zbPlan(x,nofoot){
+  const id=x.id;
+  return`<div class="zb-plan">
     <div><h4><label for="zb-${id}-nap">Napájanie (potvrdené)</label></h4><input type="text" id="zb-${id}-nap" data-zb="${id}|napajanie" value="${esc(x.napajanie||"")}" placeholder="odkiaľ a ako sa to reálne napojí"></div>
     <div><h4>Technika, káble a príslušenstvo</h4><div class="zb-rows">${zbRows(x,"technika")}<button type="button" class="zb-add" data-zbadd="${id}|technika">+ Pridať položku</button></div></div>
     <div><h4>Ľudia</h4><div class="zb-rows">${zbRows(x,"personal")}<button type="button" class="zb-add" data-zbadd="${id}|personal">+ Pridať človeka</button></div></div>
     <div><h4>Otvorené úlohy</h4><div class="zb-rows">${zbRows(x,"ulohy")}<button type="button" class="zb-add" data-zbadd="${id}|ulohy">+ Pridať úlohu</button></div></div>
     <div><h4><label for="zb-${id}-poz">Poznámky</label></h4><textarea id="zb-${id}-poz" data-zb="${id}|poznamka" placeholder="montáž, prevádzka, dohody…">${esc(x.poznamka||"")}</textarea></div>
-    <div class="zb-foot"><button type="button" class="btn ghost sm danger" data-zbrm="${id}">Odstrániť dielo</button></div>
-  </div></article>`;
+    ${nofoot?"":`<div class="zb-foot"><button type="button" class="btn ghost sm danger" data-zbrm="${id}">Odstrániť dielo</button></div>`}
+  </div>`;
 }
 /* custom order of summary rows, kept in settings so the whole team sees it */
 function zbOrd(kind,items,keyOf){const o=((S.settings.zbOrder||{})[kind])||[];const pos=new Map(o.map((k,n)=>[zbKey(k),n]));
@@ -272,7 +277,7 @@ function zbDrag(h,from,sel,moveTo){
   };
 }
 function zbBind(v){
-  if(!(S.view==="podujatie"&&S.evtab==="zabezpecenie"&&isNox(get("events",S.id))))return;
+  if(!(S.view==="podujatie"&&(S.evtab==="zabezpecenie"||S.evtab==="dramaturgia")&&isNox(get("events",S.id))))return;   /* v Dramaturgii je plán diela rozbalený pod jeho kartou */
   v.querySelectorAll("[data-zbsum]").forEach(d=>d.addEventListener("toggle",()=>{S.zb.sums[d.dataset.zbsum]=d.open;}));
   v.querySelectorAll("[data-zbf]").forEach(b=>b.onclick=()=>{S.zb.f=b.dataset.zbf;render();});
   v.querySelectorAll("[data-zbmode]").forEach(b=>b.onclick=()=>{S.zb.mode=b.dataset.zbmode;render();});

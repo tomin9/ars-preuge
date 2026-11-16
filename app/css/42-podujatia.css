@@ -212,10 +212,13 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .drf{min-width:0;display:grid;gap:4px;align-content:start}
 .drf>label:first-child{font-size:12.5px;color:var(--muted)}
 .drf input[type=text],.drf select{width:100%}
-.mksplit .drgrid{grid-template-columns:1fr}
-.mksplit .drmain .txhead{padding-left:20px;padding-right:16px}
-.mksplit .drmain .pkb:not(.pkout){padding-left:20px;padding-right:20px}
-.mksplit .drmain input[type=text].txtitle{font-size:20px}
+.pkcol>.zb-list{margin-top:18px}
+.zb-card .drx{margin:0;padding:10px 16px;border-top:1px solid var(--line)}
+.zb-card .zb-tr>.tplus{flex:none}
+.drxbody{border-top:1px solid var(--line)}
+.drxbody .pkb:not(.pkout){padding-left:16px;padding-right:16px}
+.drxbody .pkout>.pkh{padding-left:16px;padding-right:16px}
+.drxbody .pkout textarea.pkta{padding-left:16px;padding-right:16px}
 .mkl li>.meta{flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pkchips{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
 .pkchips .tg .txdot{width:8px;height:8px}
