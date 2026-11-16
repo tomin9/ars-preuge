@@ -90,7 +90,7 @@ function render(){
   v.innerHTML=navBar()+notice+f();
   if(fid){const el=document.getElementById(fid);if(el){if(fval!==null&&el.value!==fval)el.value=fval;el.focus();if(sel&&el.setSelectionRange)try{el.setSelectionRange(sel[0],sel[1]);}catch(_){}}}
   bindView();renderPdfThumbs(v);accSweep();evAutoDone();accLockView();accBlur(document.getElementById("view"));accBlur(document.getElementById("side"));
-  if(DW)drawerRefresh();else if(S.invG)invGroupRefresh();else if(S.mkD)mkDrawer();
+  if(DW)drawerRefresh();else if(S.invG)invGroupRefresh();
 }
 function colSide(){try{return localStorage.getItem("arsp_sidecol")==="1";}catch(_){return false;}}
 function applySideCol(){const a=document.querySelector(".app");if(a)a.classList.toggle("sidecolp",colSide());}

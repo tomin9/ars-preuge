@@ -185,13 +185,34 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .pkout textarea.pkta{display:block;width:100%;box-sizing:border-box;min-height:98px;border:0;border-radius:0;background:transparent;padding:10px 26px 14px;font-size:15px;line-height:1.65;resize:vertical;outline:none;box-shadow:none}
 .pkout .txfoot{padding:6px 26px;font-size:13px}
 .pkcol{min-width:0}
+.pkchips{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.pkchips .tg .txdot{width:8px;height:8px}
+.mksplit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:stretch}
+.mkleft{min-width:0}
+.mksplit .mkl{padding:6px 20px 6px 26px}
+.mksplit .mkadd{padding:4px 20px 22px 26px}
+.mkl li.sel .t{color:var(--accent);font-weight:600}
+.mkd{min-width:0;border-left:1px solid var(--line)}
+.mkd0{display:flex;align-items:center;justify-content:center;padding:26px;color:var(--muted);font-size:14px}
+.mkdh{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;padding:12px 16px 12px 20px;border-bottom:1px solid var(--line)}
+.mkdh .pkt{flex:1 1 180px;margin-top:0}
+input[type=text].mkdt{all:unset;flex:1;min-width:0;font-size:18px;font-weight:600;color:var(--ink)}
+input[type=text].mkdt:focus{box-shadow:0 1px 0 var(--accent)}
+.mkd .pkout>.pkh{padding:12px 16px 0 20px}
+.mkd .pkout textarea.pkta{padding:8px 20px 12px;min-height:88px}
+.mkd .pkout textarea#mk-note{min-height:64px}
+.mkd .pkout .txfoot{padding-left:20px;padding-right:20px}
+.mkpk{padding:8px 20px 14px;display:grid;gap:10px}
+.mkprops{display:grid;gap:8px;padding:12px 20px}
+.mkprops label{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.mkprops label>input,.mkprops label>select,.mkprops label input[type=url]{flex:1;min-width:0}
 .pkrel{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-top:12px;padding:8px 14px 8px 26px}
 .pkrel>.pkh{min-height:0;margin:0 6px 0 0}
-.pkrel .tg{cursor:default;max-width:100%}
-.pkrel .tg>span{display:inline-flex;align-items:center;gap:5px;cursor:pointer;min-width:0;max-width:240px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.pkrel .tg>span:hover{color:var(--accent)}
-.pkrel .tg svg{width:13px;height:13px;flex:none}
-.pkrel .tg.done>span{color:var(--muted);text-decoration:line-through}
+.pkchips .tg{cursor:default;max-width:100%}
+.pkchips .tg>span{display:inline-flex;align-items:center;gap:5px;cursor:pointer;min-width:0;max-width:240px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.pkchips .tg>span:hover{color:var(--accent)}
+.pkchips .tg svg{width:13px;height:13px;flex:none}
+.pkchips .tg.done>span{color:var(--muted);text-decoration:line-through}
 .pkrel>.tplus{margin-left:auto}
 @media(max-width:860px){
   .pkb{padding:14px 16px 16px}
@@ -199,6 +220,11 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
   .pkout textarea.pkta{padding:10px 16px 14px}
   .pkout .txfoot{padding-left:16px;padding-right:16px}
   .pkact{margin-left:26px}
+  .mksplit{grid-template-columns:1fr}
+  .mksplit .mkl{padding:6px 16px}
+  .mksplit .mkadd{padding:4px 16px 18px}
+  .mkd{border-left:0;border-top:1px solid var(--line)}
+  .mkdh .pkact{margin-left:26px}
   .pkpop{right:auto;left:0}
   .pkrel{padding-left:16px}
 }
