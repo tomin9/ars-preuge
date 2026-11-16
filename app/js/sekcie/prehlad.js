@@ -16,13 +16,7 @@ VIEWS.prehlad=()=>{
   const dstr=new Date().toLocaleDateString("sk-SK",{weekday:"long",day:"numeric",month:"long"});
   return`<div class="head"><div><h1>${first?`Ahoj, ${esc(first)}`:"Prehľad"}</h1><p class="sub">${esc(dstr)}</p></div>
     <div class="row"><button class="btn" data-create="ledger">Zapísať platbu</button><button class="btn pri" data-create="tasks">Nová úloha</button></div></div>
-  <div class="strip">
-    ${accView("financie")?`<div><b class="${lc.bank<0?"neg":""}">${eur0(lc.bank)}</b><span>na bankovom účte</span></div>
-    <div><b class="${lc.cash<0?"neg":""}">${eur0(lc.cash)}</b><span>v pokladni</span></div>`:""}
-    <div><b>${me?mine.length:open.length}</b><span>${me?"mojich otvorených úloh":"otvorených úloh"}</span></div>
-    <div><b class="${late.length?"neg":""}">${late.length}</b><span>úloh po termíne</span></div>
-    <div><b>${S.d.grants.filter(g=>ACTIVE_G.includes(g.status)).length}</b><span>grantov v procese</span></div>
-  </div>
+  <!-- súhrnný riadok (banka, pokladňa, úlohy, granty) zrušený v 2.0.49 -->
   <div class="grid3">
     <div class="stack">
       <div class="panel"><div class="spread"><h2>${me?"Moje úlohy":"Otvorené úlohy"}</h2><button class="btn ghost sm" data-go="ulohy">Všetky úlohy</button></div>
