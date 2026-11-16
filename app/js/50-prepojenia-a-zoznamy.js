@@ -148,7 +148,8 @@ function dExtra(e,r){
     if(ed&&!S.readOnly)h+=mergeBlock(r);}
   if(e==="ledger")h+=invTxCard(r);
   if(e==="ledger")h+=`<section class="dcard"><div class="ldocs">${LDOCS.map(([k,l])=>docRow("ledger",r,k,l)).join("")}</div></section>
-    <section class="dcard note"><textarea aria-label="Poznámka" id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`;
+    ${DW&&(DW.edit||DW.isNew)?`<section class="dcard note"><textarea aria-label="Poznámka" id="f-note" data-f="note" placeholder="Napíšte poznámku…">${esc(r.note||"")}</textarea></section>`
+      :r.note?`<section class="dcard"><h3>${DI.note}Poznámka</h3><p style="margin:0;white-space:pre-wrap;font-size:13px">${esc(r.note)}</p></section>`:""}`;   /* prázdne pole na poznámku len pri úpravách (od 2.0.47) */
   if(e==="tasks")h+=MAIN.filter(t=>t!==e&&accRead(t)&&!linkFields(e,t).some(f=>f.t==="rel")).map(t=>lkCard(e,r,t)).join("");
   else if(MAIN.includes(e)&&e!=="contacts")h+=linksHtml(e,r);
   if(e==="invItems")h+=invItemExtra(r);
