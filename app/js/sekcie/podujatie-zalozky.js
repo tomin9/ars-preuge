@@ -13,9 +13,7 @@ function eventTabs(e){
   else if(tab==="ulohy")body=`<div class="panel">${linkBlock("events",e,"tasks")}</div>`;
   else if(tab==="fotky")body=fotkyTab(e);
   else if(tab==="granty"){const G=related("events",e,"grants");body=G.length?`<div class="gal">${G.map(grantCard).join("")}</div>`:`<div class="panel"><div class="empty">Podujatie zatiaľ nemá granty. Priradíte ich ceruzkou hore (pole Granty).</div></div>`;}
-  else if(tab==="dramaturgia"){
-    body=`<div class="panel"><h2>Koncept</h2><textarea id="ev-dram" placeholder="Téma, idea, dramaturgická línia podujatia…" style="width:100%;min-height:110px;margin-top:8px">${esc(e.dramaturgy||"")}</textarea></div>${progPanel(e)}`;
-  }
+  else if(tab==="dramaturgia")body=dramaturgiaTab(e);   /* od 2.0.68 v podobe Podkladov: ikony, zoznam, vybraný prvok */
   else if(tab==="marketing")body=marketingTab(e);
   else if(tab==="spoluprace")body=teamTab(e);
   return tbar+body;

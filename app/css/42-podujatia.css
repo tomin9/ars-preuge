@@ -185,6 +185,12 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .pkout textarea.pkta{display:block;width:100%;box-sizing:border-box;min-height:98px;border:0;border-radius:0;background:transparent;padding:10px 26px 14px;font-size:15px;line-height:1.65;resize:vertical;outline:none;box-shadow:none}
 .pkout .txfoot{padding:6px 26px;font-size:13px}
 .pkcol{min-width:0}
+.drmain{overflow:visible}
+.drgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 22px}
+.drf{min-width:0;display:grid;gap:4px;align-content:start}
+.drf>label:first-child{font-size:12.5px;color:var(--muted)}
+.drf input[type=text],.drf select{width:100%}
+.drlist .txlh{padding-top:10px}
 .pkchips{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
 .pkchips .tg .txdot{width:8px;height:8px}
 .mksplit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;align-items:start;min-width:0}
@@ -218,6 +224,7 @@ input[type=text].mkdt:focus{box-shadow:0 1px 0 var(--accent)}
   .pkout textarea.pkta{padding:10px 16px 14px}
   .pkout .txfoot{padding-left:16px;padding-right:16px}
   .pkact{margin-left:26px}
+  .drgrid{grid-template-columns:1fr}
   .mksplit{grid-template-columns:1fr;gap:14px}
   .mkdh .pkact{margin-left:26px}
   .pkpop{right:auto;left:0}

@@ -56,26 +56,6 @@ async function evbRename(ev,key,nv){
   }
   render();
 }
-function progPanel(e){
-  const P=S.d.prog.filter(x=>x.eventId===e.id).sort((a,b)=>(+a.ord||0)-(+b.ord||0)||(a.createdAt||0)-(b.createdAt||0));
-  const W=P.filter(x=>x.kind!=="sprievodny"),SP=P.filter(x=>x.kind==="sprievodny");
-  const who=id=>{const c=id&&get("contacts",id);return c?`<span class="cut">${esc(c.name||"")}</span>`:'<span class="miss">—</span>';};
-  const st=x=>`<span class="chip"><i style="background:${optC("pst",x.status||"nevybavene")}"></i>${esc(optL("pst",x.status||"nevybavene"))}</span>`;
-  const needs=x=>{const a=[x.needOrg&&"org.",x.needMat&&"mat."].filter(Boolean);return a.length?`<span class="meta" title="${esc([x.needOrg,x.needMat].filter(Boolean).join("\n"))}">${a.join(" · ")}</span>`:'<span class="miss">—</span>';};
-  const head=`<thead><tr><th>Dielo</th><th>Miesto</th><th>Potreby</th><th>Pripravuje</th><th>Stráži pi</th><th>Stráži so</th><th>Stav</th></tr></thead>`;
-  const row=x=>`<tr data-open="prog:${esc(x.id)}"><td class="t"><b class="cut">${esc(x.title||"Bez názvu")}</b><div class="meta cut">${esc(x.author||"")}</div></td><td><span class="meta cut">${esc(x.place||"")}</span></td><td>${needs(x)}</td><td>${who(x.prepId)}</td>${x.noGuard?`<td colspan="2"><span class="meta">netreba strážiť</span></td>`:`<td>${who(x.guardFri)}</td><td>${who(x.guardSat)}</td>`}<td>${st(x)}</td></tr>`;
-  const secs=OPT.psec.map(o=>o[0]).filter(k=>k!=="Sprievodný program");
-  const groups=[...secs,...new Set(W.map(x=>x.section||"").filter(k=>!secs.includes(k)))].map(k=>[k,W.filter(x=>(x.section||"")===k)]).filter(([k,L])=>L.length||secs.includes(k));
-  const miss=W.filter(x=>!x.prepId||(!x.noGuard&&(!x.guardFri||!x.guardSat))).length;
-  const add=(defs,l)=>`<button class="addic" data-create="prog" data-defs='${esc(JSON.stringify(Object.assign({eventId:e.id},defs)))}' title="${l}" aria-label="${l}">+</button>`;
-  const dayL={piatok:"Piatok",sobota:"Sobota",oba:"Piatok aj sobota"};
-  const spDays=["piatok","sobota","oba"].map(d=>[d,SP.filter(x=>(x.day||"oba")===d)]).filter(([d,L])=>L.length);
-  const spRow=x=>`<tr data-open="prog:${esc(x.id)}"><td><span class="meta" style="white-space:nowrap">${esc(x.time||"")}</span></td><td class="t"><b class="cut">${esc(x.title||"Bez názvu")}</b>${x.author?`<div class="meta cut">${esc(x.author)}</div>`:""}</td><td><span class="meta cut">${esc(x.place||"")}</span></td><td>${needs(x)}</td><td>${who(x.prepId)}</td><td>${st(x)}</td></tr>`;
-  return`<div class="panel" style="margin-top:20px"><div class="spread"><h2>Umelecké diela <span class="meta">${W.length}</span></h2>${miss?`<span class="meta">${miss} bez pripravujúceho alebo strážcu</span>`:""}</div>
-  ${groups.map(([k,L])=>`<h3 class="pgh">${esc(k||"Bez kategórie")} <span class="meta">${L.length||""}</span> ${add({kind:"dielo",section:k},"Pridať dielo")}</h3>${L.length?`<div class="tw"><table class="pgt">${head}<tbody>${L.map(row).join("")}</tbody></table></div>`:""}`).join("")}</div>
-  <div class="panel" style="margin-top:20px"><div class="spread"><h2>Sprievodný program <span class="meta">${SP.length}</span></h2>${add({kind:"sprievodny",section:"Sprievodný program",day:"piatok"},"Pridať bod programu")}</div>
-  ${spDays.length?spDays.map(([d,L])=>`<h3 class="pgh">${dayL[d]}</h3><div class="tw"><table class="pgt"><thead><tr><th style="width:110px">Čas</th><th>Program</th><th>Miesto</th><th>Potreby</th><th>Pripravuje</th><th>Stav</th></tr></thead><tbody>${L.sort((a,b)=>(a.time||"").localeCompare(b.time||"")).map(spRow).join("")}</tbody></table></div>`).join(""):`<div class="empty">Zatiaľ bez sprievodného programu.</div>`}</div>`;
-}
 function eventBudget(e){
   S.evb=S.evb||{mode:"sekcie",sec:"",gr:""};const B=S.evb;
   const all=related("events",e,"ledger");const isInc=x=>x.type==="prijem";

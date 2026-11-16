@@ -16,7 +16,7 @@ function bindView(){
   v.querySelectorAll("[data-grtab]").forEach(b=>b.onclick=()=>{S.grtab=b.dataset.grtab;render();});
   on("#g-text","change",e=>upd("grants",S.id,{text:e.target.value}));v.querySelectorAll("[data-gf]").forEach(t=>t.onchange=()=>upd("grants",S.id,{[t.dataset.gf]:t.value}));v.querySelectorAll("[data-callimp]").forEach(b=>b.onclick=()=>callImport(b.dataset.callimp));
   v.querySelectorAll("[data-evtab]").forEach(b=>b.onclick=()=>{S.evtab=b.dataset.evtab;render();});
-  pkBind(v);mkBind(v);   /* záložky Podklady a Marketing v podujatí: výška polí, súbory a odkazy */
+  pkBind(v);mkBind(v);drBind(v);   /* záložky Podklady, Marketing a Dramaturgia v podujatí: výška polí, súbory, polia vybraného prvku */
   {const ev=S.view==="podujatie"&&get("events",S.id);if(ev){
     const setEv=d=>upd("events",ev.id,d);
     v.querySelectorAll("[data-evbmode]").forEach(x=>x.onclick=()=>{S.evb.mode=x.dataset.evbmode;render();});v.querySelectorAll("[data-unl]").forEach(x=>x.onclick=()=>{S.evb.unl=!S.evb.unl;render();});

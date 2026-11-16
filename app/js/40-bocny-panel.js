@@ -274,7 +274,8 @@ function miniList(title,e,rows,fn,addDefs){
 
 /* ===== searchable relation picker ===== */
 const cnorm=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-function comboCtx(inp){if(!DW)return null;const r=get(DW.e,DW.id);const f=r&&ENT[DW.e].fields.find(x=>x.k===inp.dataset.combo);return f?{r,f,box:inp.closest(".combo"),hid:inp.closest(".combo").querySelector("input[type=hidden]")}:null;}
+function comboCtx(inp){const h=inp.closest("[data-cmb]"),ce=h?h.dataset.cmb.split(":")[0]:DW&&DW.e,ci=h?h.dataset.cmb.split(":")[1]:DW&&DW.id;if(!ce||!ENT[ce])return null;   /* záznam z bočného panela alebo zo stránky (data-cmb="druh:id") */
+  const r=get(ce,ci);const f=r&&ENT[ce].fields.find(x=>x.k===inp.dataset.combo);return f?{r,f,box:inp.closest(".combo"),hid:inp.closest(".combo").querySelector("input[type=hidden]")}:null;}
 function comboItems(c,q){
   let L=relOpts(c.f,c.r);const nq=cnorm(q.trim());
   if(c.f.k==="providerId"&&!nq){const used=new Set(S.d.grants.map(g=>g.providerId).filter(Boolean));L=[...L.filter(x=>used.has(x.id)),...L.filter(x=>!used.has(x.id))];}
