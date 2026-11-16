@@ -151,16 +151,11 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .mkl .gbndate .tplus.pkv{padding:0 4px;margin-left:-4px}
 .mkadd{padding:4px 26px 22px}
 .mkadd input{width:100%}
-.mkharm{padding:8px 0 14px}
-.mkmon{margin:16px 26px 2px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 @media(max-width:860px){
   .mkl{padding:6px 16px}
   .mkl li{gap:10px}
-  .mkl.harm li{flex-wrap:wrap}
   .mkl .t{white-space:normal}
-  .mkl.harm .dt{width:52px}
   .mkadd{padding:4px 16px 18px}
-  .mkmon{margin-left:16px;margin-right:16px}
 }
 .txlist .pkseg{margin-bottom:10px}
 .txlist .pkseg button{padding:9px 6px}

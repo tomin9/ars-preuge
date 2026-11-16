@@ -1,4 +1,4 @@
-/* ===== Podujatie – záložka Marketing: Plán (oblasti vľavo, položky vpravo) a Harmonogram (všetko podľa dátumu).
+/* ===== Podujatie – záložka Marketing: oblasti vľavo, položky vybranej oblasti vpravo (do 2.0.63 bola rozdelená na Plán a Harmonogram).
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-marketing.js. Nie je to samostatný skript.
    Uložené v podujatí v poli mktPlan = {areas:[{id,title}],items:[{id,a,t,st,d,date,who,note,url,body,txid,docs}]} (st = stav: pripravit / vpriprave / pripravene / publikovane; d = staré „hotové“, drží sa v zhode s Publikované) (body = krátky text výstupu, txid = starý odkaz na dlhý text (od 2.0.54 sa nepoužíva – stal sa prepojením podkladu), docs = vlastné súbory a odkazy; zadania zo záložky Podklady sa pripájajú z ich strany – pole mk v zadaní). Staré pole mkt (odškrtávací zoznam) ostáva – kým sa plán prvý raz neuloží, skladá sa z neho. ===== */
 const MKA_DEF=[["pr","PR a médiá"],["soc","Sociálne siete"],["out","Reklama vonku"],["news","Newsletter"],["video","Video a reels"],["camp","Kampane"]];
@@ -23,26 +23,15 @@ const mkSt=eid=>{S._mk=S._mk||{};return S._mk[eid]=S._mk[eid]||{tab:"plan",sel:"
 const mkId=()=>"k"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 /* zmena plánu: fn dostane kópiu {areas,items} a upraví ju */
 function mkSet(eid,fn){const e0=get("events",eid);if(!e0||!mkEd(e0))return Promise.resolve();const P=evPlan(e0),N={areas:P.areas.map(a=>({...a})),items:P.items.map(i=>({...i}))};fn(N);return upd("events",eid,{mktPlan:N});}
-const mkSort=(a,b)=>(a.date||"9999").localeCompare(b.date||"9999");
-function mkRow(e,P,it,harm){
-  const k=`${esc(e.id)}|${esc(it.id)}`,ed=mkEd(e),a=P.areas.find(x=>x.id===it.a),sd=mkStDef(it);
+function mkRow(e,P,it){
+  const k=`${esc(e.id)}|${esc(it.id)}`,ed=mkEd(e),sd=mkStDef(it);
   /* poradie: dátum (len deň a mesiac, bez dátumu ikona kalendára) · bodka stavu (klik ho zmení) · názov */
   const dot=`<label class="gastdot" title="Stav: ${sd[1]}${ed?" – kliknutím zmeníte":""}"><i class="txdot" style="background:${sd[2]}"></i>${ed?`<select data-mkst="${k}" aria-label="Stav">${MK_ST.map(([v,l])=>`<option value="${v}"${v===sd[0]?" selected":""}>${l}</option>`).join("")}</select>`:""}</label>`;
-  const date=harm?"":ed?`<span class="gbndate"><button type="button" class="tplus pkv" data-gbndate title="${it.date?"Dátum: "+esc(fdateS(it.date))+" – kliknutím zmeníte":"Vybrať dátum"}" aria-label="Dátum">${it.date?`<span>${mkDue(it)}</span>`:PK_CAL}</button><input type="date" value="${esc(it.date||"")}" data-mkdate="${k}" tabindex="-1" aria-hidden="true"></span>`:`<span class="dt">${mkDue(it)}</span>`;
-  return`<li class="${mkPub(it)?"on":""}">${harm?`<span class="dt">${mkDue(it)}</span>`:date}${dot}<button type="button" class="t" data-mkopen="${k}">${esc(it.t||"Bez názvu")}</button>${String(it.body||"").trim()||pkOfMk(e,it.id).some(pkHasText)?`<span class="meta mki" title="Má text"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${TXI.ic[0]}</svg></span>`:""}${clip({docs:mkAllDocs(e,it)})}${harm&&a?`<span class="tg sm" style="--tc:${mkCol(P,it.a)}">${esc(a.title)}</span>`:""}${it.who?`<span class="meta who">${who(it.who)}</span>`:""}</li>`;
+  const date=ed?`<span class="gbndate"><button type="button" class="tplus pkv" data-gbndate title="${it.date?"Dátum: "+esc(fdateS(it.date))+" – kliknutím zmeníte":"Vybrať dátum"}" aria-label="Dátum">${it.date?`<span>${mkDue(it)}</span>`:PK_CAL}</button><input type="date" value="${esc(it.date||"")}" data-mkdate="${k}" tabindex="-1" aria-hidden="true"></span>`:`<span class="dt">${mkDue(it)}</span>`;
+  return`<li class="${mkPub(it)?"on":""}">${date}${dot}<button type="button" class="t" data-mkopen="${k}">${esc(it.t||"Bez názvu")}</button>${String(it.body||"").trim()||pkOfMk(e,it.id).some(pkHasText)?`<span class="meta mki" title="Má text"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${TXI.ic[0]}</svg></span>`:""}${clip({docs:mkAllDocs(e,it)})}${it.who?`<span class="meta who">${who(it.who)}</span>`:""}</li>`;
 }
 function marketingTab(e){
   const P=evPlan(e),id=esc(e.id),st=mkSt(e.id),ed=mkEd(e);
-  const sub=`<div class="ptabs evbtabs" role="tablist" style="margin-bottom:14px">${[["plan","Plán"],["harm","Harmonogram"]].map(([k,l])=>`<button role="tab" data-mktab="${id}|${k}" aria-selected="${st.tab===k}">${l}</button>`).join("")}<span class="meta" style="margin-left:auto">${P.items.filter(mkPub).length} / ${P.items.length} publikovaných</span></div>`;
-  if(st.tab==="harm"){
-    const D=P.items.filter(x=>x.date).sort(mkSort),N=P.items.filter(x=>!x.date),G=[];
-    D.forEach(it=>{const m=it.date.slice(0,7);if(!G.length||G[G.length-1][0]!==m)G.push([m,[]]);G[G.length-1][1].push(it);});
-    const mon=m=>{const[y,mm]=m.split("-");const s=new Date(+y,+mm-1,1).toLocaleDateString("sk-SK",{month:"long",year:"numeric"});return s.charAt(0).toUpperCase()+s.slice(1);};
-    const body=!P.items.length?`<div class="empty">Plán je zatiaľ prázdny. Položky pridáte v záložke Plán.</div>`
-      :G.map(([m,L])=>`<h3 class="mkmon">${esc(mon(m))}</h3><ul class="mkl harm">${L.map(it=>mkRow(e,P,it,true)).join("")}</ul>`).join("")
-       +(N.length?`<h3 class="mkmon">Bez termínu</h3><ul class="mkl harm">${N.map(it=>mkRow(e,P,it,true)).join("")}</ul>`:"");
-    return sub+`<div class="panel mkharm">${body}</div>`;
-  }
   const sel=P.areas.find(a=>a.id===st.sel)||P.areas[0];
   const list=P.areas.map(a=>{const L=P.items.filter(x=>x.a===a.id),on=sel&&a.id===sel.id;
     return`<button type="button" class="txi${on?" on":""}" data-mksel="${id}|${esc(a.id)}"><i class="txdot" style="background:${mkCol(P,a.id)};width:10px;height:10px"></i><span class="txt"><b>${esc(a.title)}</b><small>${L.length?`${L.filter(mkPub).length} z ${L.length} publikovaných`:"zatiaľ nič"}</small></span></button>`;}).join("");
@@ -50,9 +39,9 @@ function marketingTab(e){
   if(sel){const L=P.items.filter(x=>x.a===sel.id),k=`${id}|${esc(sel.id)}`;
     main=`<div class="panel txmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Marketing / ${esc(e.name||"Podujatie")}</div><input type="text" class="txtitle" value="${esc(sel.title)}" data-mkarea="${k}" aria-label="Názov oblasti" maxlength="60"${ed?"":" readonly"}></div>
       ${ed?`<div class="row" style="flex:none;gap:8px"><button type="button" class="tplus tdel" data-mkadel="${k}" title="Odstrániť oblasť" aria-label="Odstrániť oblasť">${TI.del}</button></div>`:""}</div>
-      ${L.length?`<ul class="mkl">${L.map(it=>mkRow(e,P,it,false)).join("")}</ul>`:`<div class="empty" style="padding:26px">V tejto oblasti zatiaľ nič nie je.</div>`}
+      ${L.length?`<ul class="mkl">${L.map(it=>mkRow(e,P,it)).join("")}</ul>`:`<div class="empty" style="padding:26px">V tejto oblasti zatiaľ nič nie je.</div>`}
       ${ed?`<div class="mkadd"><input type="text" id="mk-add" data-mkadd="${k}" placeholder="+ Pridať položku a Enter" maxlength="120"></div>`:""}</div>`;}
-  return sub+`<div class="txm"><div class="txlist">${list}${ed?`<button type="button" class="txi txadd" data-mkaadd="${id}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať oblasť</b></span></button>`:""}</div>${main}</div>
+  return`<div class="txm"><div class="txlist">${list}${ed?`<button type="button" class="txi txadd" data-mkaadd="${id}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať oblasť</b></span></button>`:""}</div>${main}</div>
     ${String(e.marketing||"").trim()?`<div class="panel" style="margin-top:18px"><h2>Poznámky</h2><p class="meta" style="margin:2px 0 0;white-space:normal">Staršie poznámky. Keď ich vymažete, toto pole zmizne.</p><textarea id="ev-mkt" placeholder="Hashtagy, kontakty na médiá, nápady…" style="width:100%;min-height:110px;margin-top:8px">${esc(e.marketing||"")}</textarea></div>`:""}`;
 }
 /* bočný panel položky */
@@ -102,7 +91,6 @@ document.addEventListener("change",ev=>{const t=ev.target;if(!t||!t.dataset)retu
 document.addEventListener("keydown",ev=>{const t=ev.target;if(!t||!t.dataset||!t.dataset.mkadd||ev.key!=="Enter")return;const v=t.value.trim();if(!v)return;
   const[eid,aid]=t.dataset.mkadd.split("|");t.value="";mkSet(eid,N=>{N.items.push({id:mkId(),a:aid,t:v,d:false,date:"",who:"",note:"",url:""});});});
 document.addEventListener("click",async ev=>{const q=s=>ev.target.closest&&ev.target.closest(s);let x;
-  if((x=q("[data-mktab]"))){const[eid,k]=x.dataset.mktab.split("|");mkSt(eid).tab=k;render();return;}
   if((x=q("[data-mksel]"))){const[eid,aid]=x.dataset.mksel.split("|");mkSt(eid).sel=aid;render();return;}
   if((x=q("[data-mkopen]"))){const[eid,iid]=x.dataset.mkopen.split("|");mkOpen(eid,iid);return;}
   if((x=q("[data-mkaadd]"))){const eid=x.dataset.mkaadd,nid=mkId();mkSt(eid).sel=nid;await mkSet(eid,N=>{N.areas.push({id:nid,title:"Nová oblasť"});});setTimeout(()=>{const i=document.querySelector(`[data-mkarea$="|${nid}"]`);if(i){i.focus();i.select();}},60);return;}
