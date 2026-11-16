@@ -2,8 +2,8 @@
    vľavo hore štyri ikony (Text · Grafika · Video · Dokumenty), pod nimi zoznam podkladov vybraného druhu, vpravo vybraný podklad – všetko na stránke, bez bočného panela.
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-podklady.js. Nie je to samostatný skript.
    Od 2.0.54 nahrádza záložky Texty a Dokumenty: doterajšie texty (pole texts) a dokumenty (pole docs) sa stanú podkladmi – skladá ich evPk, kým sa podklady prvý raz neuložia (v:2); staré polia ostávajú nedotknuté.
-   Podklad je v podstate úloha: v hlavičke má stav (bodka pred názvom: Zadané · Rozpracované · Hotové), termín a človeka (ikony), pod tým Zadanie · Výstup (text alebo súbory a odkazy) · Prepojenie (výstupy v Marketingu).
-   Od 2.0.55 sa úlohy k podkladu nepripájajú (pole tasks ostáva v dátach, v úlohe ostala karta „Podklad“ pre už pripojené); termíny podkladov sú v Kalendári.
+   Podklad je v podstate úloha: v hlavičke má stav (bodka pred názvom: Zadané · Rozpracované · Hotové), termín a človeka (ikony), pod tým Zadanie · Výstup (text alebo súbory a odkazy).
+   Prepojenia (od 2.0.58) sú úzky pás pod podkladom: štítky výstupov v Marketingu (pole mk) a úloh (pole tasks), pridávajú sa jedným tlačidlom „+ Prepojiť“; úloha má kartu „Podklad“. Termíny podkladov sú v Kalendári.
    Uložené v podujatí v poli podklady = {v:2,secs:[{id,title,kind}],items:[{id,s,t,st,brief,who,due,body,docs,mk:[id položiek marketingu],tasks:[id úloh]}]}.
    Prepojenie s Marketingom drží len podklad (pole mk) – položka marketingu si svoje podklady dohľadá. ===== */
 const PK_DEF=[["text","Text","text"],["grafika","Grafika","file"],["video","Video","file"],["dok","Dokumenty","file"]];
@@ -54,14 +54,13 @@ function podkladyTab(e){
   const list=L.map((x,i)=>{const sd=pkStDef(x);
     return`<button type="button" class="txi${it&&x.id===it.id?" on":""}" data-pksel="${id}|${esc(sec.id)}|${esc(x.id)}">${svg(sec.id==="text"?TXI.ic[i%3]:(PK_IC[sec.id]||PK_IC._),22)}<span class="txt"><b>${esc(x.t||"Bez názvu")}</b><small>${esc(pkDesc(x))}</small></span><i class="txdot" style="background:${sd[2]}" title="${sd[1]}"></i></button>`;}).join("");
   const add=ed?`<button type="button" class="txi txadd" data-pkadd="${id}|${esc(sec.id)}">${svg('<path d="M12 5v14M5 12h14"/>',22)}<span class="txt"><b>${(PK_ADD[sec.id]||PK_ADD._)[0]}</b></span></button>${sec.kind==="text"?"":`<label class="txi txadd" style="margin-top:0" title="Každý súbor sa pridá ako samostatný podklad">${svg('<path d="M12 16V5M7 10l5-5 5 5M5 20h14"/>',22)}<span class="txt"><b>Nahrať súbory</b></span><input type="file" multiple data-pkup="${id}|${esc(sec.id)}" hidden></label>`}`:"";
-  const main=it?pkMain(e,P,sec,it,ed):`<div class="panel txmain" style="display:flex;align-items:center;justify-content:center;color:var(--muted);min-height:200px">Zatiaľ nič. ${ed?"Pridajte prvý podklad vľavo.":""}</div>`;
+  const main=it?`<div class="pkcol">${pkMain(e,P,sec,it,ed)}${pkRel(e,it,ed)}</div>`:`<div class="panel txmain" style="display:flex;align-items:center;justify-content:center;color:var(--muted);min-height:200px">Zatiaľ nič. ${ed?"Pridajte prvý podklad vľavo.":""}</div>`;
   return`<div class="txm"><div class="txlist">${seg}${list}${add}</div>${main}</div>`;
 }
-/* vybraný podklad v strede stránky: hlavička (bodka stavu pred názvom – klik zmení stav; vpravo termín, človek a kôš ako ikony), potom Zadanie · Výstup · Prepojenie */
+/* vybraný podklad v strede stránky: hlavička (bodka stavu pred názvom – klik zmení stav; vpravo termín, človek a kôš ako ikony), potom Zadanie · Výstup; prepojenia sú v úzkom páse pod ním (pkRel) */
 function pkMain(e,P,sec,it,ed){
   const k=`${esc(e.id)}|${esc(it.id)}`,f=n=>`data-pkf="${k}|${n}"`,ro=ed?"":" readonly";
   const st=pkSt(it),sd=pkStDef(it),docs=Array.isArray(it.docs)?it.docs:[],hasTxt=sec.kind!=="file"||pkHasText(it);
-  const MP=evPlan(e),M=pkMk(e,it),mAvail=MP.items.filter(x=>!(it.mk||[]).includes(x.id));
   const due=it.due?dueHtml(it.due,st==="hotove"):"",wn=it.who?personName(it.who):"";
   const act=ed?`<span class="gbndate"><button type="button" class="tplus pkv" data-gbndate title="Termín${it.due?": "+esc(fdateS(it.due)):""} – kliknutím vyberiete" aria-label="Termín">${PK_CAL}${due?`<span>${due}</span>`:""}</button><input type="date" id="pk-due" ${f("due")} value="${esc(it.due||"")}" tabindex="-1" aria-hidden="true"></span>
         <button type="button" class="tplus pkv" data-pkwhobtn="${k}" title="${wn?"Robí: "+esc(wn)+" – kliknutím zmeníte":"Prideliť človeka"}" aria-label="Prideliť človeka">${avatar(it.who||"")||PK_USER}${wn?`<span>${esc(wn)}</span>`:""}</button>
@@ -75,10 +74,23 @@ function pkMain(e,P,sec,it,ed){
     <div class="pkb pkout docslot" id="pk-out"><div class="pkh">Výstup<span class="row" style="gap:2px;flex-wrap:nowrap">${ed?`<label class="tplus" title="Nahrať súbor" aria-label="Nahrať súbor">${GD_I.up}<input type="file" multiple data-sdfile hidden></label><button type="button" class="tplus" data-sdlink title="Pridať odkaz" aria-label="Pridať odkaz">${GD_I.link}</button>`:""}${hasTxt?`<button type="button" class="tplus" data-pkcopy title="Kopírovať text" aria-label="Kopírovať text">${TXI.copy}</button>`:""}</span></div>
       ${hasTxt?`<textarea class="pkta" id="pk-body" rows="3" data-keep ${f("body")} placeholder="Napíšte text…"${ro}>${esc(it.body||"")}</textarea><div class="txfoot" id="pk-cnt">${txStat(it.body)}</div>`:""}
       ${docs.length?`<div class="gdbody">${pkGrid(docs,ed)}</div>`:(hasTxt?"":`<div class="gdbody"><div class="gdempty" style="padding:0">${ed?"Sem patrí hotová vec – nahrajte súbor alebo pridajte odkaz. Veľké videá vložte radšej odkazom (napr. z Disku).":"Zatiaľ prázdne."}</div></div>`)}</div>
-    <div class="pkb"><div class="pkh">Prepojenie</div><div class="pklinks"><div class="dr2-h"><b>${PK_MKT}Marketing</b></div>
-        ${M.length?`<ul class="items">${M.map(x=>{const a=MP.areas.find(y=>y.id===x.a);return`<li><span class="t" data-open="mkt:${esc(e.id)}~${esc(x.id)}">${esc(x.t||"Bez názvu")}</span>${a?`<span class="tg sm" style="--tc:${mkCol(MP,x.a)}">${esc(a.title)}</span>`:""}${x.date?`<span class="meta">${dueHtml(x.date,x.d)}</span>`:""}${ed?`<button type="button" class="tplus" data-pkmkrm="${k}|${esc(x.id)}" title="Odpojiť" aria-label="Odpojiť" style="width:22px;height:22px;font-size:17px">×</button>`:""}</li>`;}).join("")}</ul>`:`<p class="meta" style="margin:0;white-space:normal">Zatiaľ sa nepoužíva v žiadnom výstupe.</p>`}
-        ${ed&&mAvail.length?`<select class="linksel" data-pkmkadd="${k}" style="width:100%;max-width:420px;margin-top:8px"><option value="">↗ Pripojiť k výstupu v Marketingu…</option>${MP.areas.map(a=>{const L=mAvail.filter(x=>x.a===a.id);return L.length?`<optgroup label="${esc(a.title)}">${L.map(x=>`<option value="${esc(x.id)}">${esc(x.t||"Bez názvu")}</option>`).join("")}</optgroup>`:"";}).join("")}</select>`:""}</div></div></div>`;
+    </div>`;
 }
+/* prepojenia vybraného podkladu: úzky pás pod ním – štítky výstupov v Marketingu a úloh, všetko sa pridáva jedným tlačidlom „+ Prepojiť“ */
+function pkRel(e,it,ed){
+  const k=`${esc(e.id)}|${esc(it.id)}`,MP=evPlan(e),M=pkMk(e,it),mAvail=MP.items.filter(m=>!(it.mk||[]).includes(m.id));
+  const TK=(it.tasks||[]).map(id=>get("tasks",id)).filter(t=>t&&!t._stub),tAvail=S.d.tasks.filter(t=>t.eventId===e.id&&!(it.tasks||[]).includes(t.id)).sort((a,b)=>isDone(a)-isDone(b)),canTask=accEdit("tasks");
+  const rm=(attr,id)=>ed?`<button type="button" class="dutyx" ${attr}="${k}|${esc(id)}" aria-label="Odpojiť" title="Odpojiť">×</button>`:"";
+  const tIc=d=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/>${d?'<path d="m8 12 3 3 5-6"/>':""}</svg>`;
+  const chips=M.map(m=>{const a=MP.areas.find(y=>y.id===m.a);return`<span class="tg sm" style="--tc:${mkCol(MP,m.a)}" title="Marketing${a?" – "+esc(a.title):""}${m.date?", "+esc(fdateS(m.date)):""}"><span data-open="mkt:${esc(e.id)}~${esc(m.id)}">${PK_MKT}${esc(m.t||"Bez názvu")}</span>${rm("data-pkmkrm",m.id)}</span>`;}).join("")
+    +TK.map(t=>`<span class="tg sm${isDone(t)?" done":""}" title="Úloha${isDone(t)?" – hotová":""}${t.due?", termín "+esc(fdateS(t.due)):""}"><span data-open="tasks:${esc(t.id)}">${tIc(isDone(t))}${esc(t.title||"Bez názvu")}</span>${rm("data-pktaskrm",t.id)}</span>`).join("");
+  const add=ed?`<label class="tplus pkv" title="Prepojiť s výstupom v Marketingu alebo s úlohou">+ Prepojiť<select data-pklink="${k}" aria-label="Prepojiť"><option value="">Prepojiť s…</option>${MP.areas.map(a=>{const L=mAvail.filter(m=>m.a===a.id);return L.length?`<optgroup label="Marketing – ${esc(a.title)}">${L.map(m=>`<option value="mk:${esc(m.id)}">${esc(m.t||"Bez názvu")}</option>`).join("")}</optgroup>`:"";}).join("")}${tAvail.length||canTask?`<optgroup label="Úlohy">${canTask?`<option value="newtask">+ Nová úloha z tohto podkladu</option>`:""}${tAvail.map(t=>`<option value="task:${esc(t.id)}">${esc((isDone(t)?"✓ ":"")+(t.title||"Bez názvu"))}</option>`).join("")}</optgroup>`:""}</select></label>`:"";
+  if(!ed&&!chips)return"";
+  return`<div class="panel pkrel"><span class="pkh">Prepojenia</span>${chips||`<span class="meta">zatiaľ žiadne</span>`}${add}</div>`;
+}
+async function pkNewTask(eid,iid){const e0=get("events",eid),P=e0&&evPk(e0),c=P&&P.items.find(y=>y.id===iid);if(!c)return;const sec=P.secs.find(a=>a.id===c.s);
+  const d={title:(sec?sec.title+": ":"")+(c.t||"Podklad"),status:"inbox",priority:"normalne",org:"ars",eventId:e0.id};if(e0.projectId)d.projectId=e0.projectId;if(c.who)d.assignee=c.who;if(c.due)d.due=c.due;if(c.brief)d.note=c.brief;
+  const tid=await add("tasks",d);if(!tid)return;await pkOne(eid,iid,y=>{y.tasks=[...(y.tasks||[]),tid];});toast("Úloha vytvorená.");}
 /* ovládanie, ktoré sa pripája po každom vykreslení stránky (volá bindView): súbory a odkazy vo Výstupe */
 const pkGrow=(t,fresh)=>{if(!t)return;if(fresh)t.style.height="auto";if(t.scrollHeight>t.clientHeight+1)t.style.height=t.scrollHeight+"px";};   /* pole na text má 3 riadky a rastie s obsahom (dá sa aj potiahnuť) */
 function pkBind(v){
@@ -128,7 +140,11 @@ function pkTaskCard(t){
 }
 document.addEventListener("change",ev=>{const t=ev.target;if(!t||!t.dataset)return;
   if(t.dataset.pkf){const[eid,iid,f]=t.dataset.pkf.split("|"),v=String(t.value).trim();if(f==="t"&&!v){render();return;}pkOne(eid,iid,x=>{x[f]=v;});return;}
-  if(t.dataset.pkmkadd){const[eid,iid]=t.dataset.pkmkadd.split("|"),v=t.value;if(v)pkOne(eid,iid,x=>{x.mk=[...new Set([...(x.mk||[]),v])];});return;}
+  if(t.dataset.pklink){const[eid,iid]=t.dataset.pklink.split("|"),v=t.value;t.value="";if(!v)return;
+    if(v.startsWith("mk:"))pkOne(eid,iid,x=>{x.mk=[...new Set([...(x.mk||[]),v.slice(3)])];});
+    else if(v.startsWith("task:"))pkOne(eid,iid,x=>{x.tasks=[...new Set([...(x.tasks||[]),v.slice(5)])];});
+    else if(v==="newtask")pkNewTask(eid,iid);
+    return;}
   if(t.dataset.pkup){const[eid,sid]=t.dataset.pkup.split("|"),fs=[...(t.files||[])];if(!fs.length)return;
     (async()=>{const out=[];for(const f of fs){const d=await uploadDoc(f,{en:"events",id:eid,kind:""});if(d)out.push(pkNew(mkId(),sid,pkExt(String(f.name||"Súbor")),{st:"hotove",docs:[Object.assign(d,{at:Date.now()})]}));}t.value="";
       if(out.length){pkUi(eid).sel[sid]=out[out.length-1].id;pkSet(eid,N=>{N.items.push(...out);});}})();}});
@@ -147,4 +163,5 @@ document.addEventListener("click",async ev=>{const q=s=>ev.target.closest&&ev.ta
     pkSet(eid,N=>{N.items=N.items.filter(y=>y.id!==iid);});return;}
   if((x=q("[data-pkcopy]"))){const b=document.getElementById("pk-body");if(b)pkCopy(b.value);return;}
   if((x=q("[data-pkmkrm]"))){const[eid,iid,mid]=x.dataset.pkmkrm.split("|");pkOne(eid,iid,y=>{y.mk=(y.mk||[]).filter(i=>i!==mid);});return;}
+  if((x=q("[data-pktaskrm]"))){const[eid,iid,tid]=x.dataset.pktaskrm.split("|");pkOne(eid,iid,y=>{y.tasks=(y.tasks||[]).filter(i=>i!==tid);});return;}
 });
