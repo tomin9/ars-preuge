@@ -145,6 +145,7 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .mkl .t:focus-visible{outline:2px solid var(--accent);border-radius:4px}
 .mkl li.on .t{text-decoration:line-through;color:var(--muted)}
 .mkl .who{flex:none}
+.mkl .mki,.mkl .clip{flex:none;display:inline-flex;color:var(--muted)}
 .mkl .dt{flex:none;width:74px;color:var(--muted);font-size:13.5px}
 .mkl input[type=date]{flex:none;width:auto;border-color:transparent;background:transparent;color:var(--muted);padding:3px 6px;font-size:13.5px}
 .mkl input[type=date]:hover,.mkl input[type=date]:focus{border-color:var(--line);background:var(--surface)}
