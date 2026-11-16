@@ -53,7 +53,7 @@ function podkladyTab(e){
     return`<button type="button" data-pksec="${id}|${esc(a.id)}" aria-pressed="${a.id===sec.id}" title="${esc(a.title)}${n?` (${n})`:""}" aria-label="${esc(a.title)}">${svg(PK_IC[a.id]||PK_IC._,20)}</button>`;}).join("")}</div>`;
   const list=L.map((x,i)=>{const sd=pkStDef(x);
     return`<button type="button" class="txi${it&&x.id===it.id?" on":""}" data-pksel="${id}|${esc(sec.id)}|${esc(x.id)}">${svg(sec.id==="text"?TXI.ic[i%3]:(PK_IC[sec.id]||PK_IC._),22)}<span class="txt"><b>${esc(x.t||"Bez názvu")}</b><small>${esc(pkDesc(x))}</small></span><i class="txdot" style="background:${sd[2]}" title="${sd[1]}"></i></button>`;}).join("");
-  const add=ed?`<button type="button" class="txi txadd" data-pkadd="${id}|${esc(sec.id)}">${svg('<path d="M12 5v14M5 12h14"/>',22)}<span class="txt"><b>${(PK_ADD[sec.id]||PK_ADD._)[0]}</b></span></button>${sec.kind==="text"?"":`<label class="txi txadd" style="margin-top:0" title="Každý súbor sa pridá ako samostatný podklad">${svg('<path d="M12 16V5M7 10l5-5 5 5M5 20h14"/>',22)}<span class="txt"><b>Nahrať súbory</b></span><input type="file" multiple data-pkup="${id}|${esc(sec.id)}" hidden></label>`}`:"";
+  const add=ed?`${L.length?`<div class="gdsep"></div>`:""}<button type="button" class="txi txadd" data-pkadd="${id}|${esc(sec.id)}">${svg('<path d="M12 5v14M5 12h14"/>',22)}<span class="txt"><b>${(PK_ADD[sec.id]||PK_ADD._)[0]}</b></span></button>`:"";   /* čiara oddeľuje zoznam od pridania */
   const main=it?`<div class="pkcol">${pkMain(e,P,sec,it,ed)}${pkRel(e,it,ed)}</div>`:`<div class="panel txmain" style="display:flex;align-items:center;justify-content:center;color:var(--muted);min-height:200px">Zatiaľ nič. ${ed?"Pridajte prvý podklad vľavo.":""}</div>`;
   return`<div class="txm"><div class="txlist">${seg}${list}${add}</div>${main}</div>`;
 }
@@ -70,7 +70,7 @@ function pkMain(e,P,sec,it,ed){
   return`<div class="panel txmain gdmain" id="pk-main" data-pkmain="${k}"><div class="txhead pkhead"><div class="pkttl"><div class="kick">${esc(sec.title)} / ${esc(e.name||"Podujatie")}</div>
       <div class="pkt"><label class="gastdot" title="Stav: ${sd[1]}${ed?" – kliknutím zmeníte":""}"><i class="txdot" style="background:${sd[2]};width:12px;height:12px"></i>${ed?`<select id="pk-st" ${f("st")} aria-label="Stav podkladu">${PK_ST.map(([v,l])=>`<option value="${v}"${v===st?" selected":""}>${l}</option>`).join("")}</select>`:""}</label><input type="text" class="txtitle" id="pk-t" data-keep ${f("t")} value="${esc(it.t||"")}" aria-label="Názov podkladu" maxlength="120"${ro}></div></div>
       <div class="row pkact">${act}</div></div>
-    <div class="pkb pkout"><div class="pkh">Zadanie</div><textarea class="pkta" id="pk-brief" rows="3" data-keep ${f("brief")} placeholder="Čo treba pripraviť – formát a rozmery, čo tam má byť, pre koho, kde sa použije…"${ro}>${esc(it.brief||"")}</textarea></div>
+    <div class="pkb pkout"><div class="pkh">Zadanie</div><textarea class="pkta" id="pk-brief" rows="3" data-keep ${f("brief")} placeholder="Čo treba pripraviť…"${ro}>${esc(it.brief||"")}</textarea></div>
     <div class="pkb pkout docslot" id="pk-out"><div class="pkh">Výstup<span class="row" style="gap:2px;flex-wrap:nowrap">${ed?`<label class="tplus" title="Nahrať súbor" aria-label="Nahrať súbor">${GD_I.up}<input type="file" multiple data-sdfile hidden></label><button type="button" class="tplus" data-sdlink title="Pridať odkaz" aria-label="Pridať odkaz">${GD_I.link}</button>`:""}${hasTxt?`<button type="button" class="tplus" data-pkcopy title="Kopírovať text" aria-label="Kopírovať text">${TXI.copy}</button>`:""}</span></div>
       ${hasTxt?`<textarea class="pkta" id="pk-body" rows="3" data-keep ${f("body")} placeholder="Napíšte text…"${ro}>${esc(it.body||"")}</textarea><div class="txfoot" id="pk-cnt">${txStat(it.body)}</div>`:""}
       ${docs.length?`<div class="gdbody">${pkGrid(docs,ed)}</div>`:(hasTxt?"":`<div class="gdbody"><div class="gdempty" style="padding:0">${ed?"Sem patrí hotová vec – nahrajte súbor alebo pridajte odkaz. Veľké videá vložte radšej odkazom (napr. z Disku).":"Zatiaľ prázdne."}</div></div>`)}</div>
@@ -144,10 +144,7 @@ document.addEventListener("change",ev=>{const t=ev.target;if(!t||!t.dataset)retu
     if(v.startsWith("mk:"))pkOne(eid,iid,x=>{x.mk=[...new Set([...(x.mk||[]),v.slice(3)])];});
     else if(v.startsWith("task:"))pkOne(eid,iid,x=>{x.tasks=[...new Set([...(x.tasks||[]),v.slice(5)])];});
     else if(v==="newtask")pkNewTask(eid,iid);
-    return;}
-  if(t.dataset.pkup){const[eid,sid]=t.dataset.pkup.split("|"),fs=[...(t.files||[])];if(!fs.length)return;
-    (async()=>{const out=[];for(const f of fs){const d=await uploadDoc(f,{en:"events",id:eid,kind:""});if(d)out.push(pkNew(mkId(),sid,pkExt(String(f.name||"Súbor")),{st:"hotove",docs:[Object.assign(d,{at:Date.now()})]}));}t.value="";
-      if(out.length){pkUi(eid).sel[sid]=out[out.length-1].id;pkSet(eid,N=>{N.items.push(...out);});}})();}});
+    return;}});
 document.addEventListener("keydown",ev=>{const t=ev.target;if(t&&t.id==="pk-t"&&ev.key==="Enter")t.blur();});
 document.addEventListener("input",ev=>{const t=ev.target;if(!t||!t.classList||!t.classList.contains("pkta"))return;pkGrow(t);if(t.id==="pk-body"){const c=document.getElementById("pk-cnt");if(c)c.innerHTML=txStat(t.value);}});
 document.addEventListener("click",async ev=>{const q=s=>ev.target.closest&&ev.target.closest(s);let x;
