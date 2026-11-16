@@ -96,7 +96,7 @@ function ledgerView(r){
       ["Dátum",r.date?fdate(r.date):`<span class="meta">plánované</span>`],["Účet",esc(optL("acct",r.account||"banka"))],
       ["Stav",r.state?chip("lstate",r.state):""],["Doklad č.",esc(r.docNo||"")]])
     +card("tag","Priradenie",[["Projekt",rn("projects",r.projectId)],["Podujatie",rn("events",r.eventId)],["Kategória",esc(r.category||"")],["Komu / od koho",rn("contacts",r.contactId)]])
-    +card("coins","Financovanie",[["Grant",rn("grants",r.grantId)],["Spolufinancovanie",rn("grants",r.cofinGrantId)],["Rozpočtová položka",rn("lines",r.lineId)]]);}
+    +card("coins","Financovanie",[["Grant",rn("grants",r.grantId)],["Spolufinancovanie",rn("grants",r.cofinGrantId)],["Rozpoč. položka",rn("lines",r.lineId)]]);}
 function dProps(e,r){
   if(e==="ledger")return ledgerForm(r);
   const filled=f=>{const v=r[f.k];return!(v==null||v===""||(Array.isArray(v)&&!v.length));};
