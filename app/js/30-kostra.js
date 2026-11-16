@@ -32,6 +32,7 @@ function navBar(){
 }
 function openRec(e,id){
   if(e==="invg")return invGroupOpen(decodeURIComponent(id));   /* Inventár: karta veci (skupina rovnakých kusov) */
+  if(e==="mkt"){const[a,b]=String(id).split("~");return mkOpen(a,b);}   /* položka marketingu podujatia (z Kalendára) */
   {const r=get(e,id);if(r&&r._stub){toast("Tento záznam je mimo vášho prístupu – vidíte len jeho názov.");return;}}
   if(e==="zab")return zbOpenEvent();
   if(e==="projects")return go("projekt",id);
@@ -88,7 +89,7 @@ function render(){
   v.innerHTML=navBar()+notice+f();
   if(fid){const el=document.getElementById(fid);if(el){if(fval!==null&&el.value!==fval)el.value=fval;el.focus();if(sel&&el.setSelectionRange)try{el.setSelectionRange(sel[0],sel[1]);}catch(_){}}}
   bindView();renderPdfThumbs(v);accSweep();evAutoDone();accLockView();accBlur(document.getElementById("view"));accBlur(document.getElementById("side"));
-  if(DW)drawerRefresh();else if(S.invG)invGroupRefresh();
+  if(DW)drawerRefresh();else if(S.invG)invGroupRefresh();else if(S.mkD)mkDrawer();
 }
 function colSide(){try{return localStorage.getItem("arsp_sidecol")==="1";}catch(_){return false;}}
 function applySideCol(){const a=document.querySelector(".app");if(a)a.classList.toggle("sidecolp",colSide());}

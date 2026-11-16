@@ -47,9 +47,6 @@ function bindView(){
     on("#ev-prog-add","click",()=>setEv({program:[...(ev.program||[]),{time:"",title:"",contactId:"",place:""}]}));
     v.querySelectorAll("[data-prog]").forEach(inp=>inp.onchange=()=>{const[i,k]=inp.dataset.prog.split(":");const a=(ev.program||[]).map(x=>({...x}));if(!a[+i])return;a[+i][k]=inp.value;setEv({program:a});});
     v.querySelectorAll("[data-progdel]").forEach(x=>x.onclick=()=>{const a=(ev.program||[]).filter((_,i)=>i!==+x.dataset.progdel);setEv({program:a});});
-    v.querySelectorAll("[data-mk]").forEach(x=>x.onclick=ev2=>{ev2.stopPropagation();const a=evMkt(ev).map(y=>({...y}));a[+x.dataset.mk].d=!a[+x.dataset.mk].d;setEv({mkt:a});});
-    v.querySelectorAll("[data-mkdel]").forEach(x=>x.onclick=()=>{setEv({mkt:evMkt(ev).filter((_,i)=>i!==+x.dataset.mkdel)});});
-    on("#ev-mk-add","keydown",e=>{if(e.key!=="Enter"||!e.target.value.trim())return;const a=evMkt(ev).map(y=>({...y}));a.push({t:e.target.value.trim(),d:false});e.target.value="";setEv({mkt:a});});
     v.querySelectorAll("[data-docdel]").forEach(x=>x.onclick=async()=>{if(await ask("Odstrániť dokument zo zoznamu?","Odstrániť"))setEv({docs:(ev.docs||[]).filter((_,i)=>i!==+x.dataset.docdel)});});
     on("#ev-doc-link","click",()=>{const f=$("#ev-doc-form");f.hidden=!f.hidden;if(!f.hidden)$("#ev-doc-name").focus();});
     on("#ev-doc-save","click",()=>{const n=$("#ev-doc-name").value.trim(),u=$("#ev-doc-url").value.trim();if(!u){toast("Vložte odkaz.");return;}setEv({docs:[...(ev.docs||[]),{name:n||u,url:u,at:Date.now()}]});});
@@ -79,6 +76,7 @@ function bindView(){
   on("#pj-ledger","click",e=>{S.ff=Object.assign(S.ff,{tab:"dennik",project:e.target.dataset.pid,grant:"",year:String(new Date().getFullYear()),acct:"",type:"",q:""});go("financie");});
   on("#cal-prev","click",()=>{S.cal.m--;if(S.cal.m<0){S.cal.m=11;S.cal.y--;}render();});
   on("#cal-next","click",()=>{S.cal.m++;if(S.cal.m>11){S.cal.m=0;S.cal.y++;}render();});
+  on("#cal-mk","click",()=>{try{localStorage.setItem("arsp_calmk",calMk()?"0":"1");}catch(_){}render();});
   on("#cal-now","click",()=>{const n=new Date();S.cal={y:n.getFullYear(),m:n.getMonth()};render();});
   on("#g-ck-add","keydown",e=>{if(e.key!=="Enter"||!e.target.value.trim())return;const g=get("grants",S.id);const a=(g.checklist||[]).map(x=>({...x}));a.push({t:e.target.value.trim(),d:false});e.target.value="";upd("grants",g.id,{checklist:a});});
   on("#st-bank","change",e=>saveSettings({openBank:e.target.value===""?null:+e.target.value}));

@@ -116,6 +116,7 @@ function agenda(){
   const out=[];
   S.d.tasks.forEach(t=>{if(t.due)out.push({d:t.due,kind:"task",c:"var(--accent)",txt:t.title||"Úloha",open:"tasks:"+t.id,done:isDone(t),pid:t.projectId,mine:t.assignee&&t.assignee===meId()});});
   S.d.events.forEach(e=>{if(e.date){const end=e.dateTo&&e.dateTo>e.date?e.dateTo:e.date;let d=e.date,i=0;while(d<=end&&i<40){out.push({d,kind:"event",c:PINK,txt:(e.name||"Podujatie")+(e.time&&d===e.date?" · "+e.time:""),open:"events:"+e.id,done:e.status==="zrealizovane",pid:e.projectId});d=addDays(d,1);i++;}}});
+  S.d.events.forEach(e=>{if(e.mktPlan&&Array.isArray(e.mktPlan.items))e.mktPlan.items.forEach(it=>{if(it.date)out.push({d:it.date,kind:"mkt",c:PURPLE,txt:(it.t||"Marketing")+(e.name?" · "+e.name:""),open:"mkt:"+e.id+"~"+it.id,done:!!it.d,pid:e.projectId});});});   /* marketing podujatí (len v Kalendári, dá sa vypnúť) */
   S.d.grants.forEach(g=>{
     const closed=["vyuctovane","nepodporene"].includes(g.status);
     if(g.submitTo)out.push({d:g.submitTo,kind:"grant",c:OCHRE,txt:"Uzávierka: "+(g.name||"grant"),open:"grants:"+g.id,done:closed||g.status!=="napad"&&g.status!=="priprava",pid:g.projectId});

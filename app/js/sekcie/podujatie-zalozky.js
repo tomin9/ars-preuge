@@ -4,7 +4,7 @@ function eventTabs(e){
   const id=esc(e.id),T=S.d.tasks.filter(t=>t.eventId===e.id),P=S.d.partnerships.filter(x=>x.eventId===e.id);
   const ET=evTabsFor(e),tab=ET.find(t=>t[0]===S.evtab)?S.evtab:"texty";
   const cnt={ulohy:T.filter(t=>!isDone(t)).length,granty:related("events",e,"grants").length,dramaturgia:S.d.prog.filter(x=>x.eventId===e.id).length,
-    marketing:(()=>{const m=evMkt(e);return Array.isArray(e.mkt)?`${m.filter(x=>x.d).length}/${m.length}`:"";})(),spoluprace:0,dokumenty:(e.docs||[]).length,zabezpecenie:S.d.zab.length};
+    marketing:(()=>{const m=evPlan(e).items;return e.mktPlan||Array.isArray(e.mkt)?`${m.filter(x=>x.d).length}/${m.length}`:"";})(),spoluprace:0,dokumenty:(e.docs||[]).length,zabezpecenie:S.d.zab.length};
   const tbar=`<div class="ptabs ntabs" role="tablist" style="margin-top:6px">${ET.map(([k,l])=>`<button role="tab" data-evtab="${k}" aria-selected="${tab===k}">${l}</button>`).join("")}</div>`;
   let body="";
   if(tab==="texty")body=textyTab(e);
@@ -16,13 +16,7 @@ function eventTabs(e){
   else if(tab==="dramaturgia"){
     body=`<div class="panel"><h2>Koncept</h2><textarea id="ev-dram" placeholder="Téma, idea, dramaturgická línia podujatia…" style="width:100%;min-height:110px;margin-top:8px">${esc(e.dramaturgy||"")}</textarea></div>${progPanel(e)}`;
   }
-  else if(tab==="marketing"){
-    const m=evMkt(e);
-    body=`<div class="grid2"><div class="panel"><div class="spread"><h2>Propagácia</h2><span class="meta">${m.filter(x=>x.d).length} / ${m.length}</span></div>
-      <ul class="cl">${m.map((x,i)=>`<li class="${x.d?"on":""}"><button class="check ${x.d?"on":""}" data-mk="${i}" aria-label="Splnené"></button><span>${esc(x.t)}</span><button class="x" data-mkdel="${i}" aria-label="Odstrániť">×</button></li>`).join("")}</ul>
-      <input type="text" id="ev-mk-add" placeholder="+ Pridať kanál alebo krok a Enter" style="width:100%;margin-top:6px"></div>
-      <div class="panel"><h2>Texty a poznámky</h2><textarea id="ev-mkt" placeholder="Anotácia, texty na sociálne siete, hashtagy, kontakty na médiá…" style="width:100%;min-height:220px;margin-top:8px">${esc(e.marketing||"")}</textarea></div></div>`;
-  }
+  else if(tab==="marketing")body=marketingTab(e);
   else if(tab==="spoluprace")body=teamTab(e);
   else if(tab==="dokumenty"){body=gDocsTab(e);   /* ako pri grante: sekcie vľavo, náhľady vpravo (od 2.0.30) */
   }
