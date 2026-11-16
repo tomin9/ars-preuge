@@ -90,13 +90,13 @@ function ledgerForm(r){
 /* platba – prehľad: len vyplnené údaje, ako karta kontaktu; úpravy cez ceruzku vpravo hore */
 function ledgerView(r){
   const rn=(e,id)=>{const x=id&&get(e,id);return x?`<span class="rlink" data-open="${e}:${esc(id)}">${e==="contacts"?cIcon(x):""}${esc(ttl(e,x))}</span>`:"";};
-  const L=[["Typ",`<span class="${r.type==="prijem"?"pos":"neg"}">${esc(optL("ltype",r.type||"vydavok"))}</span>`],
-    ["Suma",r.amount!=null&&r.amount!==""?`<b class="${r.type==="prijem"?"pos":"neg"}">${r.type==="prijem"?"+":"−"}${eur(r.amount)}</b>`:""],
-    ["Dátum",r.date?fdate(r.date):`<span class="meta">plánované</span>`],["Účet",esc(optL("acct",r.account||"banka"))],
-    ["Stav",r.state?chip("lstate",r.state):""],["Doklad č.",esc(r.docNo||"")],
-    ["Komu / od koho",rn("contacts",r.contactId)],["Projekt",rn("projects",r.projectId)],["Podujatie",rn("events",r.eventId)],["Kategória",esc(r.category||"")],
-    ["Grant",rn("grants",r.grantId)],["Spolufinancovanie",rn("grants",r.cofinGrantId)],["Rozpočtová položka",rn("lines",r.lineId)]].filter(x=>x[1]);
-  return`<section class="dcard"><h3>${DI.main}Údaje</h3><div class="props cprops lview" style="margin:0">${L.map(([l,v])=>`<label>${l}</label><div class="pv">${v}</div>`).join("")}</div></section>`;}
+  const card=(ico,t,L)=>{L=L.filter(x=>x[1]);return L.length?`<section class="dcard"><h3>${DI[ico]}${t}</h3><div class="props cprops lview" style="margin:0">${L.map(([l,v])=>`<label>${l}</label><div class="pv">${v}</div>`).join("")}</div></section>`:"";};
+  return card("main","Údaje",[["Typ",`<span class="${r.type==="prijem"?"pos":"neg"}">${esc(optL("ltype",r.type||"vydavok"))}</span>`],
+      ["Suma",r.amount!=null&&r.amount!==""?`<b class="${r.type==="prijem"?"pos":"neg"}">${r.type==="prijem"?"+":"−"}${eur(r.amount)}</b>`:""],
+      ["Dátum",r.date?fdate(r.date):`<span class="meta">plánované</span>`],["Účet",esc(optL("acct",r.account||"banka"))],
+      ["Stav",r.state?chip("lstate",r.state):""],["Doklad č.",esc(r.docNo||"")]])
+    +card("tag","Priradenie",[["Projekt",rn("projects",r.projectId)],["Podujatie",rn("events",r.eventId)],["Kategória",esc(r.category||"")],["Komu / od koho",rn("contacts",r.contactId)]])
+    +card("coins","Financovanie",[["Grant",rn("grants",r.grantId)],["Spolufinancovanie",rn("grants",r.cofinGrantId)],["Rozpočtová položka",rn("lines",r.lineId)]]);}
 function dProps(e,r){
   if(e==="ledger")return ledgerForm(r);
   const filled=f=>{const v=r[f.k];return!(v==null||v===""||(Array.isArray(v)&&!v.length));};
