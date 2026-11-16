@@ -43,7 +43,7 @@ function marketingTab(e){
       ${L.length?`<ul class="mkl">${L.map(it=>mkRow(e,P,it,false)).join("")}</ul>`:`<div class="empty" style="padding:26px">V tejto oblasti zatiaľ nič nie je.</div>`}
       ${ed?`<div class="mkadd"><input type="text" id="mk-add" data-mkadd="${k}" placeholder="+ Pridať položku a Enter" maxlength="120"></div>`:""}</div>`;}
   return sub+`<div class="txm"><div class="txlist">${list}${ed?`<button type="button" class="txi txadd" data-mkaadd="${id}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať oblasť</b></span></button>`:""}</div>${main}</div>
-    <div class="panel" style="margin-top:18px"><h2>Poznámky</h2><textarea id="ev-mkt" placeholder="Hashtagy, kontakty na médiá, nápady…" style="width:100%;min-height:110px;margin-top:8px">${esc(e.marketing||"")}</textarea></div>`;
+    ${String(e.marketing||"").trim()?`<div class="panel" style="margin-top:18px"><h2>Poznámky</h2><p class="meta" style="margin:2px 0 0;white-space:normal">Staršie poznámky. Keď ich vymažete, toto pole zmizne.</p><textarea id="ev-mkt" placeholder="Hashtagy, kontakty na médiá, nápady…" style="width:100%;min-height:110px;margin-top:8px">${esc(e.marketing||"")}</textarea></div>`:""}`;
 }
 /* bočný panel položky */
 function mkOpen(eid,iid){const e0=get("events",eid);if(!e0||!evPlan(e0).items.some(x=>x.id===iid))return;closeDrawer();S.mkD={eid,iid};mkDrawer(true);}
