@@ -1,4 +1,4 @@
-/* ===== Podujatie – záložka Médiá (do 2.0.33 Fotky): zbierky (albums) – každá môže mať album Google Fotiek (url) a ďalšie odkazy (links:
+/* ===== Podujatie – záložka Archív (do 2.0.33 Fotky, do 2.0.53 Médiá): zbierky (albums) – každá môže mať album Google Fotiek (url) a ďalšie odkazy (links:
    Spotify, YouTube, Vimeo… s náhľadom, ostatné ako odkaz). Kľúč záložky ostal „fotky“.
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-fotky.js. Nie je to samostatný skript. ===== */
 S._ph=S._ph||{};

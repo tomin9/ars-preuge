@@ -162,6 +162,30 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
   .mkadd{padding:4px 16px 18px}
   .mkmon{margin-left:16px;margin-right:16px}
 }
+.txlist .pkseg{margin-bottom:10px}
+.txlist .pkseg button{padding:9px 6px}
+.txlist .pkseg svg{width:20px;height:20px}
+.pkbar{flex-wrap:wrap}
+.pkmeta{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}
+.pkmeta label,.pkwho{display:inline-flex;align-items:center;gap:8px}
+.pkmeta input[type=date]{width:auto;padding:4px 8px;font-size:13.5px}
+.pkwho>span{display:block;min-width:210px}
+.pkb{padding:16px 26px 18px;border-bottom:1px solid var(--line)}
+.pkb:last-child{border-bottom:0}
+.pkh{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px;margin-bottom:8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.pkh .row{letter-spacing:0;text-transform:none}
+.pkb>textarea{display:block;width:100%;box-sizing:border-box;min-height:64px;resize:vertical}
+.pkb.pkout{padding:0}
+.pkout>.pkh{padding:16px 26px 0;margin-bottom:0}
+.pkout textarea.txbody{padding-top:12px}
+.pkout .txw .txcp{top:8px}
+.pklinks .dr2-h{min-height:28px}
+@media(max-width:860px){
+  .pkb{padding:14px 16px 16px}
+  .pkout>.pkh{padding:14px 16px 0}
+  .pklinks{grid-template-columns:1fr}
+  .pkwho>span{min-width:170px}
+}
 .txfoot{padding:14px 26px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
 @media(max-width:860px){
   .txm{grid-template-columns:1fr}

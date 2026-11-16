@@ -1,6 +1,6 @@
 # Kontrola vzhľadu
 
-Nástroj na overenie, že úprava (napr. presun štýlov) nezmenila vzhľad aplikácie. Pustí aplikáciu s testovacími údajmi (`seed.json`) bez WordPressu, preklikne 136 obrazoviek a stavov (svetlý/tmavý režim, počítač/mobil) a zapíše vzhľad každého prvku. Dva zápisy sa potom porovnajú.
+Nástroj na overenie, že úprava (napr. presun štýlov) nezmenila vzhľad aplikácie. Pustí aplikáciu s testovacími údajmi (`seed.json`) bez WordPressu, preklikne 130 obrazoviek a stavov (svetlý/tmavý režim, počítač/mobil) a zapíše vzhľad každého prvku. Dva zápisy sa potom porovnajú.
 
 Postup (potrebný Python 3, Node.js a Playwright s prehliadačom Chromium):
 

@@ -1,13 +1,13 @@
-/* ===== Podujatie – riadok záložiek a obsah menších záložiek (úlohy, granty, marketing, dokumenty).
+/* ===== Podujatie – riadok záložiek a obsah menších záložiek (úlohy, granty, dramaturgia).
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-zalozky.js. Nie je to samostatný skript. ===== */
 function eventTabs(e){
   const id=esc(e.id),T=S.d.tasks.filter(t=>t.eventId===e.id),P=S.d.partnerships.filter(x=>x.eventId===e.id);
-  const ET=evTabsFor(e),tab=ET.find(t=>t[0]===S.evtab)?S.evtab:"texty";
+  const ET=evTabsFor(e),tab=ET.find(t=>t[0]===S.evtab)?S.evtab:(ET[0]||["podklady"])[0];
   const cnt={ulohy:T.filter(t=>!isDone(t)).length,granty:related("events",e,"grants").length,dramaturgia:S.d.prog.filter(x=>x.eventId===e.id).length,
     marketing:(()=>{const m=evPlan(e).items;return e.mktPlan||Array.isArray(e.mkt)?`${m.filter(x=>x.d).length}/${m.length}`:"";})(),spoluprace:0,dokumenty:(e.docs||[]).length,zabezpecenie:S.d.zab.length};
   const tbar=`<div class="ptabs ntabs" role="tablist" style="margin-top:6px">${ET.map(([k,l])=>`<button role="tab" data-evtab="${k}" aria-selected="${tab===k}">${l}</button>`).join("")}</div>`;
   let body="";
-  if(tab==="texty")body=textyTab(e);
+  if(tab==="podklady")body=podkladyTab(e);   /* od 2.0.54 obsahuje aj doterajšie Texty a Dokumenty */
   else if(tab==="rozpocet")body=eventBudget(e);
   else if(tab==="zabezpecenie")body=zbPanel();
   else if(tab==="ulohy")body=`<div class="panel">${linkBlock("events",e,"tasks")}</div>`;
@@ -17,10 +17,7 @@ function eventTabs(e){
     body=`<div class="panel"><h2>Koncept</h2><textarea id="ev-dram" placeholder="Téma, idea, dramaturgická línia podujatia…" style="width:100%;min-height:110px;margin-top:8px">${esc(e.dramaturgy||"")}</textarea></div>${progPanel(e)}`;
   }
   else if(tab==="marketing")body=marketingTab(e);
-  else if(tab==="podklady")body=podkladyTab(e);
   else if(tab==="spoluprace")body=teamTab(e);
-  else if(tab==="dokumenty"){body=gDocsTab(e);   /* ako pri grante: sekcie vľavo, náhľady vpravo (od 2.0.30) */
-  }
   return tbar+body;
 }
 

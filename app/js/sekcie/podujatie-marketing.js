@@ -1,6 +1,6 @@
 /* ===== Podujatie – záložka Marketing: Plán (oblasti vľavo, položky vpravo) a Harmonogram (všetko podľa dátumu).
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-marketing.js. Nie je to samostatný skript.
-   Uložené v podujatí v poli mktPlan = {areas:[{id,title}],items:[{id,a,t,d,date,who,note,url,body,txid,docs}]} (body = krátky text výstupu, txid = prepojený dlhý text zo záložky Texty, docs = vlastné súbory a odkazy; zadania zo záložky Podklady sa pripájajú z ich strany – pole mk v zadaní). Staré pole mkt (odškrtávací zoznam) ostáva – kým sa plán prvý raz neuloží, skladá sa z neho. ===== */
+   Uložené v podujatí v poli mktPlan = {areas:[{id,title}],items:[{id,a,t,d,date,who,note,url,body,txid,docs}]} (body = krátky text výstupu, txid = starý odkaz na dlhý text (od 2.0.54 sa nepoužíva – stal sa prepojením podkladu), docs = vlastné súbory a odkazy; zadania zo záložky Podklady sa pripájajú z ich strany – pole mk v zadaní). Staré pole mkt (odškrtávací zoznam) ostáva – kým sa plán prvý raz neuloží, skladá sa z neho. ===== */
 const MKA_DEF=[["pr","PR a médiá"],["soc","Sociálne siete"],["out","Reklama vonku"],["news","Newsletter"],["video","Video a reels"],["camp","Kampane"]];
 const MKA_RX=[["soc",/facebook|instagram|stories|tiktok|sociáln/i],["news",/newsletter/i],["video",/video|reel|foto/i],["out",/výlep|plagát|billboard|citylight|vizuál/i],["pr",/tlačov|rádi|médi|článok|web|kalendár/i]];
 function evPlan(e){
@@ -19,7 +19,7 @@ function mkSet(eid,fn){const e0=get("events",eid);if(!e0||!mkEd(e0))return Promi
 const mkSort=(a,b)=>(a.date||"9999").localeCompare(b.date||"9999");
 function mkRow(e,P,it,harm){
   const k=`${esc(e.id)}|${esc(it.id)}`,ed=mkEd(e),a=P.areas.find(x=>x.id===it.a);
-  return`<li class="${it.d?"on":""}">${harm?`<span class="dt">${it.date?dueHtml(it.date,it.d):""}</span>`:""}<button class="check ${it.d?"on":""}" data-mkdone="${k}" aria-label="Hotové"></button><button type="button" class="t" data-mkopen="${k}">${esc(it.t||"Bez názvu")}</button>${String(it.body||"").trim()||it.txid?`<span class="meta mki" title="Má text"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${TXI.ic[0]}</svg></span>`:""}${clip({docs:mkAllDocs(e,it)})}${harm&&a?`<span class="tg sm" style="--tc:${mkCol(P,it.a)}">${esc(a.title)}</span>`:""}${it.who?`<span class="meta who">${who(it.who)}</span>`:""}${harm?"":`<input type="date" value="${esc(it.date||"")}" data-mkdate="${k}" aria-label="Dátum"${ed?"":" disabled"}>`}</li>`;
+  return`<li class="${it.d?"on":""}">${harm?`<span class="dt">${it.date?dueHtml(it.date,it.d):""}</span>`:""}<button class="check ${it.d?"on":""}" data-mkdone="${k}" aria-label="Hotové"></button><button type="button" class="t" data-mkopen="${k}">${esc(it.t||"Bez názvu")}</button>${String(it.body||"").trim()||pkOfMk(e,it.id).some(pkHasText)?`<span class="meta mki" title="Má text"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${TXI.ic[0]}</svg></span>`:""}${clip({docs:mkAllDocs(e,it)})}${harm&&a?`<span class="tg sm" style="--tc:${mkCol(P,it.a)}">${esc(a.title)}</span>`:""}${it.who?`<span class="meta who">${who(it.who)}</span>`:""}${harm?"":`<input type="date" value="${esc(it.date||"")}" data-mkdate="${k}" aria-label="Dátum"${ed?"":" disabled"}>`}</li>`;
 }
 function marketingTab(e){
   const P=evPlan(e),id=esc(e.id),st=mkSt(e.id),ed=mkEd(e);
@@ -53,7 +53,6 @@ function mkDrawer(force){
   const ae=document.activeElement;if(!force&&ae&&host.contains(ae)&&ae.matches("input,select,textarea"))return;
   const ed=mkEd(e0),ro=ed?"":" disabled",fld=(l,inp)=>`<label>${l}</label><div class="pv">${inp}</div>`;
   const X='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
-  const T=evTexts(e0),tx=T.find(t=>t.id===it.txid),docs=Array.isArray(it.docs)?it.docs:[];
   const url=String(it.url||"").trim(),href=/^https?:\/\//i.test(url)?url:(url?"https://"+url:"");
   const body=`<div id="dw-head"><input class="ttl" data-mkf="t" value="${esc(it.t||"")}" placeholder="Názov" aria-label="Názov"${ed?"":" readonly"}></div>
     <section class="dcard"><h3>${DI.list}Údaje</h3><div class="props cprops" style="margin:0">
@@ -66,7 +65,7 @@ function mkDrawer(force){
     <section class="dcard"><h3 style="justify-content:space-between"><span class="lkh">${DI.note}Text</span><button type="button" class="tplus" data-mkcopy title="Kopírovať text" aria-label="Kopírovať text">${TXI.copy}</button></h3>
       <textarea data-mkf="body" placeholder="Krátky text výstupu – príspevok, text na plagát, popis k videu…" style="display:block;width:100%;box-sizing:border-box;min-height:150px"${ed?"":" readonly"}>${esc(it.body||"")}</textarea>
       <div class="meta" id="mk-cnt" style="margin-top:6px">${String(it.body||"").length} znakov</div>
-      <div class="props cprops" style="margin:10px 0 0">${fld("Dlhý text",`<select data-mkf="txid"${ro}><option value="">— žiadny —</option>${T.map(t=>`<option value="${esc(t.id)}" ${t.id===it.txid?"selected":""}>${esc(t.title)}</option>`).join("")}</select>${tx?`<button type="button" class="meta" data-mktx="${esc(D.eid)}|${esc(tx.id)}" style="all:unset;cursor:pointer;display:block;margin-top:4px;font-size:13px;color:var(--muted);text-decoration:underline">Otvoriť „${esc(tx.title)}“ v Textoch →</button>`:""}`)}</div></section>
+    </section>
     ${mkPkCard(e0,it,ed)}
     <section class="dcard note"><textarea data-mkf="note" placeholder="Poznámka…" style="min-height:70px"${ed?"":" readonly"}>${esc(it.note||"")}</textarea></section>`;
   const box=host.querySelector("aside[data-mkbox] .dbody");
@@ -83,7 +82,6 @@ function mkDrawer(force){
   const item=N=>N.items.find(y=>y.id===D.iid);
   const bd=host.querySelector('[data-mkf="body"]'),cn=host.querySelector("#mk-cnt");if(bd&&cn)bd.oninput=()=>{cn.textContent=bd.value.length+" znakov";};
   const cp=host.querySelector("[data-mkcopy]");if(cp)cp.onclick=async()=>{try{await navigator.clipboard.writeText(bd.value);toast("Text skopírovaný.");}catch(_){toast("Kopírovanie sa nepodarilo.");}};
-  const tb=host.querySelector("[data-mktx]");if(tb)tb.onclick=()=>{const[eid,tid]=tb.dataset.mktx.split("|");closeDrawer();S._txsel=S._txsel||{};S._txsel[eid]=tid;S.evtab="texty";if(S.view==="podujatie"&&S.id===eid)render();else go("podujatie",eid);};
   mkPkBind(host,D);
   const wb=host.querySelector("[data-mkwho]");if(wb)picker(wb,it.who||"",v=>mkSet(D.eid,N=>{const x=N.items.find(y=>y.id===D.iid);if(x)x.who=v||"";}));
 }

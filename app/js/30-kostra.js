@@ -81,7 +81,7 @@ function render(){
   renderSide();renderBottom();
   const v=$("#view");
   const ae=document.activeElement,fid=ae&&v.contains(ae)&&ae.id?ae.id:null,sel=fid&&ae.selectionStart!=null?[ae.selectionStart,ae.selectionEnd]:null;
-  const fval=fid&&ae.dataset&&ae.dataset.zb!==undefined&&ae.type!=="checkbox"?ae.value:null;
+  const fval=fid&&ae.dataset&&(ae.dataset.zb!==undefined||ae.dataset.keep!==undefined)&&ae.type!=="checkbox"?ae.value:null;   /* rozpísaný text v poli (data-zb, data-keep) prežije prekreslenie stránky */
   if(S.loading){v.innerHTML=`<div class="empty">Načítavam dáta tímu…</div>`;return;}
   const notice=!S.live?`<div class="notice">Aplikácia sa nespojila s databázou – zmeny sa neuložia. Obnovte stránku; ak to nepomôže, odhláste sa a znova prihláste do WordPressu.</div>`
     :(S.readOnly?`<div class="notice">Máte prístup len na čítanie. Ak potrebujete upravovať, požiadajte správcu webu o rolu „Tím Ars Preuge“.</div>`:"");
@@ -90,7 +90,7 @@ function render(){
   v.innerHTML=navBar()+notice+f();
   if(fid){const el=document.getElementById(fid);if(el){if(fval!==null&&el.value!==fval)el.value=fval;el.focus();if(sel&&el.setSelectionRange)try{el.setSelectionRange(sel[0],sel[1]);}catch(_){}}}
   bindView();renderPdfThumbs(v);accSweep();evAutoDone();accLockView();accBlur(document.getElementById("view"));accBlur(document.getElementById("side"));
-  if(DW)drawerRefresh();else if(S.invG)invGroupRefresh();else if(S.mkD)mkDrawer();else if(S.pkD)pkDrawer();
+  if(DW)drawerRefresh();else if(S.invG)invGroupRefresh();else if(S.mkD)mkDrawer();
 }
 function colSide(){try{return localStorage.getItem("arsp_sidecol")==="1";}catch(_){return false;}}
 function applySideCol(){const a=document.querySelector(".app");if(a)a.classList.toggle("sidecolp",colSide());}

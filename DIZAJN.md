@@ -2,7 +2,7 @@
 
 Toto je jednotný dizajn aplikácie. Vychádza z toho, čo v aplikácii už je, a z dvoch obrazoviek, ktoré majiteľ označil za najlepšie:
 
-1. **Detail podujatia** (napr. Podujatia / NOX:ART, záložka Texty) – vzor pre **detail záznamu**.
+1. **Detail podujatia** (napr. Podujatia / NOX:ART, záložka Podklady) – vzor pre **detail záznamu**.
 2. **Kontakty s otvoreným bočným panelom** – vzor pre **zoznam** a **bočný panel**.
 
 Keď sa robí nová obrazovka alebo sa upravuje stará, má vyzerať ako tieto dve. Pri každom pravidle je uvedené, ako sa prvok volá v kóde (názov v `zátvorke`), aby sa dal nájsť. Štýly sú v `app/css/` rozdelené podľa kapitol tohto dokumentu (`20-tlacidla.css` = časť 5, `22-zalozky.css` = časť 8 atď.). Čo zatiaľ v aplikácii nesedí, je zapísané v `ZOZNAM-UPRAV.md`.
@@ -61,7 +61,7 @@ Systémové písmo zariadenia (na Macu San Francisco, na Windows Segoe UI). Nes�
 | **28 px** | nadpis v bočnom paneli a v editore textu („Alexandra Mutala“, „Anotácia“) | 700 |
 | **24 px** | veľké čísla v pruhu súhrnov (`strip`) | 700 |
 | **18 px** | nadpis panelu (`h2`) | 700 |
-| **16 px** | záložky s čiarou, položky zoznamu vľavo (Texty) | 400 / 600 |
+| **16 px** | záložky s čiarou, položky zoznamu vľavo (Podklady) | 400 / 600 |
 | **15 px** | bežný text, nadpis karty v paneli (`h3`) | 400 / 700 |
 | **14 px** | tlačidlá, polia, tabuľky, cesta hore | 400 / 600 |
 | **13 px** | popisky polí, vedľajšie údaje (`meta`), malé tlačidlá | 400 |
@@ -103,7 +103,7 @@ Systémové písmo zariadenia (na Macu San Francisco, na Windows Segoe UI). Nes�
 2. **Záložky s čiarou** (pozri 8a).
 3. Obsah záložky.
 
-### Zoznam + editor (vzor: Texty podujatia)
+### Zoznam + editor (vzor: Podklady podujatia, do 2.0.53 Texty)
 Vľavo (¼ – rovnako široko ako obrázok v hlavnej karte, editor začína pod jeho hranou) zoznam položiek: ikona, názov 16 px, pod ním sivý podtitul, vpravo bodka stavu; vybraná položka = „vybraná položka“. Posledný riadok „+ Pridať …“ bez rámika. Vpravo (¾) karta: malý nadpis veľkými písmenami, veľký názov, vpravo hore ikonové tlačidlo kôš; pod tým stavový riadok (bodka + stav, vpravo popis); potom veľké pole na písanie s ikonou Kopírovať v pravom hornom rohu; dole sivá päta (počet slov).
 
 ## 5. Tlačidlá
