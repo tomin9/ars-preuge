@@ -47,7 +47,7 @@ const DESK=[
  ['panel-grant',async p=>{await esc(p);await go(p,'granty');await cl(p,'[data-gtab="schvalene"]');await cl(p,'.gcard[data-open="grants:g1"]');await cl(p,'[data-peek="grants:g1"]');}],
  ['panel-polozka',async p=>{await esc(p);await cl(p,'[data-grtab="rozpocet"]');if(await p.$('tr[data-open="lines:l1"]'))await cl(p,'tr[data-open="lines:l1"]');else{await cl(p,'[data-gbline="l1"]');await cl(p,'button[data-open="lines:l1"]');}}],
  ['panel-podujatie',async p=>{await esc(p);await go(p,'podujatia');await cl(p,'.gcard[data-open="events:e1"]');await cl(p,'[data-peek="events:e1"]');}],
- ['panel-program',async p=>{await esc(p);await cl(p,'[data-evtab="dramaturgia"]');await cl(p,'.drlist .txi[data-drsel$="|pr1"]');}],
+ ['panel-program',async p=>{await esc(p);await cl(p,'[data-evtab="dramaturgia"]');await cl(p,'.drlist .txi:nth-of-type(3)');}],
  ['panel-projekt',async p=>{await esc(p);await go(p,'projekty');await cl(p,'.gcard[data-open="projects:p1"]');await cl(p,'[data-peek="projects:p1"]');}],
  ['hladanie',async p=>{await esc(p);await p.keyboard.press('Control+k');await W(100);await p.keyboard.type('a');await W(150);}],
  ['nove-menu',async p=>{await esc(p);await cl(p,'[data-new]');}],
