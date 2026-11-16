@@ -187,13 +187,11 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .pkcol{min-width:0}
 .pkchips{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
 .pkchips .tg .txdot{width:8px;height:8px}
-.mksplit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:stretch}
+.mksplit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;align-items:start;min-width:0}
 .mkleft{min-width:0}
-.mksplit .mkl{padding:6px 20px 6px 26px}
-.mksplit .mkadd{padding:4px 20px 22px 26px}
 .mkl li.sel .t{color:var(--accent);font-weight:600}
-.mkd{min-width:0;border-left:1px solid var(--line)}
-.mkd0{display:flex;align-items:center;justify-content:center;padding:26px;color:var(--muted);font-size:14px}
+.mkd{min-width:0}
+.mkd0{display:flex;align-items:center;justify-content:center;padding:26px;min-height:120px;color:var(--muted);font-size:14px}
 .mkdh{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;padding:12px 16px 12px 20px;border-bottom:1px solid var(--line)}
 .mkdh .pkt{flex:1 1 180px;margin-top:0}
 input[type=text].mkdt{all:unset;flex:1;min-width:0;font-size:18px;font-weight:600;color:var(--ink)}
@@ -220,10 +218,7 @@ input[type=text].mkdt:focus{box-shadow:0 1px 0 var(--accent)}
   .pkout textarea.pkta{padding:10px 16px 14px}
   .pkout .txfoot{padding-left:16px;padding-right:16px}
   .pkact{margin-left:26px}
-  .mksplit{grid-template-columns:1fr}
-  .mksplit .mkl{padding:6px 16px}
-  .mksplit .mkadd{padding:4px 16px 18px}
-  .mkd{border-left:0;border-top:1px solid var(--line)}
+  .mksplit{grid-template-columns:1fr;gap:14px}
   .mkdh .pkact{margin-left:26px}
   .pkpop{right:auto;left:0}
   .pkrel{padding-left:16px}

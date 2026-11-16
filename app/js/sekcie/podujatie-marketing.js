@@ -1,4 +1,4 @@
-/* ===== Podujatie – záložka Marketing: oblasti vľavo; stredný panel vybranej oblasti má dve časti – zoznam položiek a vedľa neho vybranú položku
+/* ===== Podujatie – záložka Marketing: oblasti vľavo; vedľa nich dva samostatné panely – zoznam položiek vybranej oblasti a vybraná položka
    (od 2.0.65 bez vysúvacieho bočného panela; do 2.0.63 bola záložka rozdelená na Plán a Harmonogram).
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-marketing.js. Nie je to samostatný skript.
    Uložené v podujatí v poli mktPlan = {areas:[{id,title}],items:[{id,a,t,st,d,date,who,note,url,body,txid,docs}]} (st = stav: pripravit / vpriprave / pripravene / publikovane; d = staré „hotové“, drží sa v zhode s Publikované) (body = krátky text výstupu, txid = starý odkaz na dlhý text (od 2.0.54 sa nepoužíva – stal sa prepojením podkladu), docs = vlastné súbory a odkazy; zadania zo záložky Podklady sa pripájajú z ich strany – pole mk v zadaní). Staré pole mkt (odškrtávací zoznam) ostáva – kým sa plán prvý raz neuloží, skladá sa z neho. ===== */
@@ -39,15 +39,15 @@ function marketingTab(e){
     return`<button type="button" class="txi${on?" on":""}" data-mksel="${id}|${esc(a.id)}"><i class="txdot" style="background:${mkCol(P,a.id)};width:10px;height:10px"></i><span class="txt"><b>${esc(a.title)}</b><small>${L.length?`${L.filter(mkPub).length} z ${L.length} publikovaných`:"zatiaľ nič"}</small></span></button>`;}).join("");
   let main=`<div class="panel txmain" style="display:flex;align-items:center;justify-content:center;color:var(--muted);min-height:200px">Zatiaľ žiadne oblasti.</div>`;
   if(sel){const L=P.items.filter(x=>x.a===sel.id),k=`${id}|${esc(sel.id)}`,it=L.find(x=>x.id===st.item[sel.id])||L[0];
-    main=`<div class="panel txmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Marketing / ${esc(e.name||"Podujatie")}</div><input type="text" class="txtitle" value="${esc(sel.title)}" data-mkarea="${k}" aria-label="Názov oblasti" maxlength="60"${ed?"":" readonly"}></div>
+    main=`<div class="mksplit"><div class="panel txmain mkleft"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Marketing / ${esc(e.name||"Podujatie")}</div><input type="text" class="txtitle" value="${esc(sel.title)}" data-mkarea="${k}" aria-label="Názov oblasti" maxlength="60"${ed?"":" readonly"}></div>
       ${ed?`<div class="row" style="flex:none;gap:8px"><button type="button" class="tplus tdel" data-mkadel="${k}" title="Odstrániť oblasť" aria-label="Odstrániť oblasť">${TI.del}</button></div>`:""}</div>
-      <div class="mksplit"><div class="mkleft">${L.length?`<ul class="mkl">${L.map(x=>mkRow(e,x,it&&x.id===it.id)).join("")}</ul>`:`<div class="empty" style="padding:26px">V tejto oblasti zatiaľ nič nie je.</div>`}
+      ${L.length?`<ul class="mkl">${L.map(x=>mkRow(e,x,it&&x.id===it.id)).join("")}</ul>`:`<div class="empty" style="padding:26px">V tejto oblasti zatiaľ nič nie je.</div>`}
         ${ed?`<div class="mkadd"><input type="text" id="mk-add" data-mkadd="${k}" placeholder="+ Pridať položku a Enter" maxlength="120"></div>`:""}</div>
-        ${it?mkDetail(e,P,it,ed):`<div class="mkd mkd0">${ed?"Pridajte prvú položku vľavo.":""}</div>`}</div></div>`;}
+        ${it?mkDetail(e,P,it,ed):`<div class="panel txmain mkd mkd0">${ed?"Pridajte prvú položku vľavo.":"Zatiaľ nič."}</div>`}</div>`;}
   return`<div class="txm"><div class="txlist">${list}${ed?`${P.areas.length?`<div class="gdsep"></div>`:""}<button type="button" class="txi txadd" data-mkaadd="${id}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať oblasť</b></span></button>`:""}</div>${main}</div>
     ${String(e.marketing||"").trim()?`<div class="panel" style="margin-top:18px"><h2>Poznámky</h2><p class="meta" style="margin:2px 0 0;white-space:normal">Staršie poznámky. Keď ich vymažete, toto pole zmizne.</p><textarea id="ev-mkt" placeholder="Hashtagy, kontakty na médiá, nápady…" style="width:100%;min-height:110px;margin-top:8px">${esc(e.marketing||"")}</textarea></div>`:""}`;
 }
-/* vybraná položka – pravá časť stredného panela: hlavička (bodka stavu, názov, termín, človek, kôš), Text, Podklady, Odkaz a oblasť, Poznámka */
+/* vybraná položka – samostatný panel vpravo od zoznamu: hlavička (bodka stavu, názov, termín, človek, kôš), Text, Podklady, Odkaz a oblasť, Poznámka */
 function mkDetail(e,P,it,ed){
   const k=`${esc(e.id)}|${esc(it.id)}`,f=n=>`data-mkf="${k}|${n}"`,ro=ed?"":" readonly",dis=ed?"":" disabled",sd=mkStDef(it),due=mkDue(it),wn=it.who?personName(it.who):"";
   const url=String(it.url||"").trim(),href=/^https?:\/\//i.test(url)?url:(url?"https://"+url:"");
@@ -57,7 +57,7 @@ function mkDetail(e,P,it,ed){
       <div class="pkpop" id="mk-whopop" hidden><div data-mkwho></div>${it.who?`<button type="button" class="btn sm ghost" data-mkwhoclr="${k}">Zrušiť pridelenie</button>`:""}</div>`:(wn?`<span class="pkchip ro">${avatar(it.who)||PK_USER}<span>${esc(wn)}</span></span>`:"");
   const chips=LK.map(x=>{const xs=pkStDef(x),sc=PK.secs.find(y=>y.id===x.s);return`<span class="tg sm" title="${sc?esc(sc.title)+" – ":""}${xs[1]}"><span data-open="pk:${esc(e.id)}~${esc(x.id)}"><i class="txdot" style="background:${xs[2]}"></i>${esc(x.t||"Bez názvu")}</span>${pkHasText(x)?`<button type="button" class="dutyx" data-mkpkcopy="${esc(x.id)}" aria-label="Kopírovať text podkladu" title="Kopírovať text podkladu">${TXI.copy}</button>`:""}${ed?`<button type="button" class="dutyx" data-mkpkrm="${esc(x.id)}" aria-label="Odpojiť" title="Odpojiť">×</button>`:""}</span>`;}).join("");
   const thumbs=LK.flatMap(x=>(x.docs||[]).map((d,i)=>docThumb("events",e,d,i,true))).join("")+sdThumbs(e,docs,ed);
-  return`<div class="mkd" id="mk-main" data-mkmain="${k}">
+  return`<div class="panel txmain mkd" id="mk-main" data-mkmain="${k}">
     <div class="mkdh"><div class="pkt"><label class="gastdot" title="Stav: ${sd[1]}${ed?" – kliknutím zmeníte":""}"><i class="txdot" style="background:${sd[2]}"></i>${ed?`<select data-mkst="${k}" aria-label="Stav">${MK_ST.map(([v,l])=>`<option value="${v}"${v===sd[0]?" selected":""}>${l}</option>`).join("")}</select>`:""}</label><input type="text" class="mkdt" id="mk-t" data-keep ${f("t")} value="${esc(it.t||"")}" aria-label="Názov položky" maxlength="120"${ro}></div>
       <div class="row pkact">${dBtn}${wBtn}${ed?`<button type="button" class="tplus tdel" data-mkidel="${k}" title="Odstrániť položku" aria-label="Odstrániť položku">${TI.del}</button>`:""}</div></div>
     <div class="pkb pkout"><div class="pkh">Text<span class="row" style="gap:2px"><button type="button" class="tplus" data-mkcopy title="Kopírovať text" aria-label="Kopírovať text">${TXI.copy}</button></span></div>
