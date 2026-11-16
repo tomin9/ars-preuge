@@ -3,7 +3,7 @@
 /* ================= drawer (record peek, Notion-like) ================= */
 let DW=null;
 const DW_NEW=e=>e==="ledger"||e==="contacts"||e==="tasks"||e==="invTech";  /* panely v novej podobe (vzor: kontakt) – ikonové tlačidlá, karty */
-const DW_EDIT=e=>e==="contacts"||e==="tasks";               /* ceruzka = zobraziť všetky polia */
+const DW_EDIT=e=>e==="contacts"||e==="tasks"||e==="ledger";               /* ceruzka = zobraziť všetky polia */
 function openDrawer(e,id,isNew){
   if(!accRead(e))return;S.invG=null;
   {const r=get(e,id);if(r&&r._stub){toast("Tento záznam je mimo vášho prístupu – vidíte len jeho názov.");return;}}
@@ -76,6 +76,7 @@ const DI={
   user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>',
   note:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a8 8 0 0 1-11.7 7L3 21l2-5.5A8 8 0 1 1 21 12z"/></svg>'};
 function ledgerForm(r){
+  if(DW&&!DW.edit&&!DW.isNew)return ledgerView(r);   /* bez ceruzky: prehľad „Údaje“ ako pri kontakte (od 2.0.42) */
   const F=k=>ENT.ledger.fields.find(f=>f.k===k);
   const fld=(k,cls)=>{const f=F(k);if(k==="amount")return`<div class="dfld${cls?" "+cls:""}"><label for="f-amount">${esc(f.l)}</label><input type="text" inputmode="decimal" id="f-amount" data-f="amount" data-num="1" data-money="1" value="${r.amount==null||r.amount===""?"":esc(eur(r.amount))}" placeholder="0,00 €"></div>`;return`<div class="dfld${cls?" "+cls:""}"><label for="f-${k}">${esc(f.l)}</label>${fInput("ledger",r,f)}</div>`;};
   const seg=(k,label,opts)=>`<div class="dfld"><div class="tabs seg" role="group" aria-label="${label}">${opts.map(([v,l])=>`<button type="button" data-seg="${k}|${v}" aria-pressed="${(r[k]||opts[0][0])===v}">${esc(l)}</button>`).join("")}</div></div>`;
@@ -86,6 +87,16 @@ function ledgerForm(r){
     +card("tag","Priradenie",`<div class="drows">${row("projectId")}${row("eventId")}${row("category")}${row("contactId")}</div>`)
     +card("coins","Financovanie",`<div class="drows">${row("grantId")}${row("cofinGrantId")}${row("lineId")}</div>`);
 }
+/* platba – prehľad: len vyplnené údaje, ako karta kontaktu; úpravy cez ceruzku vpravo hore */
+function ledgerView(r){
+  const rn=(e,id)=>{const x=id&&get(e,id);return x?`<span class="rlink" data-open="${e}:${esc(id)}">${e==="contacts"?cIcon(x):""}${esc(ttl(e,x))}</span>`:"";};
+  const L=[["Typ",`<span class="${r.type==="prijem"?"pos":"neg"}">${esc(optL("ltype",r.type||"vydavok"))}</span>`],
+    ["Suma",r.amount!=null&&r.amount!==""?`<b class="${r.type==="prijem"?"pos":"neg"}">${r.type==="prijem"?"+":"−"}${eur(r.amount)}</b>`:""],
+    ["Dátum",r.date?fdate(r.date):`<span class="meta">plánované</span>`],["Účet",esc(optL("acct",r.account||"banka"))],
+    ["Stav",r.state?chip("lstate",r.state):""],["Doklad č.",esc(r.docNo||"")],
+    ["Komu / od koho",rn("contacts",r.contactId)],["Projekt",rn("projects",r.projectId)],["Podujatie",rn("events",r.eventId)],["Kategória",esc(r.category||"")],
+    ["Grant",rn("grants",r.grantId)],["Spolufinancovanie",rn("grants",r.cofinGrantId)],["Rozpočtová položka",rn("lines",r.lineId)]].filter(x=>x[1]);
+  return`<section class="dcard"><h3>${DI.main}Údaje</h3><div class="props cprops lview" style="margin:0">${L.map(([l,v])=>`<label>${l}</label><div class="pv">${v}</div>`).join("")}</div></section>`;}
 function dProps(e,r){
   if(e==="ledger")return ledgerForm(r);
   const filled=f=>{const v=r[f.k];return!(v==null||v===""||(Array.isArray(v)&&!v.length));};

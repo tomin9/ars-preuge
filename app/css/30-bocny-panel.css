@@ -136,3 +136,9 @@ small.cprov{display:block;font-size:11px;color:var(--muted);font-weight:400;line
 .cprops .combo-in,.cprops .picker input{border-color:transparent;background:transparent;height:22px;padding:0 10px;font-size:13px;line-height:22px}
 .cprops .combo-in:hover,.cprops .picker input:hover{background:var(--surface3)}
 .cprops .combo-in:focus,.cprops .picker input:focus{border-color:var(--line);background:var(--surface)}
+
+/* platba – prehľad údajov (bez ceruzky) */
+.lview .pv{font-size:13px;line-height:22px;padding:0 10px;min-width:0}
+.lview>label{white-space:nowrap}
+.lview .pv .rlink{cursor:pointer}
+.lview .pv .rlink:hover{color:var(--accent)}
