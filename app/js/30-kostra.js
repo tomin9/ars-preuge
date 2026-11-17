@@ -36,7 +36,7 @@ function openRec(e,id){
   if(e==="mkt"){const[a,b]=String(id).split("~");return mkOpen(a,b);}   /* položka marketingu podujatia (z Kalendára) */
   {const r=get(e,id);if(r&&r._stub){toast("Tento záznam je mimo vášho prístupu – vidíte len jeho názov.");return;}}
   if(e==="prog"&&drOpen(id))return;   /* dielo / bod programu: záložka Dramaturgia jeho podujatia */
-  if(e==="zab")return zbOpenEvent();
+  if(e==="zab")return zbOpenEvent(id);   /* zabezpečenie: záložka Zabezpečenie jeho podujatia, karta záznamu */
   if(e==="projects")return go("projekt",id);
   if(e==="grants")return go("grant",id);
   if(e==="events")return go("podujatie",id);

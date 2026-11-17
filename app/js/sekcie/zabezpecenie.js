@@ -1,12 +1,25 @@
-/* ===== Podujatie NOX:art – Zabezpečenie: technický plán po dielach, dodávky, ľudia, súhrn.
+/* ===== Podujatie – Zabezpečenie: technický plán po bodoch programu a dielach, dodávky, ľudia, súhrn.
+   Od 2.0.99 ho má každé podujatie (záložka hneď za Dramaturgiou) a zrkadlí Dramaturgiu: vľavo Program a bloky diel, vpravo pri každom
+   bode programu a diele jeho plán – napájanie, technika, ľudia, úlohy, poznámky; pod čiarou Súhrn, Podľa ľudí a Nezaradené.
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/zabezpecenie.js. Nie je to samostatný skript. ===== */
 /* ================= view bindings ================= */
 /* ================= Zabezpečenie: technický plán po dielach ================= */
 const ZB_STAV=[["navrh","Neriešené"],["rozpracovane","Rozpracované"],["potvrdene","Potvrdené"]];
 const ZB_KIND={vo:"VO",bud:"Budova",bat:"Batéria",gen:"Elektrocentrála",tbd:"TBD",none:"Bez napájania"};
-S.zb={f:"all",open:{},mode:"diela",sums:{},ns:{kto:"",naz:"",ks:"",typ:"pozicane"},give:{}};
+S.zb={open:{},sums:{},ns:{kto:"",naz:"",ks:"",typ:"pozicane"},give:{}};
 const zbNum=v=>{const n=parseFloat(String(v??"").replace(",","."));return isFinite(n)?n:0;};
-const zbList=()=>[...S.d.zab].sort((a,b)=>(+a.ord||0)-(+b.ord||0)||(a.createdAt||0)-(b.createdAt||0));
+/* Záznam zabezpečenia aj dodávka patria k podujatiu poľom eventId (od 2.0.99). Staré záznamy bez neho patria k prvému ročníku NOX:art (zbHome) –
+   pri prvom otvorení Zabezpečenia im ho zapíše človek s plným prístupom (zbMigrateEvent). zbList = záznamy práve otvoreného podujatia (S.zb.eid). */
+const zbSort=L=>L.sort((a,b)=>(+a.ord||0)-(+b.ord||0)||(a.createdAt||0)-(b.createdAt||0));
+const zbHomeId=()=>(zbHome()||{}).id||"";
+const zbEid=x=>(x&&x.eventId)||zbHomeId();
+const zbOf=eid=>{const h=zbHomeId();return zbSort(S.d.zab.filter(x=>(x.eventId||h)===eid));};
+const zbDOf=eid=>{const h=zbHomeId();return S.d.zabd.filter(d=>(d.eventId||h)===eid);};
+const zbAll=()=>zbSort([...S.d.zab]);
+const zbList=()=>zbOf(S.zb.eid||"");
+const zbNextOrd=eid=>Math.max(0,...zbOf(eid).map(x=>+x.ord||0))+1;
+/* názov: pri prepojenom bode programu / diele sa berie z neho (premenovanie v Dramaturgii sa ukáže hneď) */
+const zbTitle=z=>{const p=z&&z.progId&&get("prog",z.progId);return(p&&p.eventId===zbEid(z)&&p.title)||(z&&z.title)||"";};
 const zbPhoto=x=>!x.photo?"":(String(x.photo).startsWith("data:")?x.photo:(typeof ARSP_BLOB!=="undefined"?ARSP_BLOB:"")+x.photo+"&w=960");
 const zbWD=["Ne","Po","Ut","St","Št","Pi","So"];
 function zbDay(den){const d=new Date(den+"T12:00:00");return isNaN(d)?esc(den):`${zbWD[d.getDay()]} ${d.getDate()}. ${d.getMonth()+1}.`;}
@@ -40,7 +53,9 @@ function zbWhoSelect(id,i,r,cls,idAttr){
   const legacy=!r.contactId&&r.kto?`<option value="t" selected>${esc(r.kto)} (nie je v kontaktoch)</option>`:"";
   return`<select class="${cls}" id="${idAttr}" data-zbk="${id}|${i}" aria-label="Kto"><option value="" ${!r.contactId&&!r.kto?"selected":""}>${role?"vybrať – "+esc(optL("crole",role).toLowerCase()):"vybrať z kontaktov"}</option>${legacy}${body}<option value="new">＋ nový kontakt${role?" ("+esc(optL("crole",role).toLowerCase())+")":""}…</option></select>`;
 }
-const zbWhere=a=>`č. ${esc(a.x.ord||"")} ${esc(a.x.title||"")}`;
+const zbWhere=a=>`č. ${esc(a.x.ord||"")} ${esc(zbTitle(a.x))}`;
+/* pre Inventár (zbiera zo všetkých podujatí): „č. 3 Svetelný objekt“, a keď má zabezpečenie viac podujatí, aj „· NOX:art 2027“ */
+const zbLabel=x=>{const t=`č. ${x.ord||""} ${zbTitle(x)}`.trim(),h=zbHomeId();if(new Set(S.d.zab.map(y=>y.eventId||h)).size<2)return t;const e=get("events",zbEid(x));return e?`${t} · ${e.name||""}`:t;};
 function zbSave(id,patch){return new Promise(r=>setTimeout(()=>{const x=get("zab",id);if(!x)return r(false);const p=typeof patch==="function"?patch(x):patch;r(p?upd("zab",id,p):false);},0));}
 
 function zbRows(x,key){
@@ -77,22 +92,24 @@ function zbAlso(x,r,i){
   const me=p.items.find(a=>a.x.id===x.id&&a.i===i);const other=p.items.filter(a=>a!==me);if(!other.length)return"";
   return`<div class="zb-also">${esc(p.name)} má aj: ${other.map(a=>`<a href="#zb-${esc(a.x.id)}" data-zbjump="${esc(a.x.id)}">${zbWhere(a)}${a.r.den?" · "+esc(zbShort(a.r)):""}</a>`).join(", ")}</div>`;
 }
-function zbCard(x){
-  const id=x.id,st=x.stav||"navrh",ph=zbPhoto(x);
+/* záznam zabezpečenia, ktorý nepatrí k žiadnemu bodu programu ani dielu podujatia (riadok Nezaradené): upravuje sa ako kedysi v Zabezpečení
+   a dá sa zaradiť do Programu alebo do bloku – vznikne tam bod programu / dielo s rovnakým názvom a zabezpečenie sa k nemu pripojí */
+function zbOrphCard(e,x,ed){
+  const id=esc(x.id),st=x.stav||"navrh",ph=zbPhoto(x),B=drSecs(e).filter(b=>b.t);
   return`<article class="zb-card st-${st}" id="zb-${id}">
-  <div class="zb-head">
-    <div class="zb-ph">${ph?`<img src="${esc(ph)}" alt="Fotografia lokality: ${esc(x.title||"")}" loading="lazy">`:"bez fotky"}</div>
+  <div class="zb-head"${ph?"":' style="grid-template-columns:minmax(0,1fr)"'}>${ph?`<div class="zb-ph"><img src="${esc(ph)}" alt="Fotografia: ${esc(x.title||"")}" loading="lazy"></div>`:""}
     <div class="zb-info">
-      <div class="zb-tr"><span class="zb-num">${esc(x.ord||"")}</span>
-        <input class="zb-title" id="zb-${id}-title" data-zb="${id}|title" value="${esc(x.title||"")}" placeholder="Názov diela" aria-label="Názov diela">
+      <div class="zb-tr">${x.ord?`<span class="zb-num">${esc(x.ord)}</span>`:""}
+        <input class="zb-title" id="zb-${id}-title" data-zb="${id}|title" value="${esc(x.title||"")}" placeholder="Názov" aria-label="Názov">
         <select class="zb-stav s-${st}" id="zb-${id}-stav" data-zb="${id}|stav" aria-label="Stav">${ZB_STAV.map(([k,l])=>`<option value="${k}" ${st===k?"selected":""}>${l}</option>`).join("")}</select></div>
-      <input class="zb-author" id="zb-${id}-author" data-zb="${id}|author" value="${esc(x.author||"")}" placeholder="Autor" aria-label="Autor">
-      ${x.srcPower||x.srcNote?`<div class="zb-src">${x.srcKind?`<span class="zb-tag k-${esc(x.srcKind)}">${esc(ZB_KIND[x.srcKind]||x.srcKind)}</span>`:""}<b>Podľa podkladu:</b> ${esc(x.srcPower||"")}${x.srcNote?`<div class="pp">${esc(x.srcNote)}</div>`:""}</div>`:""}
+      <input class="zb-author" id="zb-${id}-author" data-zb="${id}|author" value="${esc(x.author||"")}" placeholder="Autor" aria-label="Autor">${drSrc(x)}
+      ${ed?`<div class="row"><select class="linksel" data-drassign="${esc(e.id)}|${id}" aria-label="Zaradiť do programu alebo bloku" style="width:auto;max-width:100%;margin:0"><option value="">Zaradiť do programu alebo bloku…</option><option value="p:">Program</option>${B.map(b=>`<option value="b:${esc(b.t)}">${esc(b.t)}</option>`).join("")}</select></div>`:""}
     </div></div>
-  ${zbPlan(x)}</article>`;
+  ${zbPlan(x,"Odstrániť")}</article>`;
 }
-/* plán diela (napájanie, technika, ľudia, úlohy, poznámky) – v karte Zabezpečenia aj rozbalený pod dielom v Dramaturgii (tam bez tlačidla na zmazanie) */
-function zbPlan(x,nofoot){
+/* plán (napájanie, technika, ľudia, úlohy, poznámky) pod kartou bodu programu alebo diela; rm = text tlačidla na zmazanie (true = bez neho).
+   Kým bod programu zabezpečenie nemá, kreslí sa prázdny plán s id „p:<id bodu>“ – záznam sa vytvorí pri prvom zápise (zbEnsure). */
+function zbPlan(x,rm){
   const id=x.id;
   return`<div class="zb-plan">
     <div><h4><label for="zb-${id}-nap">Napájanie (potvrdené)</label></h4><input type="text" id="zb-${id}-nap" data-zb="${id}|napajanie" value="${esc(x.napajanie||"")}" placeholder="odkiaľ a ako sa to reálne napojí"></div>
@@ -100,7 +117,7 @@ function zbPlan(x,nofoot){
     <div><h4>Ľudia</h4><div class="zb-rows">${zbRows(x,"personal")}<button type="button" class="zb-add" data-zbadd="${id}|personal">+ Pridať človeka</button></div></div>
     <div><h4>Otvorené úlohy</h4><div class="zb-rows">${zbRows(x,"ulohy")}<button type="button" class="zb-add" data-zbadd="${id}|ulohy">+ Pridať úlohu</button></div></div>
     <div><h4><label for="zb-${id}-poz">Poznámky</label></h4><textarea id="zb-${id}-poz" data-zb="${id}|poznamka" placeholder="montáž, prevádzka, dohody…">${esc(x.poznamka||"")}</textarea></div>
-    ${nofoot?"":`<div class="zb-foot"><button type="button" class="btn ghost sm danger" data-zbrm="${id}">Odstrániť dielo</button></div>`}
+    ${rm===true||String(id).startsWith("p:")?"":`<div class="zb-foot"><button type="button" class="btn ghost sm danger" data-zbrm="${id}">${esc(rm||"Odstrániť dielo")}</button></div>`}
   </div>`;
 }
 /* custom order of summary rows, kept in settings so the whole team sees it */
@@ -119,15 +136,15 @@ function zbSumPeople(){
 /* technika grouped by who lends/supplies it (the Zdroj field) */
 /* deliveries: who gave what and how many; each one is then split between works (rows linked by supplyId) */
 function zbSumSources(){
-  const D=S.d.zabd,works=zbList();
+  const D=zbDOf(S.zb.eid||""),works=zbList();
   const alloc={};works.forEach(x=>(x.technika||[]).forEach((r,i)=>{if(r.supplyId)(alloc[r.supplyId]=alloc[r.supplyId]||[]).push({x,r,i});}));
   const G={};const grp=(name)=>{const k=zbKey(name);return G[k]||(G[k]={k,name:String(name||"").trim().replace(/\s+/g," "),sup:[],loose:[]});};
   D.forEach(d=>grp(d.kto).sup.push(d));
   works.forEach(x=>(x.technika||[]).forEach((r,i)=>{if(r.nazov&&!r.supplyId&&zbKey(r.zdroj)&&zbLent(r))grp(r.zdroj).loose.push({x,r,i});}));
   const named=zbOrd("zdroj",Object.values(G).filter(g=>g.k).sort((a,b)=>a.name.localeCompare(b.name,"sk")),g=>g.k);
-  const opts=works.map(x=>`<option value="${esc(x.id)}">${esc(x.ord||"")} ${esc(x.title||"")}</option>`).join("");
+  const opts=works.map(x=>`<option value="${esc(x.id)}">${esc(x.ord||"")} ${esc(zbTitle(x))}</option>`).join("");
   const supRow=d=>{const A=alloc[d.id]||[],used=A.reduce((t,a)=>t+zbNum(a.r.ks||1),0),tot=zbNum(d.ks),rest=tot-used;
-    const chips=A.map(a=>`<span class="zb-chip"><a href="#zb-${esc(a.x.id)}" data-zbjump="${esc(a.x.id)}" title="${esc(a.x.title||"")}">č. ${esc(a.x.ord||"")}</a> · ${esc(a.r.ks||1)} ks<button type="button" data-zbdun="${esc(a.x.id)}|${a.i}" aria-label="Zrušiť pridelenie">×</button></span>`).join("");
+    const chips=A.map(a=>`<span class="zb-chip"><a href="#zb-${esc(a.x.id)}" data-zbjump="${esc(a.x.id)}" title="${esc(zbTitle(a.x))}">č. ${esc(a.x.ord||"")}</a> · ${esc(a.r.ks||1)} ks<button type="button" data-zbdun="${esc(a.x.id)}|${a.i}" aria-label="Zrušiť pridelenie">×</button></span>`).join("");
     return`<div class="zb-sup ${d.ok?"ok":""}">
       <div class="zb-supl"><input type="checkbox" data-zbsok="sup|${esc(d.id)}" ${d.ok?"checked":""} aria-label="Máme">
         <input class="zb-sname b" id="zb-dn-${esc(d.id)}" data-zbsname="dnaz|${esc(d.id)}" value="${esc(d.nazov||"")}" size="${Math.max(4,String(d.nazov||"").length)}" list="zb-dl-tech" autocomplete="off" placeholder="čo" aria-label="Položka">
@@ -150,12 +167,12 @@ function zbSummary(L){
   });
   const T=zbOrd("tech",Object.values(tech),t=>t.k),U=zbOrd("ulohy",ul,u=>u.id+"|"+zbKey(u.t)),dk=Object.keys(days).sort();
   const open=U.filter(u=>!u.done).length;
-  const box=(k,title,count,body)=>`<details class="panel zb-sum" data-zbsum="${k}" ${S.zb.sums[k]?"open":""}><summary><span>${title}${count?` <span class="meta">${count}</span>`:""}</span></summary><div class="zb-sbody">${body}</div></details>`;
+  const box=(k,title,count,body)=>`<details class="panel zb-sum" data-zbsum="${k}" ${S.zb.sums[k]!==false?"open":""}><summary><span>${title}${count?` <span class="meta">${count}</span>`:""}</span></summary><div class="zb-sbody">${body}</div></details>`;
   const np=Object.keys(S.zbP||{}).length;
   const tRow=(t,n)=>{const all=t.okRows===t.rows,some=t.okRows>0&&!all;
     return`<tr class="${all?"ok":""}" data-zbsrow="${n}" data-key="${esc(t.k)}"><td><span class="zb-lead">${zbHandle("tech",n)}<input type="checkbox" data-zbsok="tech|${esc(t.k)}" ${all?"checked":""} ${some?'data-ind="1"':""} aria-label="Máme"></span></td><td><input class="zb-sname" id="zb-sn-tech-${n}" data-zbsname="tech|${esc(t.k)}" value="${esc(t.n)}" aria-label="Názov položky">${some?`<span class="meta">máme pri ${t.okRows} z ${t.rows} diel</span>`:""}</td><td class="n">${t.ks}</td><td>${[...t.d].join(", ")}</td></tr>`;};
-  return box("tech","Súhrn techniky, káblov a príslušenstva",T.length,`${T.length?`<div class="tw"><table class="zb-t"><tr><th style="width:46px"></th><th>Položka</th><th class="n">Ks</th><th>Diela</th></tr>${T.map(tRow).join("")}</table></div>`:`<div class="empty">Zatiaľ nič.</div>`}`)
-   +box("zdroj","Kto čo požičal / dodal",new Set([...S.d.zabd.map(d=>zbKey(d.kto)),...L.flatMap(x=>(x.technika||[]).filter(r=>r.nazov&&!r.supplyId&&zbLent(r)).map(r=>zbKey(r.zdroj)))].filter(Boolean)).size,zbSumSources())
+  return box("tech","Súhrn techniky, káblov a príslušenstva",T.length,`${T.length?`<div class="tw"><table class="zb-t"><tr><th style="width:46px"></th><th>Položka</th><th class="n">Ks</th><th>Kde (č.)</th></tr>${T.map(tRow).join("")}</table></div>`:`<div class="empty">Zatiaľ nič.</div>`}`)
+   +box("zdroj","Kto čo požičal / dodal",new Set([...zbDOf(S.zb.eid||"").map(d=>zbKey(d.kto)),...L.flatMap(x=>(x.technika||[]).filter(r=>r.nazov&&!r.supplyId&&zbLent(r)).map(r=>zbKey(r.zdroj)))].filter(Boolean)).size,zbSumSources())
    +box("ludia","Súhrn ľudí",np,`${zbSumPeople()}<h3 style="margin-top:16px">Rozpis po dňoch</h3>${dk.length?dk.map(d=>`<h4>${zbDay(d)}</h4><div class="tw"><table class="zb-t">${days[d].sort((a,b)=>(a.od||"").localeCompare(b.od||"")).map(t=>`<tr><td class="n" style="width:110px">${esc(t.od||"?")}–${esc(t.do||"?")}</td><td style="width:200px">${esc(zbWho(t))||'<span class="miss">doplniť</span>'}</td><td>${esc(zbRola(t))}</td><td class="n" style="width:60px">${esc(t.c)}</td></tr>`).join("")}</table></div>`).join(""):`<div class="empty">Keď ľuďom nastavíte dni a časy, zobrazí sa tu rozpis po dňoch.</div>`}`)
    +box("ulohy","Súhrn úloh",open,`${U.length?`<div class="tw"><table class="zb-t">${U.map((u,n)=>`<tr class="${u.done?"done":""}" data-zbsrow="${n}" data-key="${esc(u.id+"|"+zbKey(u.t))}"><td style="width:46px"><span class="zb-lead">${zbHandle("ulohy",n)}<input type="checkbox" data-zbsok="ul|${esc(u.id)}|${u.i}" ${u.done?"checked":""} aria-label="Hotovo"></span></td><td class="n" style="width:36px"><a href="#zb-${esc(u.id)}" data-zbjump="${esc(u.id)}">${esc(u.c)}</a></td><td><input class="zb-sname" id="zb-sn-ul-${n}" data-zbsname="ul|${esc(u.id)}|${u.i}" value="${esc(u.t)}" aria-label="Úloha"></td></tr>`).join("")}</table></div>`:`<div class="empty">Žiadne úlohy.</div>`}`);
 }
@@ -171,7 +188,7 @@ function zbPeopleView(){
 /* one-time cleanup: watts and lengths used to have their own fields – move them into the item name */
 /* items entered at a work with a Zdroj become deliveries automatically, so they show like deliveries entered in the summary.
    Same supplier + same item = one delivery; its id is derived from the names so two people syncing at once write the same record. */
-function zbSupId(kto,naz){let h=2166136261;const t=zbKey(kto)+"|"+zbKey(naz);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return"a_"+(h>>>0).toString(36)+"_"+t.length;}
+function zbSupId(kto,naz,eid){let h=2166136261;const t=(eid?eid+"|":"")+zbKey(kto)+"|"+zbKey(naz);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return"a_"+(h>>>0).toString(36)+"_"+t.length;}
 const ZB_TYP=[["","druh…"],["nase","naše"],["pozicane","požičané"],["darovane","darované"],["kupene","kúpené"],["objednane","objednané"]];
 /* kind of a row; older rows had it written in the Zdroj field ("kúpené", "požičať z …") or none at all */
 const zbTypGuess=r=>{const z=String(r.zdroj||"");if(/k[uú]p/i.test(z))return"kupene";if(/objedn/i.test(z))return"objednane";if(/po[zž]i[cč]/i.test(z)||/daro/i.test(z))return/daro/i.test(z)?"darovane":"pozicane";if(r.supplyId||zbKey(z))return"pozicane";return"";};
@@ -179,19 +196,21 @@ const zbTyp=r=>r.typ!==undefined?r.typ:zbTypGuess(r);
 const zbLent=r=>{const t=zbTyp(r);return t==="pozicane"||t==="darovane";};
 function zbSyncSupplies(){
   if(S.readOnly||S.loading||!db||S.zb.syncing)return;
+  /* dodávky sa párujú v rámci podujatia (od 2.0.99): rovnaký dodávateľ a vec na dvoch podujatiach = dve dodávky */
+  const h=zbHomeId(),ev=x=>x.eventId||h;
   const byId=new Map(S.d.zabd.map(d=>[d.id,d])),byKey=new Map();
-  S.d.zabd.forEach(d=>{const k=zbKey(d.kto)+"|"+zbKey(d.nazov);if(!byKey.has(k))byKey.set(k,d);});
+  S.d.zabd.forEach(d=>{const k=ev(d)+"|"+zbKey(d.kto)+"|"+zbKey(d.nazov);if(!byKey.has(k))byKey.set(k,d);});
   const want=r=>!!(r.nazov&&zbKey(r.zdroj)&&zbLent(r));
-  const match=r=>{if(!want(r))return null;const d=r.supplyId&&byId.get(r.supplyId);
-    if(d&&zbKey(d.kto)===zbKey(r.zdroj)&&zbKey(d.nazov)===zbKey(r.nazov))return null;   // correctly linked
-    const k=zbKey(r.zdroj)+"|"+zbKey(r.nazov),ex=byKey.get(k);return{k,id:ex?ex.id:zbSupId(r.zdroj,r.nazov),ex};};
+  const match=(r,eid)=>{if(!want(r))return null;const d=r.supplyId&&byId.get(r.supplyId);
+    if(d&&ev(d)===eid&&zbKey(d.kto)===zbKey(r.zdroj)&&zbKey(d.nazov)===zbKey(r.nazov))return null;   // correctly linked
+    const k=eid+"|"+zbKey(r.zdroj)+"|"+zbKey(r.nazov),ex=byKey.get(k);return{k,id:ex?ex.id:zbSupId(r.zdroj,r.nazov,eid),ex};};
   const plan={},works=new Set(),used=new Set();
-  S.d.zab.forEach(x=>(x.technika||[]).forEach(r=>{
+  S.d.zab.forEach(x=>{const eid=ev(x);(x.technika||[]).forEach(r=>{
     if(r.typ===undefined)works.add(x.id);                                   // store the kind once
-    const m=match(r);
-    if(m){works.add(x.id);used.add(m.id);const p=plan[m.id]||(plan[m.id]={m,kto:String(r.zdroj).trim(),nazov:String(r.nazov).trim(),ks:0,ok:true,typ:zbTyp(r)});p.ks+=zbNum(r.ks||1);if(!r.ok)p.ok=false;}
+    const m=match(r,eid);
+    if(m){works.add(x.id);used.add(m.id);const p=plan[m.id]||(plan[m.id]={m,eid,kto:String(r.zdroj).trim(),nazov:String(r.nazov).trim(),ks:0,ok:true,typ:zbTyp(r)});p.ks+=zbNum(r.ks||1);if(!r.ok)p.ok=false;}
     else if(r.supplyId&&(!want(r)||!byId.has(r.supplyId)))works.add(x.id); // unlink
-    else if(r.supplyId)used.add(r.supplyId);}));
+    else if(r.supplyId)used.add(r.supplyId);});});
   const orphans=S.d.zabd.filter(d=>String(d.id).startsWith("a_")&&!used.has(d.id));
   if(!works.size&&!orphans.length)return;
   S.zb.syncing=true;
@@ -199,11 +218,11 @@ function zbSyncSupplies(){
     for(const id in plan){const p=plan[id];
       if(p.m.ex){const u=S.d.zab.reduce((t,x)=>t+(x.technika||[]).filter(r=>r.supplyId===id&&want(r)).reduce((v,r)=>v+zbNum(r.ks||1),0),0)+p.ks;
         if(u>zbNum(p.m.ex.ks))await upd("zabd",id,{ks:String(u)});}
-      else await write(async()=>{const t=Date.now();await db.collection(ENT.zabd.col).doc(id).set(Object.assign({kto:p.kto,nazov:p.nazov,ks:String(p.ks),typ:p.typ,ok:p.ok,createdAt:t,updatedAt:t},meId()?{createdBy:meId(),updatedBy:meId()}:{}));});
+      else await write(async()=>{const t=Date.now();await db.collection(ENT.zabd.col).doc(id).set(Object.assign({kto:p.kto,nazov:p.nazov,ks:String(p.ks),typ:p.typ,ok:p.ok,createdAt:t,updatedAt:t},p.eid?{eventId:p.eid}:{},meId()?{createdBy:meId(),updatedBy:meId()}:{}));});
     }
-    for(const wid of works)await zbSave(wid,y=>{let ch=false;const a=(y.technika||[]).map(r=>{let c=r;
+    for(const wid of works)await zbSave(wid,y=>{let ch=false;const eid=ev(y);const a=(y.technika||[]).map(r=>{let c=r;
       if(r.typ===undefined){const t=zbTypGuess(r);c=Object.assign({},c,{typ:t});if(/^(k[uú]p(en[eé]|i[tť])|objedn(an[eé]|a[tť]))$/i.test(String(r.zdroj||"").trim()))c.zdroj="";ch=true;}
-      const m=match(c);
+      const m=match(c,eid);
       if(m){ch=true;return Object.assign({},c,{supplyId:m.id});}
       if(c.supplyId&&(!want(c)||(!byId.has(c.supplyId)&&!plan[c.supplyId]))){ch=true;c=Object.assign({},c);delete c.supplyId;}
       return c;});return ch?{technika:a}:null;});
@@ -237,31 +256,94 @@ function zbMoveUnits(){
     zbSave(x.id,y=>{if(!(y.technika||[]).some(r=>String(r.w??"").trim()||String(r.m??"").trim()))return null;return{technika:(y.technika||[]).map(r=>(String(r.w??"").trim()||String(r.m??"").trim())?fix(r):r)};});});
 }
 const isNox=e=>!!e&&/nox/i.test(e.name||"");
-/* Zabezpečenie je jedno pre celú aplikáciu a patrí k prvému ročníku NOX:art – podujatiu s „nox“ v názve s najskorším rokom (rok z dátumu,
-   inak z názvu; od 2.0.78). Novší ročník (napr. NOX:art 2027) záložku Zabezpečenie ani diela zo Zabezpečenia neukazuje. */
+/* Prvý ročník NOX:art – podujatie s „nox“ v názve s najskorším rokom (rok z dátumu, inak z názvu). Do 2.0.98 bolo Zabezpečenie jedno a ukazovalo sa
+   len pri ňom; od 2.0.99 ho má každé podujatie a k prvému ročníku NOX:art patria staré záznamy, ktoré ešte nemajú eventId. */
 const zbYear=e=>String(e.date||"").slice(0,4)||(String(e.name||"").match(/(?:19|20)\d\d/)||[])[0]||"9999";
 const zbHome=()=>[...S.d.events,...((S.stub&&S.stub.events)||[])].filter(isNox).sort((a,b)=>zbYear(a).localeCompare(zbYear(b))||String(a.date||"").localeCompare(String(b.date||""))||(a.createdAt||0)-(b.createdAt||0))[0]||null;
-const zbFor=e=>{if(!isNox(e))return false;const h=zbHome();return!h||h.id===e.id;};   /* má toto podujatie Zabezpečenie? */
+const zbFor=e=>!!e&&!e._stub;   /* má toto podujatie Zabezpečenie? – od 2.0.99 každé (okrem menoviek mimo rozsahu prístupu) */
 const noxEvent=()=>{const h=zbHome();return h&&!h._stub?h:null;};
-function zbOpenEvent(){const e=noxEvent();if(e){S.evtab="zabezpecenie";go("podujatie",e.id);}else{go("podujatia");toast("Podujatie NOX:art sa nenašlo.");}}
+/* staré záznamy bez eventId sa raz zapíšu k prvému ročníku NOX:art – len človek s plným prístupom (ten vidí všetky podujatia) */
+function zbMigrateEvent(){
+  if(ACC||S.readOnly||S.loading||!db||S.zb.migE)return;const h=zbHome();if(!h||h._stub)return;
+  const Z=S.d.zab.filter(x=>!x.eventId),D=S.d.zabd.filter(d=>!d.eventId);if(!Z.length&&!D.length)return;
+  S.zb.migE=true;
+  (async()=>{for(const x of Z)await upd("zab",x.id,{eventId:h.id});for(const d of D)await upd("zabd",d.id,{eventId:h.id});})();
+}
+const zbUi=eid=>{S._zbu=S._zbu||{};return S._zbu[eid]=S._zbu[eid]||{sel:""};};   /* sel: "program" · "sec:<blok>" · "sum" · "ludia" · "orph" */
+/* riadok vľavo, v ktorom je záznam zabezpečenia */
+function zbSecOf(e,z){const ALL=drItems(e),r=ALL.find(x=>drZab(x,e)===z);if(!r)return"orph";if(drIsP(r))return"program";const b=drSecOf(drSecs(e,ALL),r);return"sec:"+(b?b.t:"");}
+/* otvorenie odinakiaľ (Inventár, Úlohy podujatia, staré odkazy): podujatie → záložka Zabezpečenie → riadok so záznamom → jeho karta */
+function zbOpenEvent(zid){
+  const z=zid&&get("zab",zid),e=z?get("events",zbEid(z)):noxEvent();
+  if(!e||e._stub){go("podujatia");toast(z?"Podujatie tohto zabezpečenia sa nenašlo.":"Podujatie NOX:art sa nenašlo.");return;}
+  if(z)zbUi(e.id).sel=zbSecOf(e,z);S.evtab="zabezpecenie";
+  if(S.view==="podujatie"&&S.id===e.id)render();else go("podujatie",e.id);
+  if(z)setTimeout(()=>{const c=document.getElementById("zb-"+z.id);if(c&&c.scrollIntoView)c.scrollIntoView({block:"start"});},80);
+}
 VIEWS.zabezpecenie=()=>{const e=noxEvent();if(e){S.evtab="zabezpecenie";S.view="podujatie";S.id=e.id;return VIEWS.podujatie();}return`<div class="empty">Podujatie NOX:art sa nenašlo.<br><button class="btn" data-go="podujatia">Späť na podujatia</button></div>`;};
-function zbPanel(){
-  if(!S.zb.unitsMoved&&!S.loading&&S.d.zab.length){S.zb.unitsMoved=true;setTimeout(zbMoveUnits,0);}
-  if(!S.loading&&S.d.zab.length){setTimeout(zbSyncSupplies,0);setTimeout(zbMigratePeople,0);}
+/* záznamy zabezpečenia podujatia, ktoré nepatria k žiadnemu bodu programu ani dielu (dielo sa odstránilo, alebo sa nespárovalo podľa názvu) */
+const zbOrph=(e,ALL)=>{const L=ALL.map(r=>drZab(r,e)).filter(Boolean);return zbOf(e.id).filter(z=>!L.includes(z));};
+/* záznam zabezpečenia k bodu programu / dielu sa vytvorí až pri prvom zápise do jeho plánu (dovtedy je plán prázdny, s id „p:<id bodu>“) */
+function zbEnsure(rid){
+  const r=get("prog",rid),e0=r&&get("events",r.eventId);if(!r||!e0)return Promise.resolve(null);
+  const z=drZab(r,e0);if(z)return Promise.resolve(z.id);
+  const M=S.zb.mk=S.zb.mk||{};if(M[rid])return M[rid];
+  return M[rid]=add("zab",{eventId:e0.id,ord:zbNextOrd(e0.id),title:r.title||"",author:r.author||"",stav:"navrh",napajanie:"",technika:[],personal:[],ulohy:[],poznamka:"",progId:rid}).then(id=>{delete M[rid];return id;});
+}
+const zbId=id=>String(id).startsWith("p:")?zbEnsure(String(id).slice(2)):Promise.resolve(id);
+/* karta bodu programu alebo diela: hlavička ako v Dramaturgii (fotka diela, číslo, názov, stav, autor / účinkujúci; názov a autor sa zapisujú do oboch),
+   pod ňou celý plán */
+function zbItemCard(e,r,ed){
+  const z=drZab(r,e),rid=esc(r.id),P=drIsP(r),st=z?(z.stav||"navrh"):"navrh",ro=ed?"":" readonly";
+  const meta=[P?r.time:"",r.place].filter(Boolean).join(" · ");   /* deň je v nadpise nad kartami */
+  const O=!z&&!P&&ed?zbOrph(e,drItems(e)):[];   /* spárovať sa dá dielo (staré záznamy NOX:art sa párovali podľa názvu diela) */
+  return`<article class="zb-card st-${st}" id="${z?"zb-"+esc(z.id):"zbp-"+rid}">
+  <div class="zb-head"${P?' style="grid-template-columns:minmax(0,1fr)"':""}>${P?"":drPhBox(r,z,ed)}
+    <div class="zb-info">
+      <div class="zb-tr">${z&&z.ord?`<span class="zb-num">${esc(z.ord)}</span>`:""}
+        <input class="zb-title" id="zbi-${rid}-t" data-keep data-drh="${rid}|title" value="${esc(r.title||"")}" placeholder="Názov" aria-label="Názov"${ro}>
+        <select class="zb-stav s-${st}" id="zbi-${rid}-st" data-drh="${rid}|stav" aria-label="Stav"${ed?"":" disabled"}>${ZB_STAV.map(([k,l])=>`<option value="${k}" ${st===k?"selected":""}>${l}</option>`).join("")}</select></div>
+      <input class="zb-author" id="zbi-${rid}-a" data-keep data-drh="${rid}|author" value="${esc(r.author||"")}" placeholder="${P?"Účinkujúci":"Autor"}" aria-label="${P?"Účinkujúci":"Autor"}"${ro}>
+      ${meta?`<div class="meta" style="white-space:normal;padding-left:0">${esc(meta)}</div>`:""}${drSrc(z)}
+      ${O.length?`<div class="row"><select class="linksel" data-drzablink="${rid}" aria-label="Spárovať s nezaradeným zabezpečením" style="width:auto;max-width:100%;margin:0"><option value="">↗ Spárovať s nezaradeným zabezpečením…</option>${O.map(o=>`<option value="${esc(o.id)}">${esc((o.ord?o.ord+" · ":"")+(o.title||"Bez názvu"))}</option>`).join("")}</select></div>`:""}
+    </div></div>
+  ${zbPlan(z||{id:"p:"+r.id,technika:[],personal:[],ulohy:[]},"Odstrániť zabezpečenie")}</article>`;
+}
+const ZB_IC={sum:'<path d="M4 20V11M10 20V5M16 20v-6M3 20h18"/>',ludia:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.6a3.2 3.2 0 0 1 0 6.3M21 20c0-2.7-1.6-5-3.9-5.7"/>',orph:'<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>'};
+/* záložka Zabezpečenie (od 2.0.99 pri každom podujatí, hneď za Dramaturgiou): vľavo ako v Dramaturgii Program a bloky diel (pod názvom počet
+   potvrdených), čiara, Súhrn, Podľa ľudí a Nezaradené; vpravo karty vybraného riadku, každá s celým plánom */
+function zbTab(e){
+  const id=esc(e.id),ui=zbUi(e.id),ed=accEdit("zab")&&!S.readOnly,ALL=drItems(e),B=drSecs(e,ALL),G=drGroups(B,ALL),P=drProg(ALL),ename=esc(e.name||"Podujatie");
+  S.zb.eid=e.id;
+  if(!S.loading){setTimeout(()=>drAutoLink(e),0);
+    if(S.d.zab.length){if(!S.zb.unitsMoved){S.zb.unitsMoved=true;setTimeout(zbMoveUnits,0);}setTimeout(zbSyncSupplies,0);setTimeout(zbMigratePeople,0);setTimeout(zbMigrateEvent,0);}}
   S.zbP=zbPeople();
-  const all=zbList(),n=all.length;
-  const ok=all.filter(x=>x.stav==="potvrdene").length,w=all.filter(x=>x.stav==="rozpracovane").length;
-  const f=S.zb.f;
-  const L=all.filter(x=>f==="all"||(f==="ulohy"?(x.ulohy||[]).some(u=>u.text&&!u.hotovo):(x.stav||"navrh")===f));
-  const fb=(k,l)=>`<button data-zbf="${k}" aria-pressed="${f===k}">${l}</button>`;
-  return`<div class="zb-top"><div class="head" style="margin:0"><div><h2>Zabezpečenie</h2><p class="sub">Technický plán po dielach – napájanie, technika, ľudia a úlohy</p></div></div>
-    ${n?`<div class="zb-prog"><div class="lbl"><span>${ok} potvrdených · ${w} rozpracovaných</span><span>z ${n}</span></div><div class="zb-bar"><i style="width:${pct(ok,n)}%;background:var(--good)"></i><i style="width:${pct(w,n)}%;background:var(--ochre)"></i></div></div>`:""}</div>
-  ${n?`${zbLists()}<div class="tools"><div class="tabs"><button data-zbmode="diela" aria-pressed="${S.zb.mode!=="ludia"}">Po dielach</button><button data-zbmode="ludia" aria-pressed="${S.zb.mode==="ludia"}">Podľa ľudí</button></div>
-    ${S.zb.mode!=="ludia"?`<div class="tabs">${fb("all","Všetky")}${fb("navrh","Neriešené")}${fb("rozpracovane","Rozpracované")}${fb("potvrdene","Potvrdené")}${fb("ulohy","S otvorenými úlohami")}</div><span style="flex:1"></span><button class="btn" data-zbnew>+ Pridať dielo</button>`:""}</div>
-  ${S.zb.mode==="ludia"?zbPeopleView():`${zbSummary(all)}
-  <div class="zb-list">${L.length?L.map(zbCard).join(""):`<div class="empty">V tomto filtri nie sú žiadne diela.</div>`}</div>`}`
-  :`<div class="panel"><div class="empty">Zatiaľ tu nie je žiadne dielo. Plán NOX:art nahrajte v administrácii WordPressu (Ars Preuge → Import dát), alebo začnite prázdnym dielom.<div style="margin-top:8px"><button class="btn pri" data-zbnew>+ Pridať dielo</button></div></div></div>`}`;
-};
+  const Z=zbList(),O=zbOrph(e,ALL),np=Object.keys(S.zbP).length,g1=G.find(g=>g.items.length);
+  const keys=["program",...G.map(g=>"sec:"+g.k),"sum","ludia",...(O.length?["orph"]:[])];
+  const sel=keys.includes(ui.sel)?ui.sel:(P.length||!g1?"program":"sec:"+g1.k),g0=sel.startsWith("sec:")?G.find(g=>"sec:"+g.k===sel):null;
+  const svg=(p,w)=>`<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  const row=(key,ic,t,sm)=>`<button type="button" class="txi${sel===key?" on":""}" data-zbsel="${id}|${esc(key)}">${svg(ic,22)}<span class="txt"><b>${esc(t)}</b>${sm?`<small>${esc(sm)}</small>`:""}</span></button>`;
+  const stOf=r=>{const z=drZab(r,e);return z?(z.stav||"navrh"):"";};
+  const cnt=L=>L.length?`${L.filter(r=>stOf(r)==="potvrdene").length} z ${L.length} potvrdených`:"zatiaľ nič";
+  const list=row("program",DR_IC.sprievodny,"Program",cnt(P))
+    +(G.length?`<div class="gdsep drsep"></div>`:"")+G.map(g=>row("sec:"+g.k,DR_IC.dielo,g.l,cnt(g.items))).join("")
+    +`<div class="gdsep drsep"></div>`+row("sum",ZB_IC.sum,"Súhrn","technika, dodávky, ľudia, úlohy")+row("ludia",ZB_IC.ludia,"Podľa ľudí",np?np+(np===1?" človek":np<5?" ľudia":" ľudí"):"zatiaľ nikto")
+    +(O.length?row("orph",ZB_IC.orph,"Nezaradené",O.length+(O.length===1?" záznam":O.length<5?" záznamy":" záznamov")):"");
+  const bar=(a,b,n)=>n?`<div class="zbbar zb-prog"><div class="lbl"><span>${a} potvrdených · ${b} rozpracovaných</span><span>z ${n}</span></div><div class="zb-bar"><i style="width:${pct(a,n)}%;background:var(--good)"></i><i style="width:${pct(b,n)}%;background:var(--ochre)"></i></div></div>`:"";
+  const barOf=L=>bar(L.filter(r=>stOf(r)==="potvrdene").length,L.filter(r=>stOf(r)==="rozpracovane").length,L.length);
+  const head=(t,sub,br,drk)=>`<div class="panel txmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Zabezpečenie / ${ename}</div><div class="txtitle" style="font-size:28px;font-weight:600;line-height:1.2;margin-top:6px">${esc(t)}</div>${sub?`<p class="meta" style="margin:8px 0 0;white-space:normal">${sub}</p>`:""}</div>
+      ${drk?`<div class="row" style="flex:none;gap:4px"><button type="button" class="tplus" data-zbdr="${id}|${esc(drk)}" title="Upraviť v Dramaturgii" aria-label="Upraviť v Dramaturgii">${TI.edit}</button></div>`:""}</div>${br||""}</div>`;
+  const cards=L=>`<div class="zb-list">${L.map(r=>zbItemCard(e,r,ed)).join("")}</div>`;
+  let main;
+  if(sel==="sum")main=`<div class="pkcol">${zbLists()}${head("Súhrn","Technika, dodávky, ľudia a úlohy zo všetkých bodov programu a diel podujatia.",bar(Z.filter(x=>x.stav==="potvrdene").length,Z.filter(x=>x.stav==="rozpracovane").length,Z.length))}<div class="zbsums">${zbSummary(Z)}</div></div>`;
+  else if(sel==="ludia")main=`<div class="pkcol">${head("Podľa ľudí","Kto kde a kedy je – zo všetkých bodov programu a diel podujatia.")}<div class="zbsums">${zbPeopleView()}</div></div>`;
+  else if(sel==="orph")main=`<div class="pkcol">${zbLists()}${head("Nezaradené","Toto zabezpečenie nepatrí k žiadnemu bodu programu ani dielu. Zaraďte ho do Programu alebo do bloku, alebo ho spárujte pri bode programu či diele.")}<div class="zb-list">${O.map(z=>zbOrphCard(e,z,ed)).join("")}</div></div>`;
+  else if(g0)main=`<div class="pkcol">${zbLists()}${head(g0.l,"",barOf(g0.items),sel)}${g0.items.length?cards(g0.items):`<div class="panel" style="margin-top:18px"><div class="empty">V tomto bloku zatiaľ nič nie je. Diela pridáte v Dramaturgii.</div></div>`}</div>`;
+  else{const{SD,G:DG}=drDayGroups(e,P);   /* Program – po dňoch ako v Dramaturgii */
+    main=`<div class="pkcol">${zbLists()}${head("Program",P.length?"":"Program zatiaľ nemá žiadne body. Pridáte ich v Dramaturgii – v riadku Program (napr. „16.00 Otvorenie“).",barOf(P),"program")}
+      ${DG.filter(g=>g.L.length).map(g=>`${SD.length?`<div class="zbdh">${g.d?esc(drDayHead(g.d)):"Bez dňa"}</div>`:""}${cards(g.L)}`).join("")}</div>`;}
+  return`<div class="txm"><div class="txlist drlist">${list}</div>${main}</div>`;
+}
 /* drag a row by its handle (mouse, touch) or move it with arrow keys; sel = attribute prefix shared by the handles of one list */
 function zbDrag(h,from,sel,moveTo){
   h.onkeydown=e=>{if(e.key!=="ArrowUp"&&e.key!=="ArrowDown")return;e.preventDefault();const d=e.key==="ArrowUp"?from-1:from+1;if(d<0)return;moveTo(d);
@@ -282,15 +364,18 @@ function zbDrag(h,from,sel,moveTo){
   };
 }
 function zbBind(v){
-  if(!(S.view==="podujatie"&&(S.evtab==="zabezpecenie"||S.evtab==="dramaturgia")&&zbFor(get("events",S.id))))return;   /* v Dramaturgii je plán diela rozbalený pod jeho kartou */
+  if(!(S.view==="podujatie"&&S.evtab==="zabezpecenie"&&zbFor(get("events",S.id))))return;
   v.querySelectorAll("[data-zbsum]").forEach(d=>d.addEventListener("toggle",()=>{S.zb.sums[d.dataset.zbsum]=d.open;}));
-  v.querySelectorAll("[data-zbf]").forEach(b=>b.onclick=()=>{S.zb.f=b.dataset.zbf;render();});
-  v.querySelectorAll("[data-zbmode]").forEach(b=>b.onclick=()=>{S.zb.mode=b.dataset.zbmode;render();});
-  v.querySelectorAll("[data-zbjump]").forEach(a=>a.onclick=e=>{e.preventDefault();S.zb.f="all";S.zb.mode="diela";render();const el=document.getElementById("zb-"+a.dataset.zbjump);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});});
+  v.querySelectorAll("[data-zbsel]").forEach(b=>b.onclick=()=>{const[eid,key]=drCut(b.dataset.zbsel);zbUi(eid).sel=key;render();});
+  v.querySelectorAll("[data-zbdr]").forEach(b=>b.onclick=()=>{const[eid,key]=drCut(b.dataset.zbdr),u=drUi(eid);u.sel=key;u.place="";S.evtab="dramaturgia";render();});   /* tá istá časť v Dramaturgii */
+  v.querySelectorAll("[data-zbjump]").forEach(a=>a.onclick=e=>{e.preventDefault();const z=get("zab",a.dataset.zbjump),e0=z&&get("events",zbEid(z));if(!z||!e0)return;zbUi(e0.id).sel=zbSecOf(e0,z);render();   /* karta je v riadku Program, v bloku alebo v Nezaradených */
+    setTimeout(()=>{const el=document.getElementById("zb-"+z.id);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});},60);});
   v.querySelectorAll("[data-zb]").forEach(el=>{
-    const commit=()=>{
-      const[id,k,i,fld]=el.dataset.zb.split("|");
+    const commit=async()=>{
+      const[id0,k,i,fld]=el.dataset.zb.split("|");
       const val=el.type==="checkbox"?el.checked:el.value;
+      if(String(id0).startsWith("p:")&&!String(val).trim())return;   /* prázdny plán bodu programu – záznam sa zatiaľ nevytvára */
+      const id=await zbId(id0);if(!id)return;
       zbSave(id,x=>{
         if(i===undefined)return(x[k]??"")===val?null:{[k]:val};
         const arr=(x[k]||[]).map(r=>Object.assign({},r));if(!arr[+i]||arr[+i][fld]===val)return null;
@@ -304,9 +389,9 @@ function zbBind(v){
     if(el.type==="checkbox"||el.tagName==="SELECT")el.onchange=commit;
     else{el.onchange=commit;el.onblur=commit;el.onkeydown=e=>{if(e.key==="Enter"&&el.tagName!=="TEXTAREA")el.blur();};}
   });
-  v.querySelectorAll("[data-zbadd]").forEach(b=>b.onclick=()=>{
-    const[id,k]=b.dataset.zbadd.split("|");let n=0;
-    const row=k==="technika"?{nazov:"",ks:"",typ:"",zdroj:"",ok:false}:k==="personal"?{rola:"",kto:"",den:"2026-10-30",od:"17:00",do:"22:00",kedy:"",ok:false}:{text:"",hotovo:false};
+  v.querySelectorAll("[data-zbadd]").forEach(b=>b.onclick=async()=>{
+    const[id0,k]=b.dataset.zbadd.split("|");let n=0;const id=await zbId(id0);if(!id)return;
+    const row=k==="technika"?{nazov:"",ks:"",typ:"",zdroj:"",ok:false}:k==="personal"?zbNewPerson(get("zab",id)):{text:"",hotovo:false};
     zbSave(id,x=>{const arr=[...(x[k]||[]),row];n=arr.length-1;const p={[k]:arr};if((x.stav||"navrh")==="navrh")p.stav="rozpracovane";return p;})
       .then(()=>{const pf={technika:"t",personal:"p",ulohy:"u"}[k],sf={technika:"n",personal:"r",ulohy:"t"}[k];const el=document.getElementById(`zb-${id}-${pf}${n}-${sf}`);if(el)el.focus();});
   });
@@ -337,12 +422,13 @@ function zbBind(v){
       const oldK=p[1],newK=zbKey(nv),arr=p[0]==="ludia"?"personal":"technika",fld={tech:"nazov",zdroj:"zdroj",ludia:"kto"}[p[0]],kind=p[0];
       if(!nv){el.value=el.defaultValue;return;}
       if(el.value!==el.defaultValue||newK!==oldK){
-        const exists=newK!==oldK&&(S.d.zab.some(x=>(x[arr]||[]).some(r=>zbKey(r[fld])===newK))||(kind==="zdroj"&&S.d.zabd.some(d=>zbKey(d.kto)===newK)));
+        const ZL=zbList(),DL=zbDOf(S.zb.eid||"");   /* premenovanie v súhrne platí pre toto podujatie */
+        const exists=newK!==oldK&&(ZL.some(x=>(x[arr]||[]).some(r=>zbKey(r[fld])===newK))||(kind==="zdroj"&&DL.some(d=>zbKey(d.kto)===newK)));
         const hit=r=>{const k=zbKey(r[fld]);return k===oldK||k===newK;};
-        S.d.zab.forEach(x=>{if((x[arr]||[]).some(r=>hit(r)&&r[fld]!==nv))
+        ZL.forEach(x=>{if((x[arr]||[]).some(r=>hit(r)&&r[fld]!==nv))
           zbSave(x.id,y=>({[arr]:(y[arr]||[]).map(r=>hit(r)?Object.assign({},r,{[fld]:nv}):r)}));});
-        if(kind==="ludia"){const ids=new Set();S.d.zab.forEach(x=>(x.personal||[]).forEach(r=>{const c=r.contactId&&get("contacts",r.contactId);if(c&&zbKey(c.name)===oldK)ids.add(c.id);}));ids.forEach(cid=>upd("contacts",cid,{name:nv}));}
-        if(kind==="zdroj")S.d.zabd.forEach(d=>{const k=zbKey(d.kto);if((k===oldK||k===newK)&&d.kto!==nv)upd("zabd",d.id,{kto:nv});});
+        if(kind==="ludia"){const ids=new Set();ZL.forEach(x=>(x.personal||[]).forEach(r=>{const c=r.contactId&&get("contacts",r.contactId);if(c&&zbKey(c.name)===oldK)ids.add(c.id);}));ids.forEach(cid=>upd("contacts",cid,{name:nv}));}
+        if(kind==="zdroj")DL.forEach(d=>{const k=zbKey(d.kto);if((k===oldK||k===newK)&&d.kto!==nv)upd("zabd",d.id,{kto:nv});});
         const o=((S.settings.zbOrder||{})[kind])||[];
         if(newK!==oldK&&o.includes(oldK))saveSettings({zbOrder:Object.assign({},S.settings.zbOrder,{[kind]:exists?o.filter(k=>k!==oldK):o.map(k=>k===oldK?newK:k)})});
         if(exists)toast(`Zlúčené s „${nv}“.`);
@@ -353,11 +439,11 @@ function zbBind(v){
   v.querySelectorAll("[data-zbsok]").forEach(c=>{
     if(c.dataset.ind)c.indeterminate=true;
     c.onchange=()=>{const val=c.checked,p=c.dataset.zbsok.split("|");
-      if(p[0]==="tech"){S.d.zab.forEach(x=>{if((x.technika||[]).some(r=>zbKey(r.nazov)===p[1]&&!!r.ok!==val))
+      if(p[0]==="tech"){zbList().forEach(x=>{if((x.technika||[]).some(r=>zbKey(r.nazov)===p[1]&&!!r.ok!==val))
         zbSave(x.id,y=>({technika:(y.technika||[]).map(r=>zbKey(r.nazov)===p[1]?Object.assign({},r,{ok:val}):r)}));});}
       else if(p[0]==="sup"){upd("zabd",p[1],{ok:val});S.d.zab.forEach(x=>{if((x.technika||[]).some(r=>r.supplyId===p[1]&&!!r.ok!==val))
         zbSave(x.id,y=>({technika:(y.technika||[]).map(r=>r.supplyId===p[1]?Object.assign({},r,{ok:val}):r)}));});}
-      else if(p[0]==="src"){const m=r=>zbKey(r.zdroj)===p[1]&&zbKey(r.nazov)===p[2];S.d.zab.forEach(x=>{if((x.technika||[]).some(r=>r.nazov&&m(r)&&!!r.ok!==val))
+      else if(p[0]==="src"){const m=r=>zbKey(r.zdroj)===p[1]&&zbKey(r.nazov)===p[2];zbList().forEach(x=>{if((x.technika||[]).some(r=>r.nazov&&m(r)&&!!r.ok!==val))
         zbSave(x.id,y=>({technika:(y.technika||[]).map(r=>r.nazov&&m(r)?Object.assign({},r,{ok:val}):r)}));});}
       else{const fld=p[0]==="ul"?["ulohy","hotovo"]:["personal","ok"];
         zbSave(p[1],y=>{const a=(y[fld[0]]||[]).map(r=>Object.assign({},r));if(!a[+p[2]])return null;a[+p[2]][fld[1]]=val;return{[fld[0]]:a};});}
@@ -365,7 +451,7 @@ function zbBind(v){
   });
   const nsAdd=async()=>{const kto=($("#zb-ns-kto").value||"").trim(),naz=($("#zb-ns-naz").value||"").trim(),ks=($("#zb-ns-ks").value||"").trim();
     if(!kto||!naz){toast("Vyplňte, kto to dal a čo.");return;}
-    const typ=($("#zb-ns-typ")||{}).value||"pozicane";const id=await add("zabd",{kto,nazov:naz,ks,typ,ok:false});if(id){S.zb.ns={kto,naz:"",ks:"",typ};S.zb.sums.zdroj=true;render();const n=$("#zb-ns-naz");if(n)n.focus();}};
+    const typ=($("#zb-ns-typ")||{}).value||"pozicane";const id=await add("zabd",{eventId:S.zb.eid||zbHomeId(),kto,nazov:naz,ks,typ,ok:false});if(id){S.zb.ns={kto,naz:"",ks:"",typ};S.zb.sums.zdroj=true;render();const n=$("#zb-ns-naz");if(n)n.focus();}};
   v.querySelectorAll("[data-zbdnew]").forEach(b=>b.onclick=nsAdd);
   [["#zb-ns-kto","kto"],["#zb-ns-naz","naz"],["#zb-ns-ks","ks"],["#zb-ns-typ","typ"]].forEach(([q,f])=>{const el=v.querySelector(q);if(!el)return;el.oninput=el.onchange=()=>{S.zb.ns[f]=el.value;};el.onkeydown=e=>{if(e.key==="Enter")nsAdd();};});
   v.querySelectorAll("[data-zbdmore]").forEach(b=>b.onclick=()=>{const k=$("#zb-ns-kto");if(!k)return;k.value=S.zb.ns.kto=b.dataset.zbdmore;k.scrollIntoView({block:"center"});$("#zb-ns-naz").focus();});
@@ -382,7 +468,7 @@ function zbBind(v){
     ask(`Odstrániť dodávku „${d.nazov||""}“ od ${d.kto||"—"}?${n?` Zruší sa aj pridelenie k ${n} ${n===1?"dielu":"dielam"}.`:""}`,"Odstrániť").then(ok=>{if(!ok)return;
       S.d.zab.forEach(x=>{if((x.technika||[]).some(r=>r.supplyId===d.id))zbSave(x.id,y=>({technika:(y.technika||[]).filter(r=>r.supplyId!==d.id)}));});del("zabd",d.id);});});
   v.querySelectorAll("[data-zbdadopt]").forEach(b=>b.onclick=async()=>{const[w,i]=b.dataset.zbdadopt.split("|");const x=get("zab",w),r=x&&(x.technika||[])[+i];if(!r)return;
-    const id=await add("zabd",{kto:String(r.zdroj||"").trim(),nazov:r.nazov,ks:r.ks||"1",ok:!!r.ok});
+    const id=await add("zabd",{eventId:zbEid(x),kto:String(r.zdroj||"").trim(),nazov:r.nazov,ks:r.ks||"1",ok:!!r.ok});
     if(id)zbSave(w,y=>{const a=(y.technika||[]).map(z=>Object.assign({},z));if(!a[+i])return null;a[+i].supplyId=id;return{technika:a};});});
   v.querySelectorAll("[data-zbk]").forEach(sel=>sel.onchange=async()=>{
     const[id,i]=sel.dataset.zbk.split("|"),val=sel.value,x=get("zab",id),r=x&&(x.personal||[])[+i];if(!r)return;
@@ -395,11 +481,13 @@ function zbBind(v){
   });
   v.querySelectorAll("[data-zbwhen]").forEach(b=>b.onclick=()=>{const key=b.dataset.zbwhen.replace("|","-");S.zb.open[key]=!S.zb.open[key];render();
     if(S.zb.open[key]){const[id,i]=b.dataset.zbwhen.split("|");const el=document.getElementById(`zb-${id}-p${i}-d`);if(el)el.focus();}});
-  v.querySelectorAll("[data-zbrm]").forEach(b=>b.onclick=()=>{const x=get("zab",b.dataset.zbrm);ask(`Odstrániť dielo „${(x&&x.title)||"bez názvu"}“ aj s celým plánom?`,"Odstrániť").then(ok=>{if(ok)del("zab",b.dataset.zbrm);});});
-  v.querySelectorAll("[data-zbnew]").forEach(b=>b.onclick=async()=>{
-    const ord=Math.max(0,...S.d.zab.map(x=>+x.ord||0))+1;S.zb.f="all";
-    const id=await add("zab",{ord,title:"",author:"",stav:"navrh",napajanie:"",technika:[],personal:[],ulohy:[],poznamka:""});
-    if(id)setTimeout(()=>{const el=document.getElementById(`zb-${id}-title`);if(el){el.scrollIntoView({block:"center"});el.focus();}},50);
-  });
+  v.querySelectorAll("[data-zbrm]").forEach(b=>b.onclick=()=>{const x=get("zab",b.dataset.zbrm);if(!x)return;const t=zbTitle(x)||"bez názvu",e0=get("events",zbEid(x)),linked=!!e0&&drItems(e0).some(r=>drZab(r,e0)===x);
+    ask(linked?`Odstrániť zabezpečenie pri „${t}“ – napájanie, techniku, ľudí, úlohy a poznámky? Bod programu alebo dielo v Dramaturgii ostane.`:`Odstrániť „${t}“ aj s celým plánom?`,"Odstrániť").then(ok=>{if(ok)del("zab",x.id);});});
+}
+/* nový človek pri bode programu / diele: deň a čas z bodu programu (ak ho má), inak dátum podujatia; staré NOX:art od 17.00 do 22.00 */
+function zbNewPerson(x){
+  const r=x&&x.progId&&get("prog",x.progId),e0=get("events",zbEid(x)),D=e0?drDays(e0):[],d=(r&&drPDate(r,D))||(e0&&e0.date)||"";
+  const m=r&&/^(\d{1,2})[.:](\d{2})(?:\s*[–-]\s*(\d{1,2})[.:](\d{2}))?/.exec(String(r.time||"").trim()),hm=(h,mm)=>String(h).padStart(2,"0")+":"+mm;
+  return{rola:"",kto:"",den:d,od:m?hm(m[1],m[2]):"17:00",do:m&&m[3]?hm(m[3],m[4]):m?"":"22:00",kedy:"",ok:false};
 }
 

@@ -131,7 +131,8 @@ function arsp_acc_doc_in_scope($col, $id, $d, $S) {
             || (!empty($d['assignee']) && isset(arsp_acc_me_keys()[(string) $d['assignee']]));   /* moje úlohy vidím vždy */
         case 'transactions': return $has($S['P'], 'projectId') || $has($S['E'], 'eventId') || $has($S['G'], 'grantId') || $has($S['G'], 'cofinGrantId') || $has($S['L'], 'lineId');
         case 'partnerships': case 'programItems': return $has($S['E'], 'eventId');
-        case 'zabezpecenie': case 'zabdodavky': return $S['nox'];
+        case 'zabezpecenie': case 'zabdodavky':   /* od 2.0.99 patrí k podujatiu (eventId); staré záznamy bez neho patria k NOX:art */
+            return !empty($d['eventId']) ? $has($S['E'], 'eventId') : $S['nox'];
         case 'contacts': return isset($S['C'][$id]);
         case 'invItems': case 'invMoves': case 'invTech': return true;   /* inventár nepatrí k projektu ani podujatiu – rozsah ho neobmedzuje (rozhoduje len úroveň oblasti) */
         case 'comments':

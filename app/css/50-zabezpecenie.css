@@ -130,6 +130,11 @@ button.zb-rest:hover{background:color-mix(in srgb,var(--ochre) 30%,transparent)}
 .zb-newsup select{font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface3)}
 .zb-tag{font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:1px 6px;white-space:nowrap}
 .zb-assign{width:100%;min-width:0;font-size:14px;background:var(--surface3);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+/* záložka Zabezpečenie pri podujatí (od 2.0.99): pás s postupom v hlavičke, deň nad kartami programu, súhrny pod hlavičkou */
+.zbbar{padding:14px 26px 16px}
+.zbdh{margin:24px 0 0;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.pkcol>.zbdh+.zb-list{margin-top:10px}
+.zbsums{margin-top:18px}
 @media (max-width:760px){
   .zb-top{grid-template-columns:1fr}
   .zb-head{grid-template-columns:1fr}
