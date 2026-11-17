@@ -94,6 +94,7 @@ Súpis vznikol pri podrobnej prehliadke celého kódu (8. 11. 2026). Opravené b
 - [ ] ⚪ **E5. Mŕtve časti programu:** záložka „Obsah“ v projekte, záložky „Spolupráce“, „Dobrovoľníci“, „Všetci“ v Kontaktoch a „Nevyplatené“ vo Financiách – kód existuje, ale nedá sa na ne kliknúť. Text „V tomto filtri nie sú žiadne projekty“ v Projektoch, kde žiadny filter nie je. → zmazať.
 - [ ] ⚪ **E6. Režim „len na čítanie“ sa nikdy nezapne** – vo WordPresse má každý, kto sa dostane dnu, právo upravovať. Text a správanie pre čítanie sú zbytočné, alebo treba doplniť rolu len na čítanie.
 - [ ] 🟡 **E11. Na mobile sa dlhší názov podujatia prekrýva so štítkom stavu** (detail podujatia, hlavička – napr. „NOX:ART“ a „Zrealizované“): názov treba zalomiť alebo štítok posunúť pod neho. Nájdené 16. 11. 2026 pri úprave záložky Podklady.
+- [ ] 🟡 **E12. Zabezpečenie je jedno pre celú aplikáciu** (kolekcie `zabezpecenie`, `zabdodavky` nemajú väzbu na podujatie). Od 2.0.78 sa ukazuje len pri prvom ročníku NOX:art (`zbFor`); novší ročník (NOX:art 2027) vlastné Zabezpečenie zatiaľ nemá – na to treba dať každému dielu zabezpečenia a každej dodávke podujatie (`eventId`), staré zapísať k prvému ročníku a podľa podujatia čítať aj súhrny, dodávky a Inventár → Technika.
 
 ---
 

@@ -237,7 +237,12 @@ function zbMoveUnits(){
     zbSave(x.id,y=>{if(!(y.technika||[]).some(r=>String(r.w??"").trim()||String(r.m??"").trim()))return null;return{technika:(y.technika||[]).map(r=>(String(r.w??"").trim()||String(r.m??"").trim())?fix(r):r)};});});
 }
 const isNox=e=>!!e&&/nox/i.test(e.name||"");
-const noxEvent=()=>S.d.events.find(isNox);
+/* Zabezpečenie je jedno pre celú aplikáciu a patrí k prvému ročníku NOX:art – podujatiu s „nox“ v názve s najskorším rokom (rok z dátumu,
+   inak z názvu; od 2.0.78). Novší ročník (napr. NOX:art 2027) záložku Zabezpečenie ani diela zo Zabezpečenia neukazuje. */
+const zbYear=e=>String(e.date||"").slice(0,4)||(String(e.name||"").match(/(?:19|20)\d\d/)||[])[0]||"9999";
+const zbHome=()=>[...S.d.events,...((S.stub&&S.stub.events)||[])].filter(isNox).sort((a,b)=>zbYear(a).localeCompare(zbYear(b))||String(a.date||"").localeCompare(String(b.date||""))||(a.createdAt||0)-(b.createdAt||0))[0]||null;
+const zbFor=e=>{if(!isNox(e))return false;const h=zbHome();return!h||h.id===e.id;};   /* má toto podujatie Zabezpečenie? */
+const noxEvent=()=>{const h=zbHome();return h&&!h._stub?h:null;};
 function zbOpenEvent(){const e=noxEvent();if(e){S.evtab="zabezpecenie";go("podujatie",e.id);}else{go("podujatia");toast("Podujatie NOX:art sa nenašlo.");}}
 VIEWS.zabezpecenie=()=>{const e=noxEvent();if(e){S.evtab="zabezpecenie";S.view="podujatie";S.id=e.id;return VIEWS.podujatie();}return`<div class="empty">Podujatie NOX:art sa nenašlo.<br><button class="btn" data-go="podujatia">Späť na podujatia</button></div>`;};
 function zbPanel(){
@@ -277,7 +282,7 @@ function zbDrag(h,from,sel,moveTo){
   };
 }
 function zbBind(v){
-  if(!(S.view==="podujatie"&&(S.evtab==="zabezpecenie"||S.evtab==="dramaturgia")&&isNox(get("events",S.id))))return;   /* v Dramaturgii je plán diela rozbalený pod jeho kartou */
+  if(!(S.view==="podujatie"&&(S.evtab==="zabezpecenie"||S.evtab==="dramaturgia")&&zbFor(get("events",S.id))))return;   /* v Dramaturgii je plán diela rozbalený pod jeho kartou */
   v.querySelectorAll("[data-zbsum]").forEach(d=>d.addEventListener("toggle",()=>{S.zb.sums[d.dataset.zbsum]=d.open;}));
   v.querySelectorAll("[data-zbf]").forEach(b=>b.onclick=()=>{S.zb.f=b.dataset.zbf;render();});
   v.querySelectorAll("[data-zbmode]").forEach(b=>b.onclick=()=>{S.zb.mode=b.dataset.zbmode;render();});
