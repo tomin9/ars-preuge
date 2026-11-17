@@ -5,7 +5,7 @@
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-spoluprace.js. Nie je to samostatný skript. ===== */
 const EVTABS=[["rozpocet","Rozpočet"],["ulohy","Úlohy"],["granty","Granty"],["dramaturgia","Dramaturgia"],["zabezpecenie","Zabezpečenie"],["marketing","Marketing"],["podklady","Podklady"],["spoluprace","Spolupráce"],["fotky","Archív"]];   /* Podklady od 2.0.54 nahrádzajú Texty a Dokumenty */
 const evTabsFor=e=>EVTABS.filter(t=>(t[0]!=="zabezpecenie"||zbFor(e))&&(t[0]!=="rozpocet"||accRead("ledger"))&&(t[0]!=="ulohy"||accRead("tasks"))&&(t[0]!=="granty"||accRead("grants")));
-const MKT_DEF=["Vizuál / plagát","Udalosť na Facebooku","Instagram – príspevky a stories","Web a kalendáre podujatí","Tlačová správa","Newsletter","Rádio a médiá","Výlep plagátov","Foto a video dokumentácia"];
+const MKT_DEF=["Tlačová správa","Udalosť na Facebooku","Newsletter","Výlep plagátov"];   /* čo má v Marketingu nové podujatie (od 2.0.90 po jednej položke v oblastiach Médiá a PR, Social média, Web a online, Tlačené) */
 const evMkt=e=>Array.isArray(e.mkt)?e.mkt:MKT_DEF.map(t=>({t,d:false}));
 const TEAM_SEC=[["tim","Tím","Člen tímu"],["partner","Partneri","Partner"],["sponzor","Sponzori","Sponzor"],["dobrovolnik","Dobrovoľníci","Dobrovoľník"]];
 const teamSecs=e=>Array.isArray(e.teamSecs)?e.teamSecs:TEAM_SEC;
