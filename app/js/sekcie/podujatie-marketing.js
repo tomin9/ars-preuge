@@ -1,9 +1,21 @@
 /* ===== Podujatie – záložka Marketing: oblasti vľavo; vedľa nich dva samostatné panely – zoznam položiek vybranej oblasti a vybraná položka
    (od 2.0.65 bez vysúvacieho bočného panela; do 2.0.63 bola záložka rozdelená na Plán a Harmonogram).
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-marketing.js. Nie je to samostatný skript.
-   Uložené v podujatí v poli mktPlan = {areas:[{id,title}],items:[{id,a,t,st,d,date,who,note,url,body,txid,docs}]} (st = stav: pripravit / vpriprave / pripravene / publikovane; d = staré „hotové“, drží sa v zhode s Publikované) (body = krátky text výstupu, txid = starý odkaz na dlhý text (od 2.0.54 sa nepoužíva – stal sa prepojením podkladu), docs = vlastné súbory a odkazy; zadania zo záložky Podklady sa pripájajú z ich strany – pole mk v zadaní). Staré pole mkt (odškrtávací zoznam) ostáva – kým sa plán prvý raz neuloží, skladá sa z neho. ===== */
-const MKA_DEF=[["pr","PR a médiá"],["soc","Sociálne siete"],["out","Reklama vonku"],["news","Newsletter"],["video","Video a reels"],["camp","Kampane"]];
-const MKA_RX=[["soc",/facebook|instagram|stories|tiktok|sociáln/i],["news",/newsletter/i],["video",/video|reel|foto/i],["out",/výlep|plagát|billboard|citylight|vizuál/i],["pr",/tlačov|rádi|médi|článok|web|kalendár/i]];
+   Uložené v podujatí v poli mktPlan = {v:2,areas:[{id,title}],items:[{id,a,t,st,d,date,who,note,url,body,txid,docs}]} (st = stav: pripravit / vpriprave / pripravene / publikovane; d = staré „hotové“, drží sa v zhode s Publikované) (body = krátky text výstupu, txid = starý odkaz na dlhý text (od 2.0.54 sa nepoužíva – stal sa prepojením podkladu), docs = vlastné súbory a odkazy; zadania zo záložky Podklady sa pripájajú z ich strany – pole mk v zadaní). Staré pole mkt (odškrtávací zoznam) ostáva – kým sa plán prvý raz neuloží, skladá sa z neho. ===== */
+const MKA_DEF=[["pr","Médiá a PR"],["soc","Social média"],["web","Web a online"],["print","Tlačené"],["part","Partnerstvá"]];   /* rozdelenie od 2.0.85 (predtým PR a médiá · Sociálne siete · Reklama vonku · Newsletter · Video a reels · Kampane) */
+const MKA_RX=[["pr",/tlačov|rádi|médi|článok|novin|televíz/i],["soc",/facebook|instagram|stories|tiktok|sociáln|reel/i],["web",/web|kalendár|newsletter|online|internet|video|foto/i],["print",/výlep|plagát|billboard|citylight|vizuál|leták|banner/i],["part",/partner|sponzor/i]];
+/* Uložený plán so starším rozdelením (bez v:2) sa na nové prevedie sám: oblasti si nechajú id aj položky, zmení sa len názov – PR a médiá → Médiá a PR,
+   Sociálne siete → Social média, oblasť s webom / internetom (alebo Newsletter) → Web a online, Reklama vonku → Tlačené – a doplnia sa chýbajúce.
+   Staré prázdne oblasti Newsletter, Video a reels a Kampane zmiznú; oblasti s položkami a vlastné oblasti ostanú za nimi. Zapíše sa pri najbližšej zmene (v:2). */
+function mkAlign(P){
+  const A=P.areas.map(a=>({...a})),used=id=>P.items.some(x=>x.a===id),taken=new Set(),out=[],soc=t=>/sociál|social/i.test(t);
+  const R=[["pr",["pr"],t=>/médi|^pr\b/i.test(t)&&!soc(t),"Médiá a PR"],["soc",["soc"],soc,"Social média"],["web",["web"],t=>/web|online|internet/i.test(t),"Web a online"],["print",["print","out"],t=>/tlačen|reklama vonku|plagát|výlep/i.test(t),"Tlačené"],["part",["part"],t=>/partner/i.test(t),"Partnerstvá"]];
+  R.forEach(([id,ids,rx,title])=>{let a=A.find(x=>!taken.has(x)&&ids.includes(x.id))||A.find(x=>!taken.has(x)&&rx(String(x.title||"")));
+    if(!a&&id==="web")a=A.find(x=>!taken.has(x)&&x.id==="news");   /* Newsletter je online */
+    if(a)a.title=title;else a={id,title};taken.add(a);out.push(a);});
+  A.forEach(a=>{if(!taken.has(a)&&!(["news","video","camp"].includes(a.id)&&!used(a.id)))out.push(a);});
+  return{areas:out,items:P.items};
+}
 /* stav položky (pole st): Pripraviť · V príprave · Pripravené · Publikované. Staré d = hotové sa číta ako Publikované a drží sa s ním v zhode (počíta s ním Kalendár). */
 const MK_ST=[["pripravit","Pripraviť",GRAY],["vpriprave","V príprave",ORANGE],["pripravene","Pripravené",BLUE],["publikovane","Publikované",GREEN]];
 const mkStat=it=>MK_ST.some(x=>x[0]===it.st)?it.st:(it.d?"publikovane":"pripravit");
@@ -12,7 +24,7 @@ const mkPub=it=>mkStat(it)==="publikovane";
 const mkDM=d=>{const p=String(d||"").split("-");return p.length===3?`${+p[2]}. ${+p[1]}.`:"";};   /* dátum len ako deň a mesiac */
 const mkDue=it=>it.date?(!mkPub(it)&&daysTo(it.date)<0?`<span class="late">${mkDM(it.date)}</span>`:mkDM(it.date)):"";
 function evPlan(e){
-  if(e.mktPlan&&Array.isArray(e.mktPlan.items))return{areas:Array.isArray(e.mktPlan.areas)?e.mktPlan.areas:[],items:e.mktPlan.items};
+  if(e.mktPlan&&Array.isArray(e.mktPlan.items)){const P={areas:Array.isArray(e.mktPlan.areas)?e.mktPlan.areas:[],items:e.mktPlan.items};return e.mktPlan.v>=2?P:mkAlign(P);}
   const areas=MKA_DEF.map(([id,title])=>({id,title}));let other=false;
   const items=evMkt(e).map((x,i)=>{const m=MKA_RX.find(r=>r[1].test(x.t||""));if(!m)other=true;return{id:"m"+i,a:m?m[0]:"ost",t:x.t||"",d:!!x.d,date:"",who:"",note:"",url:""};});
   if(other)areas.push({id:"ost",title:"Ostatné"});
@@ -23,7 +35,7 @@ const mkCol=(P,aid)=>{const i=P.areas.findIndex(a=>a.id===aid);return i<0?GRAY:T
 const mkSt=eid=>{S._mk=S._mk||{};const u=S._mk[eid]=S._mk[eid]||{sel:"",item:{}};u.item=u.item||{};return u;};   /* vybraná oblasť a vybraná položka v každej oblasti */
 const mkId=()=>"k"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 /* zmena plánu: fn dostane kópiu {areas,items} a upraví ju */
-function mkSet(eid,fn){const e0=get("events",eid);if(!e0||!mkEd(e0))return Promise.resolve();const P=evPlan(e0),N={areas:P.areas.map(a=>({...a})),items:P.items.map(i=>({...i}))};fn(N);return upd("events",eid,{mktPlan:N});}
+function mkSet(eid,fn){const e0=get("events",eid);if(!e0||!mkEd(e0))return Promise.resolve();const P=evPlan(e0),N={areas:P.areas.map(a=>({...a})),items:P.items.map(i=>({...i}))};fn(N);return upd("events",eid,{mktPlan:{v:2,areas:N.areas,items:N.items}});}
 const mkOne=(eid,iid,fn)=>mkSet(eid,N=>{const x=N.items.find(y=>y.id===iid);if(x)fn(x);});
 /* riadok zoznamu: dátum (len deň a mesiac, bez dátumu ikona kalendára) · bodka stavu (klik ho zmení) · názov (klik položku vyberie) */
 function mkRow(e,it,on){
