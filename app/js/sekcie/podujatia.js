@@ -48,7 +48,7 @@ VIEWS.podujatie=()=>{
     <div class="row" style="flex:none;flex-wrap:nowrap;gap:8px">${chip("estat",e.status)}${driveIco(folderId(e.driveFolder))}<button class="evedit" data-peek="events:${id}" title="Upraviť" aria-label="Upraviť podujatie">${PEN}</button></div></div>
     <div class="facts evf"><div class="evfi"><span class="evic" role="img" aria-label="Dátum" title="Dátum">${ICON.kalendar}</span><div><b>${when||"—"}</b>${rel?`<span>${rel}</span>`:""}</div></div>
       <div class="evfi evmiesto"><span class="evic" role="img" aria-label="Miesto" title="Miesto">${EV_PIN}</span><div><b>${esc(e.place||"—")}</b></div></div></div>
-    ${url?`<div class="row" style="margin-top:14px"><a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">Odkaz na podujatie</a></div>`:""}
+    ${url?`<div class="row" style="margin-top:14px"><a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">FB event</a></div>`:""}
     ${e.note?`<p class="desc">${esc(e.note)}</p>`:""}</div></section>
   ${eventTabs(e)}`;
 };

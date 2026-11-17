@@ -44,7 +44,7 @@ const ENT={
   events:{col:"events",one:"Podujatie",many:"Podujatia",title:"name",fields:[
     {k:"cover",l:"Plagát / obrázok",t:"image"},{k:"status",l:"Stav",t:"sel",o:"estat"},{k:"date",l:"Dátum",t:"date"},{k:"dateTo",l:"Do (viacdňové)",t:"date"},{k:"time",l:"Čas",t:"text",ph:"napr. 17.00 – 23.00"},
     {k:"place",l:"Miesto",t:"text"},{k:"projectId",l:"Projekt",t:"rel",e:"projects"},{k:"grantIds",l:"Granty",t:"mrel",e:"grants"},
-    {k:"lead",l:"Zodpovedný",t:"person"},{k:"visitors",l:"Návštevnosť",t:"num"},{k:"url",l:"Odkaz",t:"url"},{k:"driveFolder",l:"Priečinok na Disku",t:"url"},{k:"note",l:"Poznámky",t:"long"}]},
+    {k:"lead",l:"Zodpovedný",t:"person"},{k:"visitors",l:"Návštevnosť",t:"num"},{k:"url",l:"FB event",t:"url"},{k:"driveFolder",l:"Priečinok na Disku",t:"url"},{k:"note",l:"Poznámky",t:"long"}]},
   tasks:{col:"tasks",one:"Úloha",many:"Úlohy",title:"title",fields:[
     {k:"status",l:"Stav",t:"sel",o:"tstat"},{k:"assignee",l:"Zodpovedný",t:"person"},{k:"due",l:"Termín",t:"date"},
     {k:"priority",l:"Priorita",t:"sel",o:"prio"},{k:"projectId",l:"Projekt",t:"rel",e:"projects"},{k:"grantId",l:"Grant",t:"rel",e:"grants"},
