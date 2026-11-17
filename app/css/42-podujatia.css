@@ -221,7 +221,8 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .drpl li{gap:10px;padding:5px 0}
 .drpl .drgrip{flex:none;cursor:grab;color:var(--muted);opacity:.5;-webkit-user-select:none;user-select:none;font-size:15px;line-height:1;margin-left:-4px}
 .drpl .drgrip:hover{opacity:1}
-.drpl select.drpday{flex:none;width:auto;border:0;background:transparent;padding:0;color:var(--muted);font-size:13.5px;box-shadow:none;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none}
+.drpl li.drpdh{border-top:0;padding:18px 0 6px;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}   /* deň nad skupinou bodov programu */
+.drpl li.drpdh:first-child{padding-top:8px}
 .drpl input.drptime,.drpl input.drptitle{min-width:0;border:0;border-radius:0;background:transparent;padding:0;box-shadow:none;outline:none}
 .drpl input.drptime{flex:none;box-sizing:content-box;color:var(--muted);font-variant-numeric:tabular-nums}
 .drpl input.drptitle{flex:1}
@@ -233,9 +234,9 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 @media(max-width:860px){
   .drpl li{flex-wrap:wrap;gap:6px 10px}
   .drpl li>.meta{display:none}
-  .drpl input.drptitle{order:9;flex:1 1 100%;margin-left:18px}   /* na mobile je názov na vlastnom riadku pod dňom a časom */
+  .drpl input.drptitle{order:9;flex:1 1 100%;margin-left:18px}   /* na mobile je názov na vlastnom riadku pod časom */
   .drpl li>.tplus:first-of-type{margin-left:auto}
-  .drpl li.mknew{flex-wrap:nowrap}
+  .drpl li.mknew,.drpl li.drpdh{flex-wrap:nowrap}
 }
 .gnew.dradd{width:100%;box-sizing:border-box;min-height:64px;margin-top:18px}   /* „+ Pridať dielo“ pod posledným dielom bloku */
 /* karta diela v Dramaturgii: fotka vľavo sa dá pridať, zmeniť a odstrániť (tlačidlá ako pri titulnom obrázku); pod autorom popis */

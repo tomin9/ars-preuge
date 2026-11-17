@@ -135,15 +135,25 @@ function dramaturgiaTab(e){
 /* ===== Program (od 2.0.84): riadky deň · čas · názov. Deň je len pri viacdňovom podujatí. Riadok sa dá chytiť (úchyt vľavo) a presunúť,
    pridáva sa v prázdnom riadku za posledným („16.00 Otvorenie“ + Enter – čas na začiatku sa rozpozná). Ikona vpravo rozbalí pod zoznamom
    kartu bodu s podrobnosťami (fotka, účinkujúci, popis, Údaje). Dáta: záznamy programItems s kind sprievodny – polia time, date (deň), ord (poradie). ===== */
+const DR_WDL=["Nedeľa","Pondelok","Utorok","Streda","Štvrtok","Piatok","Sobota"];
+const drDayHead=d=>{const[,m,dd]=d.split("-");return`${DR_WDL[drWd(d)]||""} ${+dd}. ${+m}.`;};
+/* Program je od 2.0.98 zoskupený podľa dňa: nad skupinou dátum (pri jednodňovom podujatí jeho dátum), riadok začína časom. Každý deň má na konci prázdny
+   riadok na pridanie. Riadok sa dá chytiť a presunúť aj do iného dňa (dostane jeho dátum). Kôš pri riadkoch je len v úprave – ceruzka hore (ui.pedit). */
 function drProgram(e,ALL,B,ed){
-  const id=esc(e.id),ui=drUi(e.id),P=drProg(ALL),D=drDays(e),tw=Math.max(5,...P.map(x=>String(x.time||"").length)),ro=ed?"":" readonly";
-  const op=ui.open&&P.find(x=>x.id===ui.open.id);
+  const id=esc(e.id),ui=drUi(e.id),P=drProg(ALL),D=drDays(e),SD=D.length?D:(e.date?[e.date]:[]),pe=ed&&!!ui.pedit,ro=ed?"":" readonly";
+  const tw=Math.max(5,...P.map(x=>String(x.time||"").length)),op=ui.open&&P.find(x=>x.id===ui.open.id);
+  const keyOf=x=>D.length?drPDate(x,D):(SD[0]||"");
+  const days=[...SD,...[...new Set(P.map(keyOf))].filter(d=>d&&!SD.includes(d)).sort()],G=days.map(d=>({d,L:P.filter(x=>keyOf(x)===d)}));
+  const nod=P.filter(x=>!keyOf(x));if(nod.length||!G.length)G.push({d:"",L:nod});   /* bez dňa – pri podujatí bez dátumu je to jediná skupina, bez nadpisu */
   const more='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
-  const row=r=>{const rid=esc(r.id),k=`${id}|${rid}`,on=!!op&&op.id===r.id,cur=drPDate(r,D),meta=[r.author,r.place].filter(Boolean).join(" · ");
-    const day=D.length?`<select class="drpday" data-drpf="${rid}|date" aria-label="Deň" title="Deň"${ed?"":" disabled"}><option value="">deň</option>${[...D,...(cur&&!D.includes(cur)?[cur]:[])].map(d=>`<option value="${d}" ${d===cur?"selected":""}>${esc(drDayLab(d))}</option>`).join("")}</select>`:"";
-    return`<li class="${on?"sel":""}" data-drprow="${rid}">${ed?`<span class="drgrip" draggable="true" data-drpdrag="${k}" title="Potiahnutím zmeníte poradie" aria-hidden="true">⠿</span>`:""}${day}<input type="text" class="drptime" id="dr-p-${rid}-c" data-keep data-drpf="${rid}|time" value="${esc(r.time||"")}" placeholder="čas" aria-label="Čas" maxlength="24" style="width:calc(${tw}ch + 8px)"${ro}><input type="text" class="drptitle" id="dr-p-${rid}-n" data-keep data-drpf="${rid}|title" value="${esc(r.title||"")}" placeholder="Názov bodu programu" aria-label="Názov" maxlength="140"${ro}>${meta?`<span class="meta">${esc(meta)}</span>`:""}<button type="button" class="tplus${on?" on":""}" data-drpopen="${k}" title="Podrobnosti" aria-label="Podrobnosti" aria-pressed="${on}">${more}</button>${ed?`<button type="button" class="tplus tdel" data-drdel="${rid}" title="Odstrániť" aria-label="Odstrániť">${TI.del}</button>`:""}</li>`;};
-  return`<div class="pkcol"><div class="panel txmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Dramaturgia / ${esc(e.name||"Podujatie")}</div><div class="txtitle" style="font-size:28px;font-weight:600;margin-top:6px">Program</div></div></div>
-    ${ed||P.length?`<ul class="mkl drpl">${P.map(row).join("")}${ed?`<li class="mknew" data-drpend="${id}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><input type="text" id="dr-padd" data-keep data-drpadd="${id}" placeholder="Čas a názov – napr. 16.00 Otvorenie" maxlength="160" aria-label="Pridať bod programu"></li>`:""}</ul>`:`<div class="empty" style="padding:26px">Program zatiaľ nemá žiadne body.</div>`}</div>
+  const plus='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+  const row=(r,d)=>{const rid=esc(r.id),k=`${id}|${rid}`,on=!!op&&op.id===r.id,meta=[r.author,r.place].filter(Boolean).join(" · ");
+    return`<li class="${on?"sel":""}" data-drprow="${rid}" data-drpday="${esc(d)}">${ed?`<span class="drgrip" draggable="true" data-drpdrag="${k}" title="Potiahnutím zmeníte poradie alebo deň" aria-hidden="true">⠿</span>`:""}<input type="text" class="drptime" id="dr-p-${rid}-c" data-keep data-drpf="${rid}|time" value="${esc(r.time||"")}" placeholder="čas" aria-label="Čas" maxlength="24" style="width:calc(${tw}ch + 8px)"${ro}><input type="text" class="drptitle" id="dr-p-${rid}-n" data-keep data-drpf="${rid}|title" value="${esc(r.title||"")}" placeholder="Názov bodu programu" aria-label="Názov" maxlength="140"${ro}>${meta?`<span class="meta">${esc(meta)}</span>`:""}<button type="button" class="tplus${on?" on":""}" data-drpopen="${k}" title="Podrobnosti" aria-label="Podrobnosti" aria-pressed="${on}">${more}</button>${pe?`<button type="button" class="tplus tdel" data-drdel="${rid}" title="Odstrániť" aria-label="Odstrániť">${TI.del}</button>`:""}</li>`;};
+  const addRow=(d,n)=>ed&&(d||!SD.length)?`<li class="mknew" data-drpend="${id}|${esc(d)}">${plus}<input type="text" id="dr-padd-${esc(d||"x")}" data-keep data-drpadd="${id}|${esc(d)}" placeholder="${n?"Čas a názov…":"Čas a názov – napr. 16.00 Otvorenie"}" maxlength="160" aria-label="Pridať bod programu${d?" – "+esc(drDayHead(d)):""}"></li>`:"";
+  const list=G.map((g,n)=>`${SD.length?`<li class="drpdh">${g.d?esc(drDayHead(g.d)):"Bez dňa"}</li>`:""}${g.L.map(r=>row(r,g.d)).join("")}${addRow(g.d,n)}`).join("");
+  return`<div class="pkcol"><div class="panel txmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Dramaturgia / ${esc(e.name||"Podujatie")}</div><div class="txtitle" style="font-size:28px;font-weight:600;margin-top:6px">Program</div></div>
+      ${ed&&P.length?`<div class="row" style="flex:none;gap:4px"><button type="button" class="tplus${pe?" on":""}" data-drpedit="${id}" title="${pe?"Hotovo":"Upraviť – odstraňovanie bodov programu"}" aria-label="Upraviť program" aria-pressed="${pe}">${TI.edit}</button></div>`:""}</div>
+    ${ed||P.length?`<ul class="mkl drpl">${list}</ul>`:`<div class="empty" style="padding:26px">Program zatiaľ nemá žiadne body.</div>`}</div>
     ${op?`<div class="zb-list">${drCard(e,op,B,ed)}</div>`:""}</div>`;
 }
 /* ===== Mapa: skutočná mapa (Leaflet + podklad OpenStreetMap, knižnica sa stiahne až pri otvorení) so špendlíkmi diel.
@@ -273,8 +283,8 @@ function drOpen(id){const r=get("prog",id),e0=r&&r.eventId&&get("events",r.event
   setTimeout(()=>{const c=document.getElementById("dr-card-"+id);if(c&&c.scrollIntoView)c.scrollIntoView({block:"start"});},80);return true;}
 document.addEventListener("keydown",async ev=>{const t=ev.target;if(!t||ev.key!=="Enter")return;
   if(t.id==="dr-sec-t"||(t.tagName==="INPUT"&&t.dataset&&(t.dataset.drh||t.dataset.drpf))){t.blur();return;}
-  if(!t.dataset||!t.dataset.drpadd)return;const v=t.value.replace(/\s+/g," ").trim();if(!v)return;const eid=t.dataset.drpadd,e0=get("events",eid);if(!e0)return;t.value="";   /* nový bod programu: „16.00 Otvorenie“ → čas a názov */
-  const m=v.match(/^(\d{1,2}[.:]\d{2}(?:\s*[–-]\s*\d{1,2}[.:]\d{2})?)\s+(.+)$/),P=drProg(drItems(e0)),D=drDays(e0),last=P[P.length-1],date=D.length?(last?drPDate(last,D):D[0]):"";
+  if(!t.dataset||!t.dataset.drpadd)return;const v=t.value.replace(/\s+/g," ").trim();if(!v)return;const[eid,dd]=drCut(t.dataset.drpadd),e0=get("events",eid);if(!e0)return;t.value="";   /* nový bod programu: „16.00 Otvorenie“ → čas a názov, v dni, kde sa písal */
+  const m=v.match(/^(\d{1,2}[.:]\d{2}(?:\s*[–-]\s*\d{1,2}[.:]\d{2})?)\s+(.+)$/),P=drProg(drItems(e0)),date=drDays(e0).length?dd:"";
   await add("prog",{eventId:eid,kind:"sprievodny",section:DR_SP,status:"nevybavene",day:drDayKey(date),date,time:m?m[1]:"",title:m?m[2]:v,ord:drNextOrd(P)});});
 /* bod programu sa dá chytiť za úchyt a presunúť: pustením na iný riadok ide pred neho, na prázdny riadok na koniec; poradie sa zapíše do poľa ord */
 (()=>{let pd=null;
@@ -285,7 +295,11 @@ document.addEventListener("keydown",async ev=>{const t=ev.target;if(!t||ev.key!=
     if(li){if(li.dataset.drprow!==pd.rid){ev.preventDefault();li.classList.add("rowdrop");}}else if(end){ev.preventDefault();end.classList.add("rowdrop");}});
   document.addEventListener("drop",ev=>{if(!pd)return;const li=at(ev,".drpl li[data-drprow]"),end=at(ev,".drpl li[data-drpend]");if(!li&&!end)return;ev.preventDefault();
     const{eid,rid}=pd;pd=null;clear();const e0=get("events",eid);if(!e0||(li&&li.dataset.drprow===rid))return;
-    const ids=drProg(drItems(e0)).map(x=>x.id).filter(x=>x!==rid),j=li?ids.indexOf(li.dataset.drprow):-1;ids.splice(j<0?ids.length:j,0,rid);
+    const D=drDays(e0),day=li?li.dataset.drpday:drCut(end.dataset.drpend)[1],L=drProg(drItems(e0)),key=x=>D.length?drPDate(x,D):"";
+    const ids=L.map(x=>x.id).filter(x=>x!==rid);let j=li?ids.indexOf(li.dataset.drprow):-1;
+    if(!li){const last=L.filter(x=>x.id!==rid&&key(x)===day).pop();j=last?ids.indexOf(last.id)+1:-1;}   /* na koniec dňa */
+    ids.splice(j<0?ids.length:j,0,rid);
+    const r0=get("prog",rid);if(D.length&&r0&&key(r0)!==day)upd("prog",rid,{date:day,day:drDayKey(day)});   /* presun do iného dňa */
     ids.forEach((x,i)=>{const r=get("prog",x);if(r&&(+r.ord||0)!==i+1)upd("prog",x,{ord:i+1});});});
   document.addEventListener("dragend",()=>{pd=null;clear();});
 })();   /* Enter v názve bloku alebo v názve / autorovi diela potvrdí a opustí pole */
@@ -313,6 +327,7 @@ document.addEventListener("change",ev=>{const t=ev.target;if(!t||!t.dataset)retu
   if(!t.dataset.drmapnote)return;const e0=get("events",t.dataset.drmapnote);if(e0)upd("events",e0.id,{dramMap:Object.assign({},e0.dramMap||{},{note:String(t.value).trim()})});});
 document.addEventListener("click",async ev=>{const q=s=>ev.target.closest&&ev.target.closest(s);let x;
   if((x=q("[data-drsel]"))){const[eid,key]=drCut(x.dataset.drsel),ui=drUi(eid);ui.sel=key==="koncept"?"":key;ui.place="";render();return;}
+  if((x=q("[data-drpedit]"))){const ui=drUi(x.dataset.drpedit);ui.pedit=!ui.pedit;render();return;}
   if((x=q("[data-drpopen]"))){const[eid,rid]=x.dataset.drpopen.split("|"),ui=drUi(eid);ui.open=ui.open&&ui.open.id===rid?null:{id:rid,part:"udaje"};render();   /* podrobnosti bodu programu pod zoznamom */
     if(ui.open)setTimeout(()=>{const c=document.getElementById("dr-card-"+rid);if(c&&c.scrollIntoView)c.scrollIntoView({block:"nearest"});},80);return;}
   if((x=q("[data-dradd]"))){const[eid,sec]=drCut(x.dataset.dradd),e0=get("events",eid);if(!e0)return;
