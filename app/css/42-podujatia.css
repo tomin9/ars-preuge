@@ -287,6 +287,8 @@ input[type=text].mkdt:focus{box-shadow:0 1px 0 var(--accent)}
 .mkpk{padding:8px 20px 14px;display:grid;gap:10px}
 .mkprops{display:grid;gap:8px;padding:12px 20px}
 .mkprops label{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.mkprops label.mkarea{display:none}   /* oblasť sa mení potiahnutím položky; výber ostáva len na dotykových zariadeniach, kde sa ťahať nedá */
+@media(hover:none){.mkprops label.mkarea{display:flex}}
 .mkprops label>input,.mkprops label>select,.mkprops label input[type=url]{flex:1;min-width:0}
 .pkrel{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-top:12px;padding:8px 14px 8px 26px}
 .pkrel>.pkh{min-height:0;margin:0 6px 0 0}
