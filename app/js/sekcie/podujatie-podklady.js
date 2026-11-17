@@ -53,10 +53,10 @@ function podkladyTab(e){
   if(!sec)return`<div class="panel"><div class="empty">Žiadne podklady.</div></div>`;
   const L=P.items.filter(x=>x.s===sec.id),it=L.find(x=>x.id===ui.sel[sec.id])||L[0],svg=(p,w)=>`<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
   const seg=`<div class="tabs seg segi pkseg" role="group" aria-label="Druh podkladu">${P.secs.map(a=>{const n=P.items.filter(x=>x.s===a.id).length;
-    return`<button type="button" data-pksec="${id}|${esc(a.id)}" aria-pressed="${a.id===sec.id}" title="${esc(a.title)}${n?` (${n})`:""}" aria-label="${esc(a.title)}">${svg(PK_IC[a.id]||PK_IC._,20)}</button>`;}).join("")}</div>`;
+    return`<button type="button" data-pksec="${id}|${esc(a.id)}" data-pkdrop="${esc(a.id)}" aria-pressed="${a.id===sec.id}" title="${esc(a.title)}${n?` (${n})`:""}" aria-label="${esc(a.title)}">${svg(PK_IC[a.id]||PK_IC._,20)}</button>`;}).join("")}</div>`;
   const list=L.map((x,i)=>{const sd=pkStDef(x);
-    return`<button type="button" class="txi${it&&x.id===it.id?" on":""}" data-pksel="${id}|${esc(sec.id)}|${esc(x.id)}">${svg(sec.id==="text"?TXI.ic[i%3]:(PK_IC[sec.id]||PK_IC._),22)}<span class="txt"><b>${esc(x.t||"Bez názvu")}</b><small>${esc(pkDesc(x))}</small></span><i class="txdot" style="background:${sd[2]}" title="${sd[1]}"></i></button>`;}).join("");
-  const add=ed?`${L.length?`<div class="gdsep"></div>`:""}<button type="button" class="txi txadd" data-pkadd="${id}|${esc(sec.id)}">${svg('<path d="M12 5v14M5 12h14"/>',22)}<span class="txt"><b>${(PK_ADD[sec.id]||PK_ADD._)[0]}</b></span></button>`:"";   /* čiara oddeľuje zoznam od pridania */
+    return`<div class="txi${it&&x.id===it.id?" on":""}" role="button" tabindex="0" id="pk-r-${esc(x.id)}" data-pksel="${id}|${esc(sec.id)}|${esc(x.id)}" data-pkrow="${esc(x.id)}"${ed?` draggable="true" data-pkdrag="${id}|${esc(x.id)}" title="Potiahnutím zmeníte poradie alebo presuniete na iný druh hore"`:""}>${svg(sec.id==="text"?TXI.ic[i%3]:(PK_IC[sec.id]||PK_IC._),22)}<span class="txt"><b>${esc(x.t||"Bez názvu")}</b><small>${esc(pkDesc(x))}</small></span><i class="txdot" style="background:${sd[2]}" title="${sd[1]}"></i></div>`;}).join("");
+  const add=ed?`${L.length?`<div class="gdsep"></div>`:""}<button type="button" class="txi txadd" data-pkadd="${id}|${esc(sec.id)}" data-pkend="${esc(sec.id)}">${svg('<path d="M12 5v14M5 12h14"/>',22)}<span class="txt"><b>${(PK_ADD[sec.id]||PK_ADD._)[0]}</b></span></button>`:"";   /* čiara oddeľuje zoznam od pridania */
   const main=it?`<div class="pkcol">${pkMain(e,P,sec,it,ed)}${pkRel(e,it,ed)}</div>`:`<div class="panel txmain" style="display:flex;align-items:center;justify-content:center;color:var(--muted);min-height:200px">Zatiaľ nič. ${ed?"Pridajte prvý podklad vľavo.":""}</div>`;
   return`<div class="txm"><div class="txlist">${seg}${list}${add}</div>${main}</div>`;
 }
@@ -156,3 +156,23 @@ document.addEventListener("click",async ev=>{const q=s=>ev.target.closest&&ev.ta
   if((x=q("[data-pkmkrm]"))){const[eid,iid,mid]=x.dataset.pkmkrm.split("|");pkOne(eid,iid,y=>{y.mk=(y.mk||[]).filter(i=>i!==mid);});return;}
   if((x=q("[data-pktaskrm]"))){const[eid,iid,tid]=x.dataset.pktaskrm.split("|");pkOne(eid,iid,y=>{y.tasks=(y.tasks||[]).filter(i=>i!==tid);});return;}
 });
+
+/* zadanie sa dá v zozname vľavo chytiť a presunúť (od 2.0.93, ako v Spoluprácach a Marketingu): pustením na iné zadanie ide pred neho, na „Pridať…“ na koniec,
+   pustením na ikonu iného druhu hore (Text · Grafika · Video · Dokumenty) sa presunie tam. Poradie = poradie v poli items. */
+(()=>{let pd=null;
+  const at=(ev,s)=>ev.target.closest&&ev.target.closest(s),unmark=()=>document.querySelectorAll(".txi.rowdrop,.pkseg .dropt").forEach(x=>x.classList.remove("rowdrop","dropt"));
+  const clear=()=>{unmark();document.querySelectorAll(".txi.dragging").forEach(x=>x.classList.remove("dragging"));};
+  const kind=()=>{const e0=get("events",pd.eid),it=e0&&evPk(e0).items.find(x=>x.id===pd.iid);return it?it.s:"";};
+  document.addEventListener("dragstart",ev=>{const g=at(ev,"[data-pkdrag]");if(!g)return;const[eid,iid]=g.dataset.pkdrag.split("|");pd={eid,iid};try{ev.dataTransfer.effectAllowed="move";ev.dataTransfer.setData("text/plain",iid);}catch(_){}setTimeout(()=>g.classList.add("dragging"),0);});
+  document.addEventListener("dragover",ev=>{if(!pd)return;const li=at(ev,".txi[data-pkrow]"),end=at(ev,".txi[data-pkend]"),sc=at(ev,".pkseg [data-pkdrop]");unmark();
+    if(li){if(li.dataset.pkrow!==pd.iid){ev.preventDefault();li.classList.add("rowdrop");}}
+    else if(end){ev.preventDefault();end.classList.add("rowdrop");}
+    else if(sc&&sc.dataset.pkdrop!==kind()){ev.preventDefault();sc.classList.add("dropt");}});
+  document.addEventListener("drop",ev=>{if(!pd)return;const li=at(ev,".txi[data-pkrow]"),end=at(ev,".txi[data-pkend]"),sc=at(ev,".pkseg [data-pkdrop]");if(!li&&!end&&!sc)return;ev.preventDefault();
+    const{eid,iid}=pd,from=kind();pd=null;clear();
+    if(li){const before=li.dataset.pkrow;if(before===iid)return;pkSet(eid,N=>{const i=N.items.findIndex(x=>x.id===iid);if(i<0)return;const[m]=N.items.splice(i,1),j=N.items.findIndex(x=>x.id===before);if(j<0){N.items.splice(i,0,m);return;}m.s=N.items[j].s;N.items.splice(j,0,m);});return;}
+    const sid=end?end.dataset.pkend:sc.dataset.pkdrop;if(!end&&sid===from)return;
+    pkSet(eid,N=>{const i=N.items.findIndex(x=>x.id===iid);if(i<0||!N.secs.some(a=>a.id===sid))return;const[m]=N.items.splice(i,1);m.s=sid;N.items.push(m);});});
+  document.addEventListener("dragend",()=>{pd=null;clear();});
+})();
+document.addEventListener("keydown",ev=>{const t=ev.target;if(!t||!t.dataset||!t.dataset.pksel||t.tagName==="BUTTON"||(ev.key!=="Enter"&&ev.key!==" "))return;ev.preventDefault();t.click();});   /* riadok zadania nie je tlačidlo – klávesnica ho vyberie rovnako */

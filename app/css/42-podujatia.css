@@ -80,6 +80,8 @@ table.lt td.t{display:flex;gap:8px;align-items:baseline;min-width:0}
 /* Spolupráce (od 2.0.75 vľavo zoznam sekcií, vpravo vybraná sekcia): sekcia sa dá v zozname chytiť a presunúť, človek pustiť na inú sekciu */
 .txi.dragging{opacity:.4}
 .txi.dropt{box-shadow:0 0 0 2px var(--accent)}
+.txi.rowdrop{box-shadow:inset 0 2px 0 var(--accent)}   /* Podklady: sem (pred tento riadok) sa pustí presúvané zadanie */
+.pkseg .dropt{box-shadow:inset 0 0 0 2px var(--accent)}   /* Podklady: ikona druhu, na ktorý sa zadanie presunie */
 .txmain.temain{overflow:visible}   /* ponuka kontaktov pri pridávaní presahuje panel (nesmie ju orezať pravidlo .txmain nižšie) */
 /* prázdny riadok za posledným: pole bez rámika, vyzerá ako ďalší riadok zoznamu; ponuka kontaktov sa otvára pod ním */
 .telist li.tenew{color:var(--muted);gap:6px}
