@@ -1,7 +1,7 @@
 /* ===== Podujatie – záložka Marketing: oblasti vľavo; vedľa nich dva samostatné panely – zoznam položiek vybranej oblasti a vybraná položka
    (od 2.0.65 bez vysúvacieho bočného panela; do 2.0.63 bola záložka rozdelená na Plán a Harmonogram).
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-marketing.js. Nie je to samostatný skript.
-   Uložené v podujatí v poli mktPlan = {v:2,areas:[{id,title}],items:[{id,a,t,st,d,date,who,note,url,body,txid,docs}]} (st = stav: pripravit / vpriprave / pripravene / publikovane; d = staré „hotové“, drží sa v zhode s Publikované) (body = krátky text výstupu, txid = starý odkaz na dlhý text (od 2.0.54 sa nepoužíva – stal sa prepojením podkladu), docs = vlastné súbory a odkazy; zadania zo záložky Podklady sa pripájajú z ich strany – pole mk v zadaní). Staré pole mkt (odškrtávací zoznam) ostáva – kým sa plán prvý raz neuloží, skladá sa z neho. ===== */
+   Uložené v podujatí v poli mktPlan = {v:2,areas:[{id,title}],items:[{id,a,t,st,d,date,who,note,url,out,body,txid,docs}]} (st = stav: pripravit / vpriprave / pripravene / publikovane; d = staré „hotové“, drží sa v zhode s Publikované) (body = krátky text výstupu, txid = starý odkaz na dlhý text (od 2.0.54 sa nepoužíva – stal sa prepojením podkladu), docs = vlastné súbory a odkazy; zadania zo záložky Podklady sa pripájajú z ich strany – pole mk v zadaní). Staré pole mkt (odškrtávací zoznam) ostáva – kým sa plán prvý raz neuloží, skladá sa z neho. ===== */
 const MKA_DEF=[["pr","Médiá a PR"],["soc","Social média"],["web","Web a online"],["print","Tlačené"],["part","Partnerstvá"]];   /* rozdelenie od 2.0.85 (predtým PR a médiá · Sociálne siete · Reklama vonku · Newsletter · Video a reels · Kampane) */
 const MKA_RX=[["pr",/tlačov|rádi|médi|článok|novin|televíz/i],["soc",/facebook|instagram|stories|tiktok|sociáln|reel/i],["web",/web|kalendár|newsletter|online|internet|video|foto/i],["print",/výlep|plagát|billboard|citylight|vizuál|leták|banner/i],["part",/partner|sponzor/i]];
 /* Uložený plán so starším rozdelením (bez v:2) sa na nové prevedie sám: oblasti si nechajú id aj položky, zmení sa len názov – PR a médiá → Médiá a PR,
@@ -59,9 +59,12 @@ function marketingTab(e){
     ${String(e.marketing||"").trim()?`<div class="panel" style="margin-top:18px"><h2>Poznámky</h2><p class="meta" style="margin:2px 0 0;white-space:normal">Staršie poznámky. Keď ich vymažete, toto pole zmizne.</p><textarea id="ev-mkt" placeholder="Hashtagy, kontakty na médiá, nápady…" style="width:100%;min-height:110px;margin-top:8px">${esc(e.marketing||"")}</textarea></div>`:""}`;
 }
 /* vybraná položka – samostatný panel vpravo od zoznamu: hlavička (bodka stavu, názov, termín, človek, kôš), Text, Podklady, Odkaz a oblasť, Poznámka */
+/* výstup položky – kde to vyšlo: odkazy a súbory v poli out (od 2.0.87, pridávajú sa ako pri podkladoch); starý jeden odkaz (pole url) sa číta ako prvý
+   a pole url sa ďalej drží v zhode s prvým odkazom */
+const mkOut=it=>Array.isArray(it.out)?it.out:(String(it.url||"").trim()?[{name:String(it.url).trim().replace(/^https?:\/\//i,"").replace(/\/$/,""),url:String(it.url).trim()}]:[]);
 function mkDetail(e,P,it,ed){
   const k=`${esc(e.id)}|${esc(it.id)}`,f=n=>`data-mkf="${k}|${n}"`,ro=ed?"":" readonly",dis=ed?"":" disabled",sd=mkStDef(it),due=mkDue(it),wn=it.who?personName(it.who):"";
-  const url=String(it.url||"").trim(),href=/^https?:\/\//i.test(url)?url:(url?"https://"+url:"");
+  const OUT=mkOut(it);
   const PK=evPk(e),LK=pkOfMk(e,it.id),docs=Array.isArray(it.docs)?it.docs:[],avail=PK.items.filter(x=>!(x.mk||[]).includes(it.id));
   const dBtn=ed?`<span class="gbndate"><button type="button" class="${due?"pkchip":"tplus"}" data-gbndate title="Dátum${it.date?": "+esc(fdateS(it.date)):""} – kliknutím ${it.date?"zmeníte":"vyberiete"}" aria-label="Dátum">${PK_CAL}${due?`<span>${due}</span>`:""}</button><input type="date" value="${esc(it.date||"")}" data-mkdate="${k}" tabindex="-1" aria-hidden="true"></span>`:(due?`<span class="pkchip ro">${PK_CAL}<span>${due}</span></span>`:"");
   const wBtn=ed?`<button type="button" class="${wn?"pkchip":"tplus"}" data-mkwhobtn="${k}" title="${wn?"Robí: "+esc(wn)+" – kliknutím zmeníte":"Prideliť človeka"}" aria-label="Prideliť človeka">${avatar(it.who||"")||PK_USER}${wn?`<span>${esc(wn)}</span>`:""}</button>
@@ -75,9 +78,10 @@ function mkDetail(e,P,it,ed){
       <textarea class="pkta" id="mk-body" rows="3" data-keep ${f("body")} placeholder="Text príspevku alebo výstupu…"${ro}>${esc(it.body||"")}</textarea></div>
     <div class="pkb pkout docslot" id="mk-out"><div class="pkh">Podklady${ed?`<span class="row" style="gap:2px;flex-wrap:nowrap"><label class="tplus" title="Nahrať súbor" aria-label="Nahrať súbor">${GD_I.up}<input type="file" multiple data-sdfile hidden></label><button type="button" class="tplus" data-sdlink title="Pridať odkaz" aria-label="Pridať odkaz">${GD_I.link}</button><label class="tplus pkv" title="Pripojiť podklad zo záložky Podklady alebo zadať nový">+ Pripojiť<select data-mkpkadd aria-label="Pripojiť podklad"><option value="">Pripojiť…</option>${PK.secs.map(a=>{const L=avail.filter(x=>x.s===a.id);return L.length?`<optgroup label="${esc(a.title)}">${L.map(x=>`<option value="${esc(x.id)}">${esc(x.t||"Bez názvu")}</option>`).join("")}</optgroup>`:"";}).join("")}<optgroup label="Zadať nový">${PK.secs.map(a=>`<option value="new:${esc(a.id)}">${esc((PK_ADD[a.id]||PK_ADD._)[1])}</option>`).join("")}</optgroup></select></label></span>`:""}</div>
       ${chips||thumbs?`<div class="mkpk">${chips?`<div class="pkchips">${chips}</div>`:""}${thumbs?`<div class="dr2-t">${thumbs}</div>`:""}</div>`:ed?`<div class="mkpk" style="padding-top:0"></div>`:`<div class="mkpk meta" style="white-space:normal">Zatiaľ nič.</div>`}</div>
-    <div class="pkb mkprops"><label>Odkaz<span class="row" style="gap:6px;flex:1;flex-wrap:nowrap"><input type="url" id="mk-url" data-keep ${f("url")} value="${esc(url)}" placeholder="https://… (kde to vyšlo)"${ro}>${href?`<a class="tplus" href="${esc(href)}" target="_blank" rel="noopener" title="Otvoriť odkaz" aria-label="Otvoriť odkaz">↗</a>`:""}</span></label>
-      <label class="mkarea">Oblasť<select ${f("a")}${dis}>${P.areas.map(a=>`<option value="${esc(a.id)}" ${a.id===it.a?"selected":""}>${esc(a.title)}</option>`).join("")}</select></label></div>
-    <div class="pkb pkout"><div class="pkh">Poznámka</div><textarea class="pkta" id="mk-note" rows="2" data-keep ${f("note")} placeholder="Poznámka…"${ro}>${esc(it.note||"")}</textarea></div>
+    <div class="pkb mkprops mkarea"><label>Oblasť<select ${f("a")}${dis}>${P.areas.map(a=>`<option value="${esc(a.id)}" ${a.id===it.a?"selected":""}>${esc(a.title)}</option>`).join("")}</select></label></div>
+    <div class="pkb pkout docslot" id="mk-res"><div class="pkh">Výstup${ed?`<span class="row" style="gap:2px;flex-wrap:nowrap"><label class="tplus" title="Nahrať súbor" aria-label="Nahrať súbor">${GD_I.up}<input type="file" multiple data-sdfile hidden></label><button type="button" class="tplus" data-sdlink title="Pridať odkaz – kde to vyšlo" aria-label="Pridať odkaz">${GD_I.link}</button></span>`:""}</div>
+      ${OUT.length?`<div class="mkpk">${pkGrid(OUT,ed)}</div>`:ed?`<div class="mkpk" style="padding-top:0"></div>`:`<div class="mkpk meta" style="white-space:normal">Zatiaľ nič.</div>`}</div>
+    ${String(it.note||"").trim()?`<div class="pkb pkout"><div class="pkh">Poznámka</div><textarea class="pkta" id="mk-note" rows="2" data-keep ${f("note")} placeholder="Poznámka…"${ro}>${esc(it.note||"")}</textarea></div>`:""}
   </div>`;
 }
 /* ovládanie, ktoré sa pripája po každom vykreslení stránky (volá bindView): výška polí, súbory a pripojené podklady */
@@ -85,6 +89,7 @@ function mkBind(v){
   const m=v.querySelector("#mk-main");if(!m)return;const[eid,iid]=m.dataset.mkmain.split("|");
   m.querySelectorAll("textarea.pkta").forEach(t=>pkGrow(t,true));
   const out=m.querySelector("#mk-out");if(out)mkPkBind(out,{eid,iid});
+  const res=m.querySelector("#mk-res");if(res)sdBind(res,eid,fn=>mkSet(eid,N=>{const x=N.items.find(y=>y.id===iid);if(x){x.out=fn(mkOut(x));x.url=(x.out.find(d=>d.url)||{}).url||"";}}),()=>{});
 }
 /* otvorenie položky odinakiaľ (Kalendár, prepojenie v podklade): prejde na záložku Marketing a vyberie ju */
 function mkOpen(eid,iid){const e0=get("events",eid),it=e0&&evPlan(e0).items.find(x=>x.id===iid);if(!it)return;closeDrawer();const st=mkSt(eid);st.sel=it.a;st.item[it.a]=iid;S.evtab="marketing";
