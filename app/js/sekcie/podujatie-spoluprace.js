@@ -1,6 +1,7 @@
 /* ===== Podujatie – zoznam záložiek, marketing a záložka Spolupráce (tím, partneri, sponzori, dobrovoľníci).
    Od 2.0.75 v rozložení ako Dramaturgia a Marketing: vľavo zoznam sekcií (počet ľudí, pod čiarou „Pridať sekciu“), vpravo vybraná sekcia –
-   názov sa dá prepísať, vedľa ceruzka (úprava ľudí v sekcii) a kôš, pod tým pole na pridanie kontaktu a zoznam ľudí. Dáta sa nezmenili.
+   názov sa dá prepísať, vedľa ceruzka (úprava ľudí v sekcii) a kôš, pod tým zoznam ľudí; pridáva sa v prázdnom riadku za posledným
+   (od 2.0.79 – písaním sa hľadá medzi kontaktmi a rolami). Dáta sa nezmenili.
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-spoluprace.js. Nie je to samostatný skript. ===== */
 const EVTABS=[["rozpocet","Rozpočet"],["ulohy","Úlohy"],["granty","Granty"],["dramaturgia","Dramaturgia"],["marketing","Marketing"],["podklady","Podklady"],["spoluprace","Spolupráce"],["fotky","Archív"],["zabezpecenie","Zabezpečenie"]];   /* Podklady od 2.0.54 nahrádzajú Texty a Dokumenty */
 const evTabsFor=e=>EVTABS.filter(t=>(t[0]!=="zabezpecenie"||zbFor(e))&&(t[0]!=="rozpocet"||accRead("ledger"))&&(t[0]!=="ulohy"||accRead("tasks"))&&(t[0]!=="granty"||accRead("grants")));
@@ -78,7 +79,7 @@ document.addEventListener("click",async ev=>{const dd=ev.target.closest&&ev.targ
     teUi(eid).sel="";await teUpd(eid,{teamSecs:teamSecs(e0).filter(x=>x[0]!==key)});return;}
 },true);
 document.addEventListener("keydown",ev=>{const t=ev.target;if(!t||!t.dataset||!t.dataset.tesel||(ev.key!=="Enter"&&ev.key!==" "))return;ev.preventDefault();t.click();});   /* riadok sekcie je ťahateľný blok, nie tlačidlo – klávesnica ho vyberie rovnako */
-/* pole „+ Pridať“ v hlavičke sekcie: hľadá medzi kontaktmi a rolami; ovládanie sa pripojí pri prvom vstupe do poľa (pole sa pri každom prekreslení vyrobí nanovo) */
+/* prázdny riadok za posledným človekom sekcie: písaním sa hľadá medzi kontaktmi a rolami; ovládanie sa pripojí pri prvom vstupe do poľa (pole sa pri každom prekreslení vyrobí nanovo) */
 document.addEventListener("focusin",ev=>{const inp=ev.target;if(!inp||!inp.dataset||!inp.dataset.teamfind||inp._te)return;inp._te=true;
   const[eid,key]=inp.dataset.teamfind.split("|"),list=inp.parentNode.querySelector(".tnlist");if(!list)return;let hits=[],act=0;
   let rolesAll=[];try{const m=new Map();Object.keys(TAGDEF).forEach(t=>tagVocab(t).forEach(x=>{if(Array.isArray(x)&&x[0]&&!m.has(x[0]))m.set(x[0],x);}));rolesAll=[...m.values()];}catch(er){console.warn("roles",er);}
@@ -87,7 +88,7 @@ document.addEventListener("focusin",ev=>{const inp=ev.target;if(!inp||!inp.datas
   const draw=()=>{try{const e0=teGet(eid),q=nrm(inp.value.trim());if(!e0||!q){hide();return;}const pool=teamPool(e0,key);let rh=[];
     try{rh=rolesAll.filter(r=>nrm(r[1]).includes(q)).map(r=>({isRole:true,role:r,list:pool.filter(c=>tagList(c).includes(r[0]))})).filter(x=>x.list.length);}catch(er){console.warn("role hits",er);}
     hits=[...rh,...pool.filter(c=>nrm(c.name).includes(q)).slice(0,8)];act=Math.min(act,Math.max(0,hits.length-1));
-    list.innerHTML=hits.length?hits.map(optHtml).join(""):`<div class="tnopt" style="cursor:default;color:var(--muted)"><span>Taký kontakt sa nenašiel (alebo už v podujatí je).</span></div>`;list.hidden=false;
+    list.innerHTML=hits.length?hits.map(optHtml).join(""):`<div class="tnopt" style="cursor:default;color:var(--muted)"><span>Taký kontakt sa nenašiel (alebo už v podujatí je).</span></div>`;list.hidden=false;if(list.scrollIntoView)list.scrollIntoView({block:"nearest"});   /* ponuka je pod posledným riadkom – nech ju vidno celú */
   }catch(er){console.error("team add",er);list.hidden=false;list.innerHTML=`<div class="tnopt"><span>Chyba pri hľadaní: ${esc(String(er&&er.message||er))}</span></div>`;}};
   const pick=c=>{if(!c)return;inp.value="";hide();if(c.isRole){(async()=>{for(const x of c.list)await teamAddContact(eid,key,x.id);toast(`Pridaných ${c.list.length} ${c.list.length===1?"kontakt":c.list.length<5?"kontakty":"kontaktov"} s rolou ${c.role[1]}.`);})();}else teamAddContact(eid,key,c.id);};
   inp.addEventListener("input",()=>{act=0;draw();});
@@ -118,8 +119,7 @@ function teamTab(e){
     const li=c=>`<li data-open="contacts:${esc(c.id)}" data-rowcid="${esc(c.id)}" data-rowkey="${esc(key)}"${ed?` draggable="true" data-trowdrag="${k}|${esc(c.id)}" title="Potiahnutím zmeníte poradie alebo presuniete do inej sekcie vľavo"`:""}><span class="t">${cIcon(c)}${esc(c.name||"Bez mena")}</span>${key==="tim"?`<span class="dutychips">${dutyArr(e,c.id).map((d,i)=>`<span class="tg sm" style="--tc:${dutyCol(d)}">${esc(d)}${edm?`<button type="button" class="dutyx" data-dutydel="${id}|${esc(c.id)}|${i}" aria-label="Odobrať úlohu" title="Odobrať">×</button>`:""}</span>`).join("")}${edm?`<input type="text" class="tg add dutynew" list="duty-dl" data-dutynew="${id}|${esc(c.id)}" placeholder="+ pridať" aria-label="Pridať úlohu" maxlength="40">`:""}</span>`:(key==="partner"||key==="sponzor")&&isEv?stSel(c):""}${edm?rm(c):""}</li>`;
     main=`<div class="panel txmain temain"><div class="txhead"><div style="min-width:0;flex:1">${kick}<input type="text" class="txtitle" value="${esc(sel[1])}" data-secren="${k}" aria-label="Názov sekcie" maxlength="40"${ed?"":" readonly"}></div>
         ${ed?`<div class="row" style="flex:none;gap:4px"><button type="button" class="tplus${edm?" on":""}" data-secedit="${k}" title="${key==="tim"?"Upraviť ľudí a ich úlohy":"Upraviť zoznam (odobrať)"}" aria-label="Upraviť sekciu ${esc(sel[1])}" aria-pressed="${edm}">${TI.edit}</button><button type="button" class="tplus tdel" data-secdel="${k}" title="Odstrániť sekciu" aria-label="Odstrániť sekciu ${esc(sel[1])}">${TI.del}</button></div>`:""}</div>
-      ${ed?`<div class="mkadd" style="padding-top:16px"><div class="teamnew"><input type="text" class="tnin" id="te-add" data-keep data-teamfind="${k}" placeholder="+ Pridať – napíšte meno alebo rolu…" autocomplete="off" spellcheck="false" aria-label="Pridať kontakt do sekcie ${esc(sel[1])}"><div class="tnlist" hidden></div></div></div>`:""}
-      ${L.length?`<ul class="items lk telist">${L.map(li).join("")}</ul>`:`<div class="empty">V tejto sekcii zatiaľ nikto nie je.</div>`}${key==="tim"?`<datalist id="duty-dl">${dutyList().map(v=>`<option value="${esc(v)}"></option>`).join("")}</datalist>`:""}</div>`;}
+      ${ed||L.length?`<ul class="items lk telist">${L.map(li).join("")}${ed?`<li class="teamnew tenew">${svg('<path d="M12 5v14M5 12h14"/>',18)}<input type="text" class="tnin" id="te-add" data-keep data-teamfind="${k}" placeholder="Pridať – meno alebo rola…" autocomplete="off" spellcheck="false" aria-label="Pridať kontakt do sekcie ${esc(sel[1])}"><div class="tnlist" hidden></div></li>`:""}</ul>`:`<div class="empty">V tejto sekcii zatiaľ nikto nie je.</div>`}${key==="tim"?`<datalist id="duty-dl">${dutyList().map(v=>`<option value="${esc(v)}"></option>`).join("")}</datalist>`:""}</div>`;}
   return`<div class="txm"><div class="txlist">${list}</div>${main}</div>`;
 }
 /* ===== Texty podujatia ===== */
