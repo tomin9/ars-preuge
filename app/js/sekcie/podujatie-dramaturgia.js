@@ -229,9 +229,8 @@ function drMapSync(host){
     const e0=get("events",eid);if(!e0||!host.isConnected)return;
     if(!DRL||DRL.eid!==eid){if(DRL){DRL.tiles.remove();try{DRL.map.remove();}catch(_){}}
       const el=document.createElement("div");el.className="drleaf";host.replaceChildren(el);
-      const map=L.map(el,{scrollWheelZoom:false}).setView(DR_CENTER,15);
+      const map=L.map(el,{scrollWheelZoom:true}).setView(DR_CENTER,15);   /* koliesko myši približuje hneď, keď je kurzor nad mapou (od 2.0.96; predtým až po kliknutí do mapy) */
       const tiles=drTiles(L,map,el);
-      map.on("focus",()=>map.scrollWheelZoom.enable());map.on("blur",()=>map.scrollWheelZoom.disable());   /* koliesko približuje až po kliknutí do mapy, inak posúva stránku */
       map.on("click",ev=>{const ui=drUi(eid),rid=ui.place;if(!rid)return;ui.place="";upd("prog",rid,{lat:+ev.latlng.lat.toFixed(6),lng:+ev.latlng.lng.toFixed(6)});});
       DRL={eid,el,map,tiles,dark:drDark(),layer:L.layerGroup().addTo(map),fitted:false};
     }else if(DRL.el.parentNode!==host)host.replaceChildren(DRL.el);
