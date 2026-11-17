@@ -182,18 +182,25 @@ const DR_GL=[["https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.js","https:
   ["https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.js","https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.css","https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"]];   /* hlavný zdroj a náhradný */
 const DR_OSM='© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
 let drGlP=null,drDkP=null;
-/* tmavý štýl OpenFreeMap je takmer čierny – od 2.0.94 sa prefarbí na farby tmavého režimu aplikácie: svetlejšie ulice, viditeľné budovy, čitateľné názvy */
-const DR_DARK={background:{"background-color":"#20242C"},landuse_residential:{"fill-color":"#22262E"},landcover_wood:{"fill-color":"#1E2823"},landuse_park:{"fill-color":"#1E2823"},
-  landcover_ice_shelf:{"fill-color":"#20242C"},landcover_glacier:{"fill-color":"#20242C"},water:{"fill-color":"#1B2633"},waterway:{"line-color":"#24344A"},
-  building:{"fill-color":"#2C313B","fill-outline-color":"#3B4250"},road_area_pier:{"fill-color":"#20242C"},road_pier:{"line-color":"#20242C"},
-  highway_path:{"line-color":"#3A404C"},highway_minor:{"line-color":"#434A58"},highway_major_casing:{"line-color":"#596276"},highway_major_inner:{"line-color":"#4B5363"},highway_major_subtle:{"line-color":"#4B5363"},
-  highway_motorway_casing:{"line-color":"#636D82"},highway_motorway_inner:{"line-color":"#556073"},highway_motorway_subtle:{"line-color":"#4B5363"},
-  "aeroway-taxiway":{"line-color":"#3A404C"},"aeroway-runway-casing":{"line-color":"#4B5363"},"aeroway-area":{"fill-color":"#2C313B"},"aeroway-runway":{"line-color":"#3A404C"},
-  highway_name_other:{"text-color":"#BCC3CF","text-halo-color":"#20242C"},highway_name_motorway:{"text-color":"#BCC3CF","text-halo-color":"#20242C"},water_name:{"text-color":"#86A0BE","text-halo-color":"#20242C"}};
-const drDarkOf=id=>DR_DARK[id]||(/^place_/.test(id)?{"text-color":"#D3D8E0","text-halo-color":"#20242C"}:/dashline$/.test(id)?{"line-color":"#20242C"}:/^railway/.test(id)?{"line-color":"#434A58"}:/^boundary/.test(id)?{"line-color":"#596276"}:null);
+/* tmavý štýl OpenFreeMap je takmer čierny – od 2.0.94 sa prefarbí (od 2.0.95 v tóne ukážky majiteľa): sivé pozadie, svetlejšie sivé ulice a budovy,
+   šalviovo zelené parky a trávniky, tmavomodrá voda, hnedosivé areály škôl a nemocníc, svetlé čitateľné názvy */
+const DR_DARK={background:{"background-color":"#2F2F2F"},landuse_residential:{"fill-color":"#2F2F2F"},landcover_wood:{"fill-color":"#4E614D"},landuse_park:{"fill-color":"#536652"},
+  landcover_ice_shelf:{"fill-color":"#2F2F2F"},landcover_glacier:{"fill-color":"#2F2F2F"},water:{"fill-color":"#3C475A"},waterway:{"line-color":"#3C475A"},
+  building:{"fill-color":"#3D3D3D","fill-outline-color":"#474747"},road_area_pier:{"fill-color":"#2F2F2F"},road_pier:{"line-color":"#2F2F2F"},
+  highway_path:{"line-color":"#474747"},highway_minor:{"line-color":"#55595D"},highway_major_casing:{"line-color":"#55595D"},highway_major_inner:{"line-color":"#5B5F63"},highway_major_subtle:{"line-color":"#55595D"},
+  highway_motorway_casing:{"line-color":"#5F6367"},highway_motorway_inner:{"line-color":"#64686C"},highway_motorway_subtle:{"line-color":"#55595D"},
+  "aeroway-taxiway":{"line-color":"#474747"},"aeroway-runway-casing":{"line-color":"#55595D"},"aeroway-area":{"fill-color":"#3D3D3D"},"aeroway-runway":{"line-color":"#474747"},
+  highway_name_other:{"text-color":"#D4D4D4","text-halo-color":"#2F2F2F"},highway_name_motorway:{"text-color":"#D4D4D4","text-halo-color":"#2F2F2F"},water_name:{"text-color":"#A3B2C8","text-halo-color":"#2F2F2F"}};
+const drDarkOf=id=>DR_DARK[id]||(/^place_/.test(id)?{"text-color":"#E2E2E2","text-halo-color":"#2F2F2F"}:/dashline$/.test(id)?{"line-color":"#2F2F2F"}:/^railway/.test(id)?{"line-color":"#4A4A4A"}:/^boundary/.test(id)?{"line-color":"#5F6367"}:null);
+/* vrstvy, ktoré tmavý štýl nemá a ukážka áno: trávniky (landcover grass), parky (vrstva park) a areály škôl a nemocníc – vložia sa pod vodu */
+const DR_DARK_ADD=[{id:"ar_grass",type:"fill",source:"openmaptiles","source-layer":"landcover",filter:["match",["get","class"],["grass"],true,false],paint:{"fill-color":"#536652"}},
+  {id:"ar_park",type:"fill",source:"openmaptiles","source-layer":"park",paint:{"fill-color":"#536652"}},
+  {id:"ar_inst",type:"fill",source:"openmaptiles","source-layer":"landuse",filter:["match",["get","class"],["school","university","college","kindergarten","hospital"],true,false],paint:{"fill-color":"#4A4942"}}];
 function drDarkStyle(){if(drDkP)return drDkP;
   drDkP=fetch("https://tiles.openfreemap.org/styles/dark").then(r=>{if(!r.ok)throw new Error("styl");return r.json();}).then(st=>{
     (st.layers||[]).forEach(l=>{const o=drDarkOf(l.id);if(!o)return;const pre=l.type==="symbol"?"text-":l.type+"-";l.paint=l.paint||{};Object.keys(o).forEach(k=>{if(k.startsWith(pre))l.paint[k]=o[k];});});
+    (st.layers||[]).forEach(l=>{if(/^highway_name/.test(l.id)&&l.layout)l.layout["text-transform"]="none";});   /* názvy ulíc normálnym písmom (nie VEĽKÝMI), ako v ukážke */
+    if(st.sources&&st.sources.openmaptiles&&Array.isArray(st.layers)){const w=st.layers.findIndex(l=>l.id==="water");st.layers.splice(w<0?1:w,0,...DR_DARK_ADD.map(l=>JSON.parse(JSON.stringify(l))));}
     return st;}).catch(er=>{drDkP=null;throw er;});
   return drDkP;}
 const drDark=()=>{const t=document.documentElement.dataset.theme;return t==="dark"||(t!=="light"&&!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches));};
