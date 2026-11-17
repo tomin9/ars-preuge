@@ -175,13 +175,27 @@ function drMap(e){
     ${rest.length?`<div class="gdbody"><div class="gdgrid">${rest.map(({d,i})=>`<div class="gdt"><a class="gdth" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Súbor")}">${gdThumb(d)}</a>${ed?`<button type="button" class="gdrm" data-sdrm="${i}" title="Odstrániť" aria-label="Odstrániť">${GD_I.del}</button>`:""}<a class="gdn" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Súbor")}">${esc(d.name||"Súbor")}</a></div>`).join("")}</div></div>`:""}
     ${String(M.note||"").trim()?`<div class="pkb pkout" style="border-top:1px solid var(--line)"><div class="pkh">Poznámka k mape</div><textarea class="pkta" id="dr-mapnote" rows="2" data-keep data-drmapnote="${id}" placeholder="Legenda, trasa, čo kde bude…"${ed?"":" readonly"}>${esc(M.note||"")}</textarea></div>`:""}</div>`;
 }
-/* Podklad mapy (od 2.0.92): jednoduchá mapa bez množstva značiek a nápisov – OpenFreeMap (štýl positron, v tmavom režime dark; vychádza z OpenStreetMap,
+/* Podklad mapy (od 2.0.92): jednoduchá mapa bez množstva značiek a nápisov – OpenFreeMap (štýl positron, v tmavom režime dark prefarbený – DR_DARK; vychádza z OpenStreetMap,
    bez kľúča). Kreslí ju knižnica MapLibre cez prepojenie s Leafletom – obe sa stiahnu až pri otvorení mapy. Keby sa knižnica alebo štýl nedali načítať
    (alebo prehliadač nevie WebGL), použije sa pôvodný podrobný podklad OpenStreetMap (trieda osm – v tmavom režime sa prefarbí). */
 const DR_GL=[["https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.js","https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.css","https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"],
   ["https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.js","https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.css","https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"]];   /* hlavný zdroj a náhradný */
 const DR_OSM='© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
-let drGlP=null;
+let drGlP=null,drDkP=null;
+/* tmavý štýl OpenFreeMap je takmer čierny – od 2.0.94 sa prefarbí na farby tmavého režimu aplikácie: svetlejšie ulice, viditeľné budovy, čitateľné názvy */
+const DR_DARK={background:{"background-color":"#20242C"},landuse_residential:{"fill-color":"#22262E"},landcover_wood:{"fill-color":"#1E2823"},landuse_park:{"fill-color":"#1E2823"},
+  landcover_ice_shelf:{"fill-color":"#20242C"},landcover_glacier:{"fill-color":"#20242C"},water:{"fill-color":"#1B2633"},waterway:{"line-color":"#24344A"},
+  building:{"fill-color":"#2C313B","fill-outline-color":"#3B4250"},road_area_pier:{"fill-color":"#20242C"},road_pier:{"line-color":"#20242C"},
+  highway_path:{"line-color":"#3A404C"},highway_minor:{"line-color":"#434A58"},highway_major_casing:{"line-color":"#596276"},highway_major_inner:{"line-color":"#4B5363"},highway_major_subtle:{"line-color":"#4B5363"},
+  highway_motorway_casing:{"line-color":"#636D82"},highway_motorway_inner:{"line-color":"#556073"},highway_motorway_subtle:{"line-color":"#4B5363"},
+  "aeroway-taxiway":{"line-color":"#3A404C"},"aeroway-runway-casing":{"line-color":"#4B5363"},"aeroway-area":{"fill-color":"#2C313B"},"aeroway-runway":{"line-color":"#3A404C"},
+  highway_name_other:{"text-color":"#BCC3CF","text-halo-color":"#20242C"},highway_name_motorway:{"text-color":"#BCC3CF","text-halo-color":"#20242C"},water_name:{"text-color":"#86A0BE","text-halo-color":"#20242C"}};
+const drDarkOf=id=>DR_DARK[id]||(/^place_/.test(id)?{"text-color":"#D3D8E0","text-halo-color":"#20242C"}:/dashline$/.test(id)?{"line-color":"#20242C"}:/^railway/.test(id)?{"line-color":"#434A58"}:/^boundary/.test(id)?{"line-color":"#596276"}:null);
+function drDarkStyle(){if(drDkP)return drDkP;
+  drDkP=fetch("https://tiles.openfreemap.org/styles/dark").then(r=>{if(!r.ok)throw new Error("styl");return r.json();}).then(st=>{
+    (st.layers||[]).forEach(l=>{const o=drDarkOf(l.id);if(!o)return;const pre=l.type==="symbol"?"text-":l.type+"-";l.paint=l.paint||{};Object.keys(o).forEach(k=>{if(k.startsWith(pre))l.paint[k]=o[k];});});
+    return st;}).catch(er=>{drDkP=null;throw er;});
+  return drDkP;}
 const drDark=()=>{const t=document.documentElement.dataset.theme;return t==="dark"||(t!=="light"&&!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches));};
 function drGl(L){if(window.maplibregl&&L.maplibreGL)return Promise.resolve();if(drGlP)return drGlP;
   const js=u=>new Promise((res,rej)=>{const sc=document.createElement("script");sc.src=u;sc.onload=()=>res();sc.onerror=()=>{sc.remove();rej(new Error("gl"));};document.head.appendChild(sc);});
@@ -194,8 +208,8 @@ function drTiles(L,map,el){
   const osm=()=>{if(H.dead||el.classList.contains("osm"))return;el.classList.add("osm");if(H.layer)try{H.layer.remove();}catch(_){}
     H.layer=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:DR_OSM}).addTo(map);};
   if(!window.WebGLRenderingContext){osm();return H;}
-  drGl(L).then(()=>{if(H.dead)return;let ok=false;
-    const gl=L.maplibreGL({style:"https://tiles.openfreemap.org/styles/"+(drDark()?"dark":"positron"),attribution:'<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a>, '+DR_OSM});
+  drGl(L).then(()=>drDark()?drDarkStyle():"https://tiles.openfreemap.org/styles/positron").then(style=>{if(H.dead)return;let ok=false;
+    const gl=L.maplibreGL({style,attribution:'<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a>, '+DR_OSM});
     H.layer=gl.addTo(map);const mm=gl.getMaplibreMap&&gl.getMaplibreMap();
     if(mm){mm.once("load",()=>{ok=true;});mm.on("error",()=>{if(!ok)osm();});}
   }).catch(osm);
