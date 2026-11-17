@@ -262,8 +262,10 @@ textarea.zb-desc:hover,textarea.zb-desc:focus{border-color:var(--line);backgroun
 .drleaf .leaflet-bar a{background:var(--surface);color:var(--ink);border-bottom-color:var(--line)}
 .drleaf .leaflet-control-attribution{background:color-mix(in srgb,var(--surface) 80%,transparent);color:var(--muted)}
 .drleaf .leaflet-control-attribution a{color:inherit}
-:root[data-theme="dark"] .drleaf .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.95) contrast(.86) saturate(.6)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .drleaf .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.95) contrast(.86) saturate(.6)}}
+/* jednoduchý podklad má vlastnú tmavú verziu; prefarbuje sa len náhradný podrobný podklad (trieda osm) */
+:root[data-theme="dark"] .drleaf.osm .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.95) contrast(.86) saturate(.6)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .drleaf.osm .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.95) contrast(.86) saturate(.6)}}
+.drleafw:last-child{border-bottom:0}
 .drplace{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 26px;background:var(--accent-soft);color:var(--ink);font-size:14px;border-bottom:1px solid var(--line)}
 .drmapinfo{display:grid;gap:12px}
 .drunpl{display:grid;gap:8px}

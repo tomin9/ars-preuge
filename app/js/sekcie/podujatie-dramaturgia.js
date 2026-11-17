@@ -30,7 +30,6 @@ function drSecs(e,ALL){
 }
 const drSecSave=(e0,B)=>upd("events",e0.id,{dramSecs:[...B.filter(b=>b.t).map(b=>({t:b.t,k:"dielo"})),...(Array.isArray(e0.dramSecs)?e0.dramSecs.filter(b=>b&&b.t&&b.k==="sprievodny"&&!B.some(y=>y.t===b.t)):[])]});
 const drBCol=(B,b)=>{if(!b||!b.t)return GRAY;const o=OPT.psec.find(p=>p[0]===b.t);return o?o[2]:TAGPAL[B.indexOf(b)%TAGPAL.length];};   /* farba bloku na mape */
-const drLab=(B,x)=>{if(drIsP(x))return"Program";const b=drSecOf(B,x);return(b&&b.t)||"Bez bloku";};   /* kam prvok patrí – na mape */
 const drColOf=(B,x)=>drIsP(x)?optC("psec",DR_SP):drBCol(B,drSecOf(B,x));
 const drGroups=(B,ALL)=>B.map(b=>({k:b.t,l:b.t||"Bez bloku",kind:"dielo",items:ALL.filter(x=>drSecOf(B,x)===b)}));
 /* ---- Program: body programu v ručnom poradí (pole ord; kým ho nemajú, podľa dňa a času). Pri viacdňovom podujatí má bod deň (pole date –
@@ -149,7 +148,7 @@ function drProgram(e,ALL,B,ed){
 }
 /* ===== Mapa: skutočná mapa (Leaflet + podklad OpenStreetMap, knižnica sa stiahne až pri otvorení) so špendlíkmi diel.
    Umiestnenie je v prvku programu (polia lat, lng): vyznačí sa kliknutím do mapy, špendlík sa dá potiahnuť. Farba = blok programu (drBCol).
-   Pod mapou ostali súbory, odkazy a poznámka z poľa dramMap podujatia. ===== */
+   Pod mapou sú od 2.0.92 len diela bez umiestnenia (na vyznačenie) a priložené súbory a odkazy z poľa dramMap podujatia; poznámka len tam, kde už je napísaná. ===== */
 const DR_LF=[["https://unpkg.com/leaflet@1.9.4/dist/leaflet.js","https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"],["https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js","https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"]];   /* knižnica mapy: hlavný zdroj a náhradný */
 const DR_CENTER=[48.7718,18.6268];   /* Prievidza – kým nie je vyznačené žiadne dielo */
 let DRL=null,drLfP=null;   /* DRL = {eid,el,map,layer,fitted}: mapa prežije prekreslenie stránky, jej prvok sa len vráti na miesto */
@@ -163,34 +162,59 @@ function drLeaf(){if(window.L&&window.L.map)return Promise.resolve(window.L);if(
   drLfP=one(0).catch(er=>{drLfP=null;throw er;});return drLfP;}
 function drMap(e){
   const ed=mkEd(e),pe=drEd(),id=esc(e.id),ui=drUi(e.id),ALL=drItems(e),ON=ALL.filter(drHasPos),OFF=ALL.filter(x=>!drHasPos(x)),placing=ui.place&&get("prog",ui.place);
-  const B=drSecs(e,ALL),drCol=x=>drColOf(B,x),lab=x=>drLab(B,x);
+  const B=drSecs(e,ALL),drCol=x=>drColOf(B,x);
   const M=e.dramMap||{},docs=(Array.isArray(M.docs)?M.docs:[]).map((d,i)=>({d,i})),isImg=d=>!!d.asset&&/\.(png|jpe?g|gif|webp|avif|svg)$/i.test(d.name||"");
   const imgs=docs.filter(x=>isImg(x.d)),rest=docs.filter(x=>!isImg(x.d));
   const rm=i=>ed?`<button type="button" class="tplus tdel" data-sdrm="${i}" title="Odstrániť" aria-label="Odstrániť">${TI.del}</button>`:"";
-  const leg=[...new Map(ON.map(x=>[lab(x),drCol(x)])).entries()].map(([l,c])=>`<span class="tg sm" style="--tc:${c}">${esc(l)}<span class="meta" style="margin-left:6px">${ON.filter(x=>lab(x)===l).length}</span></span>`).join("");
   return`<div class="panel txmain gdmain docslot" id="dr-map" data-drmap="${id}"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Dramaturgia / ${esc(e.name||"Podujatie")}</div><div class="txtitle" style="font-size:28px;font-weight:600;margin-top:6px">Mapa</div></div>
       ${ed?`<div class="row" style="flex:none;gap:4px"><label class="tplus" title="Priložiť súbor k mape (obrázok alebo PDF)" aria-label="Priložiť súbor k mape">${GD_I.up}<input type="file" multiple data-sdfile hidden></label><button type="button" class="tplus" data-sdlink title="Pridať odkaz k mape" aria-label="Pridať odkaz k mape">${GD_I.link}</button></div>`:""}</div>
     ${placing?`<div class="drplace"><span>Kliknite do mapy na miesto, kde bude <b>${esc(placing.title||"Bez názvu")}</b>.</span><button type="button" class="btn sm ghost" data-drplacex="${id}">Zrušiť</button></div>`:""}
     <div class="drleafw"><div id="dr-leaf" data-eid="${id}"><div class="gdempty" style="padding:26px">Načítavam mapu…</div></div></div>
-    <div class="pkb drmapinfo">${leg?`<div class="pkchips">${leg}</div>`:`<div class="meta" style="white-space:normal">Na mape zatiaľ nie je žiadne dielo.${pe&&OFF.length?" Vyberte dielo nižšie a kliknite do mapy.":""}</div>`}
-      ${OFF.length?`<div class="drunpl"><span class="pkh" style="margin:0;min-height:0">Bez umiestnenia · ${OFF.length}</span><div class="pkchips">${OFF.map(x=>pe?`<button type="button" class="tg sm${ui.place===x.id?" on":""}" style="--tc:${drCol(x)}" data-drplace="${id}|${esc(x.id)}" title="Vyznačiť na mape">${esc(x.title||"Bez názvu")}</button>`:`<span class="tg sm" style="--tc:${drCol(x)}">${esc(x.title||"Bez názvu")}</span>`).join("")}</div></div>`:""}</div>
+    ${OFF.length?`<div class="pkb drmapinfo"><div class="drunpl"><span class="pkh" style="margin:0;min-height:0">Bez umiestnenia · ${OFF.length}</span><div class="pkchips">${OFF.map(x=>pe?`<button type="button" class="tg sm${ui.place===x.id?" on":""}" style="--tc:${drCol(x)}" data-drplace="${id}|${esc(x.id)}" title="Vyznačiť na mape">${esc(x.title||"Bez názvu")}</button>`:`<span class="tg sm" style="--tc:${drCol(x)}">${esc(x.title||"Bez názvu")}</span>`).join("")}</div></div></div>`:""}
     ${imgs.map(({d,i})=>`<figure class="drmap"><a href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Mapa")}"><img src="${esc(docHref(d))}" alt="${esc(d.name||"Mapa")}" loading="lazy"></a><figcaption><span>${esc(d.name||"Mapa")}</span>${rm(i)}</figcaption></figure>`).join("")}
     ${rest.length?`<div class="gdbody"><div class="gdgrid">${rest.map(({d,i})=>`<div class="gdt"><a class="gdth" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Súbor")}">${gdThumb(d)}</a>${ed?`<button type="button" class="gdrm" data-sdrm="${i}" title="Odstrániť" aria-label="Odstrániť">${GD_I.del}</button>`:""}<a class="gdn" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Súbor")}">${esc(d.name||"Súbor")}</a></div>`).join("")}</div></div>`:""}
-    <div class="pkb pkout" style="border-top:1px solid var(--line)"><div class="pkh">Poznámka k mape</div><textarea class="pkta" id="dr-mapnote" rows="2" data-keep data-drmapnote="${id}" placeholder="Legenda, trasa, čo kde bude…"${ed?"":" readonly"}>${esc(M.note||"")}</textarea></div></div>`;
+    ${String(M.note||"").trim()?`<div class="pkb pkout" style="border-top:1px solid var(--line)"><div class="pkh">Poznámka k mape</div><textarea class="pkta" id="dr-mapnote" rows="2" data-keep data-drmapnote="${id}" placeholder="Legenda, trasa, čo kde bude…"${ed?"":" readonly"}>${esc(M.note||"")}</textarea></div>`:""}</div>`;
+}
+/* Podklad mapy (od 2.0.92): jednoduchá mapa bez množstva značiek a nápisov – OpenFreeMap (štýl positron, v tmavom režime dark; vychádza z OpenStreetMap,
+   bez kľúča). Kreslí ju knižnica MapLibre cez prepojenie s Leafletom – obe sa stiahnu až pri otvorení mapy. Keby sa knižnica alebo štýl nedali načítať
+   (alebo prehliadač nevie WebGL), použije sa pôvodný podrobný podklad OpenStreetMap (trieda osm – v tmavom režime sa prefarbí). */
+const DR_GL=[["https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.js","https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.css","https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"],
+  ["https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.js","https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.css","https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"]];   /* hlavný zdroj a náhradný */
+const DR_OSM='© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
+let drGlP=null;
+const drDark=()=>{const t=document.documentElement.dataset.theme;return t==="dark"||(t!=="light"&&!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches));};
+function drGl(L){if(window.maplibregl&&L.maplibreGL)return Promise.resolve();if(drGlP)return drGlP;
+  const js=u=>new Promise((res,rej)=>{const sc=document.createElement("script");sc.src=u;sc.onload=()=>res();sc.onerror=()=>{sc.remove();rej(new Error("gl"));};document.head.appendChild(sc);});
+  const one=i=>{if(i>=DR_GL.length)return Promise.reject(new Error("gl"));const c=document.createElement("link");c.rel="stylesheet";c.href=DR_GL[i][1];document.head.appendChild(c);
+    return js(DR_GL[i][0]).then(()=>js(DR_GL[i][2])).then(()=>{if(!(window.maplibregl&&L.maplibreGL))throw new Error("gl");}).catch(()=>{c.remove();return one(i+1);});};
+  drGlP=one(0).catch(er=>{drGlP=null;throw er;});return drGlP;}
+/* vráti „držiak“ podkladu {layer, remove()} – podklad sa doň doplní, keď sa načíta knižnica */
+function drTiles(L,map,el){
+  const H={layer:null,dead:false,remove(){H.dead=true;if(H.layer)try{H.layer.remove();}catch(_){}H.layer=null;}};el.classList.remove("osm");
+  const osm=()=>{if(H.dead||el.classList.contains("osm"))return;el.classList.add("osm");if(H.layer)try{H.layer.remove();}catch(_){}
+    H.layer=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:DR_OSM}).addTo(map);};
+  if(!window.WebGLRenderingContext){osm();return H;}
+  drGl(L).then(()=>{if(H.dead)return;let ok=false;
+    const gl=L.maplibreGL({style:"https://tiles.openfreemap.org/styles/"+(drDark()?"dark":"positron"),attribution:'<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a>, '+DR_OSM});
+    H.layer=gl.addTo(map);const mm=gl.getMaplibreMap&&gl.getMaplibreMap();
+    if(mm){mm.once("load",()=>{ok=true;});mm.on("error",()=>{if(!ok)osm();});}
+  }).catch(osm);
+  return H;
 }
 /* vloženie mapy na miesto po vykreslení stránky a obnovenie špendlíkov */
 function drMapSync(host){
   const eid=host.dataset.eid;
   drLeaf().then(L=>{
     const e0=get("events",eid);if(!e0||!host.isConnected)return;
-    if(!DRL||DRL.eid!==eid){if(DRL)try{DRL.map.remove();}catch(_){}
+    if(!DRL||DRL.eid!==eid){if(DRL){DRL.tiles.remove();try{DRL.map.remove();}catch(_){}}
       const el=document.createElement("div");el.className="drleaf";host.replaceChildren(el);
       const map=L.map(el,{scrollWheelZoom:false}).setView(DR_CENTER,15);
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(map);
+      const tiles=drTiles(L,map,el);
       map.on("focus",()=>map.scrollWheelZoom.enable());map.on("blur",()=>map.scrollWheelZoom.disable());   /* koliesko približuje až po kliknutí do mapy, inak posúva stránku */
       map.on("click",ev=>{const ui=drUi(eid),rid=ui.place;if(!rid)return;ui.place="";upd("prog",rid,{lat:+ev.latlng.lat.toFixed(6),lng:+ev.latlng.lng.toFixed(6)});});
-      DRL={eid,el,map,layer:L.layerGroup().addTo(map),fitted:false};
+      DRL={eid,el,map,tiles,dark:drDark(),layer:L.layerGroup().addTo(map),fitted:false};
     }else if(DRL.el.parentNode!==host)host.replaceChildren(DRL.el);
+    if(DRL.dark!==drDark()){DRL.tiles.remove();DRL.dark=drDark();DRL.tiles=drTiles(L,DRL.map,DRL.el);}   /* prepnutý svetlý / tmavý režim → podklad v správnej farbe */
     const ed=drEd(),ui=drUi(eid),ALL=drItems(e0),B=drSecs(e0,ALL),drCol=x=>drColOf(B,x),P=ALL.filter(drHasPos),map=DRL.map;
     map.invalidateSize();DRL.layer.clearLayers();DRL.el.classList.toggle("placing",!!ui.place);
     P.forEach(x=>{const m=L.marker([+x.lat,+x.lng],{icon:L.divIcon({className:"drpin",html:drPin(drCol(x)),iconSize:[26,34],iconAnchor:[13,33],popupAnchor:[0,-30]}),draggable:ed,title:x.title||"",alt:x.title||"Dielo"});
