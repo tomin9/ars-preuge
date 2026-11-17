@@ -113,7 +113,7 @@ function dramaturgiaTab(e){
   else if(orph)main=`<div class="pkcol">${zbLists()}${head("Zo Zabezpečenia","Tieto diela sú zatiaľ len v záložke Zabezpečenie. Zaraďte ich do bloku programu – objavia sa tam aj so svojím zabezpečením.")}<div class="zb-list">${O.map(z=>drOrphCard(e,z,ed&&accEdit("zab"))).join("")}</div></div>`;
   else if(mapa)main=drMap(e);
   else main=`<div class="panel txmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Dramaturgia / ${ename}</div><div class="txtitle" style="font-size:28px;font-weight:600;margin-top:6px">Koncept</div></div></div>
-      <div class="txw"><textarea class="txbody" id="ev-dram" data-keep placeholder="Téma, idea, dramaturgická línia podujatia…">${esc(e.dramaturgy||"")}</textarea></div><div class="txfoot" id="txstat">${txStat(e.dramaturgy)}</div></div>`;
+      <div class="txw"><textarea class="txbody" id="ev-dram" data-keep placeholder="Téma, idea, dramaturgická línia podujatia…">${esc(e.dramaturgy||"")}</textarea></div></div>`;   /* bez počtu slov pod textom (od 2.0.83) */
   return`<div class="txm"><div class="txlist drlist">${list}</div>${main}</div>`;
 }
 /* ===== Mapa: skutočná mapa (Leaflet + podklad OpenStreetMap, knižnica sa stiahne až pri otvorení) so špendlíkmi diel.
