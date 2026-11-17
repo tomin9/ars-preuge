@@ -46,7 +46,7 @@ VIEWS.podujatie=()=>{
   return`  <section class="hero evc cov" style="--pc:${esc(col)}">${cov?`<div class="evimg"><img src="${esc(cov)}" alt="" style="object-position:${esc(posOf(e))}"></div>`:`<div class="evimg" style="background:${gradFor(e.id)}"></div>`}
   <div class="evinfo"><div class="spread" style="align-items:flex-start;flex-wrap:nowrap"><div style="min-width:0"><h1>${esc(e.name||"Podujatie")}</h1></div>
     <div class="row" style="flex:none;flex-wrap:nowrap;gap:8px">${chip("estat",e.status)}${driveIco(folderId(e.driveFolder))}<button class="evedit" data-peek="events:${id}" title="Upraviť" aria-label="Upraviť podujatie">${PEN}</button></div></div>
-    <div class="facts evf"><div class="evfi"><span class="evic" role="img" aria-label="Dátum" title="Dátum">${ICON.kalendar}</span><div><b>${when||"—"}</b>${rel?`<span>${rel}</span>`:""}</div></div>
+    <div class="facts evf"><div class="evfi"><span class="evic" role="img" aria-label="Dátum" title="Dátum">${ICON.kalendar}</span><div><b>${when||"—"}</b>${rel?`<span class="evrel"> · ${rel}</span>`:""}</div></div>
       <div class="evfi evmiesto"><span class="evic" role="img" aria-label="Miesto" title="Miesto">${EV_PIN}</span><div><b>${esc(e.place||"—")}</b></div></div></div>
     ${url?`<div class="row" style="margin-top:14px"><a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">FB event</a></div>`:""}
     ${e.note?`<p class="desc">${esc(e.note)}</p>`:""}</div></section>
