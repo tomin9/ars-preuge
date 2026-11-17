@@ -191,8 +191,7 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .pkcol{min-width:0}
 .drmain{overflow:visible}
 .drlist .drsep{margin-bottom:8px}   /* čiara medzi Konceptom s Mapou a blokmi programu – pod ňou rovnaká medzera ako nad „Pridať blok“ */
-.drsech{flex-wrap:wrap}   /* hlavička bloku: na úzkej obrazovke ide typ bloku a kôš pod názov */
-.drsech>.row{margin-left:auto}
+.gnew.dradd{width:100%;box-sizing:border-box;min-height:64px;margin-top:18px}   /* „+ Pridať dielo“ pod posledným dielom bloku */
 .drleafw{position:relative;z-index:0;isolation:isolate;border-bottom:1px solid var(--line)}   /* vlastná vrstva – ovládanie mapy neprekryje okná a panely */
 .drleaf{height:520px;background:var(--surface2);font:inherit}
 .drleaf.placing,.drleaf.placing .leaflet-interactive{cursor:crosshair}
