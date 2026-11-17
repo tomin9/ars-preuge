@@ -3,7 +3,7 @@
    názov sa dá prepísať, vedľa ceruzka (úprava ľudí v sekcii) a kôš, pod tým zoznam ľudí; pridáva sa v prázdnom riadku za posledným
    (od 2.0.79 – písaním sa hľadá medzi kontaktmi a rolami). Dáta sa nezmenili.
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/sekcie/podujatie-spoluprace.js. Nie je to samostatný skript. ===== */
-const EVTABS=[["rozpocet","Rozpočet"],["ulohy","Úlohy"],["granty","Granty"],["dramaturgia","Dramaturgia"],["marketing","Marketing"],["podklady","Podklady"],["spoluprace","Spolupráce"],["fotky","Archív"],["zabezpecenie","Zabezpečenie"]];   /* Podklady od 2.0.54 nahrádzajú Texty a Dokumenty */
+const EVTABS=[["rozpocet","Rozpočet"],["ulohy","Úlohy"],["granty","Granty"],["dramaturgia","Dramaturgia"],["zabezpecenie","Zabezpečenie"],["marketing","Marketing"],["podklady","Podklady"],["spoluprace","Spolupráce"],["fotky","Archív"]];   /* Podklady od 2.0.54 nahrádzajú Texty a Dokumenty */
 const evTabsFor=e=>EVTABS.filter(t=>(t[0]!=="zabezpecenie"||zbFor(e))&&(t[0]!=="rozpocet"||accRead("ledger"))&&(t[0]!=="ulohy"||accRead("tasks"))&&(t[0]!=="granty"||accRead("grants")));
 const MKT_DEF=["Vizuál / plagát","Udalosť na Facebooku","Instagram – príspevky a stories","Web a kalendáre podujatí","Tlačová správa","Newsletter","Rádio a médiá","Výlep plagátov","Foto a video dokumentácia"];
 const evMkt=e=>Array.isArray(e.mkt)?e.mkt:MKT_DEF.map(t=>({t,d:false}));

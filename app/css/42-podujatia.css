@@ -202,6 +202,26 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .pkcol{min-width:0}
 .drmain{overflow:visible}
 .drlist .drsep{margin-bottom:8px}   /* čiara medzi Konceptom s Mapou a blokmi programu – pod ňou rovnaká medzera ako nad „Pridať blok“ */
+/* Dramaturgia – Program: riadky deň · čas · názov bez rámikov, úchyt na presúvanie vľavo, vpravo podrobnosti a kôš */
+.drpl li{gap:10px;padding:5px 0}
+.drpl .drgrip{flex:none;cursor:grab;color:var(--muted);opacity:.5;-webkit-user-select:none;user-select:none;font-size:15px;line-height:1;margin-left:-4px}
+.drpl .drgrip:hover{opacity:1}
+.drpl select.drpday{flex:none;width:auto;border:0;background:transparent;padding:0;color:var(--muted);font-size:13.5px;box-shadow:none;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none}
+.drpl input.drptime,.drpl input.drptitle{min-width:0;border:0;border-radius:0;background:transparent;padding:0;box-shadow:none;outline:none}
+.drpl input.drptime{flex:none;box-sizing:content-box;color:var(--muted);font-variant-numeric:tabular-nums}
+.drpl input.drptitle{flex:1}
+.drpl li:focus-within{box-shadow:inset 0 -1px 0 var(--accent)}
+.drpl li.sel input.drptitle{color:var(--accent);font-weight:600}
+.drpl li>.tplus{flex:none}
+.drpl li.mknew{padding:10px 0}
+.drpl li.mknew>svg{flex:none;margin-left:-3px}
+@media(max-width:860px){
+  .drpl li{flex-wrap:wrap;gap:6px 10px}
+  .drpl li>.meta{display:none}
+  .drpl input.drptitle{order:9;flex:1 1 100%;margin-left:18px}   /* na mobile je názov na vlastnom riadku pod dňom a časom */
+  .drpl li>.tplus:first-of-type{margin-left:auto}
+  .drpl li.mknew{flex-wrap:nowrap}
+}
 .gnew.dradd{width:100%;box-sizing:border-box;min-height:64px;margin-top:18px}   /* „+ Pridať dielo“ pod posledným dielom bloku */
 /* karta diela v Dramaturgii: fotka vľavo sa dá pridať, zmeniť a odstrániť (tlačidlá ako pri titulnom obrázku); pod autorom popis */
 .drph{position:relative}
