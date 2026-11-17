@@ -30,19 +30,18 @@ function mkRow(e,it,on){
   const k=`${esc(e.id)}|${esc(it.id)}`,ed=mkEd(e),sd=mkStDef(it);
   const dot=`<label class="gastdot" title="Stav: ${sd[1]}${ed?" – kliknutím zmeníte":""}"><i class="txdot" style="background:${sd[2]}"></i>${ed?`<select data-mkst="${k}" aria-label="Stav">${MK_ST.map(([v,l])=>`<option value="${v}"${v===sd[0]?" selected":""}>${l}</option>`).join("")}</select>`:""}</label>`;
   const date=ed?`<span class="gbndate"><button type="button" class="tplus pkv" data-gbndate title="${it.date?"Dátum: "+esc(fdateS(it.date))+" – kliknutím zmeníte":"Vybrať dátum"}" aria-label="Dátum">${it.date?`<span>${mkDue(it)}</span>`:PK_CAL}</button><input type="date" value="${esc(it.date||"")}" data-mkdate="${k}" tabindex="-1" aria-hidden="true"></span>`:`<span class="dt">${mkDue(it)}</span>`;
-  return`<li class="${mkPub(it)?"on":""}${on?" sel":""}">${date}${dot}<button type="button" class="t" data-mkopen="${k}">${esc(it.t||"Bez názvu")}</button>${String(it.body||"").trim()||pkOfMk(e,it.id).some(pkHasText)?`<span class="meta mki" title="Má text"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${TXI.ic[0]}</svg></span>`:""}${clip({docs:mkAllDocs(e,it)})}</li>`;
+  return`<li class="${mkPub(it)?"on":""}${on?" sel":""}" data-mkrow="${esc(it.id)}"${ed?` draggable="true" data-mkdrag="${k}"`:""}>${date}${dot}<span class="t" role="button" tabindex="0" data-mkopen="${k}"${ed?` title="Potiahnutím zmeníte poradie alebo presuniete do inej oblasti vľavo"`:""}>${esc(it.t||"Bez názvu")}</span>${String(it.body||"").trim()||pkOfMk(e,it.id).some(pkHasText)?`<span class="meta mki" title="Má text"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${TXI.ic[0]}</svg></span>`:""}${clip({docs:mkAllDocs(e,it)})}</li>`;
 }
 function marketingTab(e){
   const P=evPlan(e),id=esc(e.id),st=mkSt(e.id),ed=mkEd(e);
   const sel=P.areas.find(a=>a.id===st.sel)||P.areas[0];
   const list=P.areas.map(a=>{const L=P.items.filter(x=>x.a===a.id),on=sel&&a.id===sel.id;
-    return`<button type="button" class="txi${on?" on":""}" data-mksel="${id}|${esc(a.id)}"><i class="txdot" style="background:${mkCol(P,a.id)};width:10px;height:10px"></i><span class="txt"><b>${esc(a.title)}</b><small>${L.length?`${L.filter(mkPub).length} z ${L.length} publikovaných`:"zatiaľ nič"}</small></span></button>`;}).join("");
+    return`<button type="button" class="txi${on?" on":""}" data-mksel="${id}|${esc(a.id)}" data-mkdrop="${esc(a.id)}"><i class="txdot" style="background:${mkCol(P,a.id)};width:10px;height:10px"></i><span class="txt"><b>${esc(a.title)}</b><small>${L.length?`${L.filter(mkPub).length} z ${L.length} publikovaných`:"zatiaľ nič"}</small></span></button>`;}).join("");
   let main=`<div class="panel txmain" style="display:flex;align-items:center;justify-content:center;color:var(--muted);min-height:200px">Zatiaľ žiadne oblasti.</div>`;
   if(sel){const L=P.items.filter(x=>x.a===sel.id),k=`${id}|${esc(sel.id)}`,it=L.find(x=>x.id===st.item[sel.id])||L[0];
     main=`<div class="mksplit"><div class="panel txmain mkleft"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Marketing / ${esc(e.name||"Podujatie")}</div><input type="text" class="txtitle" value="${esc(sel.title)}" data-mkarea="${k}" aria-label="Názov oblasti" maxlength="60"${ed?"":" readonly"}></div>
       ${ed?`<div class="row" style="flex:none;gap:8px"><button type="button" class="tplus tdel" data-mkadel="${k}" title="Odstrániť oblasť" aria-label="Odstrániť oblasť">${TI.del}</button></div>`:""}</div>
-      ${L.length?`<ul class="mkl">${L.map(x=>mkRow(e,x,it&&x.id===it.id)).join("")}</ul>`:`<div class="empty" style="padding:26px">V tejto oblasti zatiaľ nič nie je.</div>`}
-        ${ed?`<div class="mkadd"><input type="text" id="mk-add" data-mkadd="${k}" placeholder="+ Pridať položku a Enter" maxlength="120"></div>`:""}</div>
+      ${ed||L.length?`<ul class="mkl">${L.map(x=>mkRow(e,x,it&&x.id===it.id)).join("")}${ed?`<li class="mknew" data-mkend="${esc(sel.id)}"><span class="dt"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span class="gastdot" aria-hidden="true"></span><input type="text" id="mk-add" data-keep data-mkadd="${k}" placeholder="Nová položka…" maxlength="120" aria-label="Pridať položku do oblasti ${esc(sel.title)}"></li>`:""}</ul>`:`<div class="empty" style="padding:26px">V tejto oblasti zatiaľ nič nie je.</div>`}</div>
         ${it?mkDetail(e,P,it,ed):`<div class="panel txmain mkd mkd0">${ed?"Pridajte prvú položku vľavo.":"Zatiaľ nič."}</div>`}</div>`;}
   return`<div class="txm"><div class="txlist">${list}${ed?`${P.areas.length?`<div class="gdsep"></div>`:""}<button type="button" class="txi txadd" data-mkaadd="${id}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="txt"><b>Pridať oblasť</b></span></button>`:""}</div>${main}</div>
     ${String(e.marketing||"").trim()?`<div class="panel" style="margin-top:18px"><h2>Poznámky</h2><p class="meta" style="margin:2px 0 0;white-space:normal">Staršie poznámky. Keď ich vymažete, toto pole zmizne.</p><textarea id="ev-mkt" placeholder="Hashtagy, kontakty na médiá, nápady…" style="width:100%;min-height:110px;margin-top:8px">${esc(e.marketing||"")}</textarea></div>`:""}`;
@@ -86,6 +85,25 @@ document.addEventListener("change",ev=>{const t=ev.target;if(!t||!t.dataset)retu
     if(f==="a"){const st=mkSt(eid);st.sel=v;st.item[v]=iid;}   /* položka presunutá do inej oblasti ostane vybraná */
     mkOne(eid,iid,x=>{x[f]=v;});return;}
   if(t.dataset.mkarea){const[eid,aid]=t.dataset.mkarea.split("|"),v=t.value.trim();if(!v){render();return;}mkSet(eid,N=>{const a=N.areas.find(y=>y.id===aid);if(a)a.title=v;});}});
+document.addEventListener("keydown",ev=>{const t=ev.target;if(!t||!t.dataset||!t.dataset.mkopen||(ev.key!=="Enter"&&ev.key!==" "))return;ev.preventDefault();t.click();});   /* názov v riadku nie je tlačidlo – klávesnica ho vyberie rovnako */
+/* položka sa dá chytiť a presunúť (od 2.0.81, ako v Spoluprácach): pustením na iný riadok mení poradie (pred neho), na prázdny riadok ide na koniec,
+   pustením na inú oblasť vľavo mení oblasť. Poradie = poradie v poli items plánu. */
+(()=>{let md=null;
+  const at=(ev,s)=>ev.target.closest&&ev.target.closest(s),unmark=()=>document.querySelectorAll(".mkl li.rowdrop,.txi.dropt").forEach(x=>x.classList.remove("rowdrop","dropt"));
+  const clear=()=>{unmark();document.querySelectorAll(".mkl li.dragging").forEach(x=>x.classList.remove("dragging"));};
+  const area=()=>{const e0=get("events",md.eid),it=e0&&evPlan(e0).items.find(x=>x.id===md.iid);return it?it.a:"";};
+  document.addEventListener("dragstart",ev=>{const g=at(ev,"[data-mkdrag]");if(!g)return;const[eid,iid]=g.dataset.mkdrag.split("|");md={eid,iid};try{ev.dataTransfer.effectAllowed="move";ev.dataTransfer.setData("text/plain",iid);}catch(_){}setTimeout(()=>g.classList.add("dragging"),0);});
+  document.addEventListener("dragover",ev=>{if(!md)return;const li=at(ev,".mkl li[data-mkrow]"),end=at(ev,".mkl li[data-mkend]"),ar=at(ev,".txi[data-mkdrop]");unmark();
+    if(li){if(li.dataset.mkrow!==md.iid){ev.preventDefault();li.classList.add("rowdrop");}}
+    else if(end){ev.preventDefault();end.classList.add("rowdrop");}
+    else if(ar&&ar.dataset.mkdrop!==area()){ev.preventDefault();ar.classList.add("dropt");}});
+  document.addEventListener("drop",ev=>{if(!md)return;const li=at(ev,".mkl li[data-mkrow]"),end=at(ev,".mkl li[data-mkend]"),ar=at(ev,".txi[data-mkdrop]");if(!li&&!end&&!ar)return;ev.preventDefault();
+    const{eid,iid}=md,from=area();md=null;clear();
+    if(li){const before=li.dataset.mkrow;if(before===iid)return;mkSet(eid,N=>{const i=N.items.findIndex(x=>x.id===iid);if(i<0)return;const[m]=N.items.splice(i,1),j=N.items.findIndex(x=>x.id===before);if(j<0){N.items.splice(i,0,m);return;}m.a=N.items[j].a;N.items.splice(j,0,m);});return;}
+    const aid=end?end.dataset.mkend:ar.dataset.mkdrop;if(ar&&!end&&aid===from)return;
+    mkSet(eid,N=>{const i=N.items.findIndex(x=>x.id===iid);if(i<0||!N.areas.some(a=>a.id===aid))return;const[m]=N.items.splice(i,1);m.a=aid;N.items.push(m);});});
+  document.addEventListener("dragend",()=>{md=null;clear();});
+})();
 document.addEventListener("keydown",ev=>{const t=ev.target;if(!t||ev.key!=="Enter")return;
   if(t.id==="mk-t"||t.id==="mk-url"){t.blur();return;}
   if(!t.dataset||!t.dataset.mkadd)return;const v=t.value.trim();if(!v)return;
