@@ -32,6 +32,7 @@ VIEWS.podujatia=()=>{
   return head+`<div class="gal">${list.map(eventCard).join("")}<button class="gnew" data-create="events" data-defs='${defs}'>+ Nové podujatie</button></div>`;
 };
 
+const EV_PIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';   /* ikona miesta v hlavičke podujatia */
 VIEWS.podujatie=()=>{
   const e=get("events",S.id);if(!e)return`<div class="empty">Podujatie sa nenašlo.<br><button class="btn" data-go="podujatia">Späť na podujatia</button></div>`;
   const id=esc(e.id),p=get("projects",e.projectId),col=p?p.color||GRAY:PINK;
@@ -40,12 +41,13 @@ VIEWS.podujatie=()=>{
   const tm=String(e.time||"").trim(),tmE=esc(tm)+(/h\s*$/i.test(tm)?"":" h"),tmS=tm?` o ${tmE}`:"",when=e.date?`${fdate(e.date)}${tmS}${e.dateTo&&e.dateTo!==e.date?" → "+fdate(e.dateTo):""}`:(tm?tmE:"");
   const rel=e.status==="zrealizovane"||n==null?"":n>0?`o ${n} ${n===1?"deň":n<5?"dni":"dní"}`:n===0?"dnes":"";
   const url=e.url?(/^https?:/.test(e.url)?e.url:"https://"+e.url):"";
+  /* hlavička: dátum a miesto s ikonou namiesto nadpisu (od 2.1.0), bez riadku „projekt“ */
   const cov=coverUrl(e,640),PEN='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
   return`  <section class="hero evc cov" style="--pc:${esc(col)}">${cov?`<div class="evimg"><img src="${esc(cov)}" alt="" style="object-position:${esc(posOf(e))}"></div>`:`<div class="evimg" style="background:${gradFor(e.id)}"></div>`}
-  <div class="evinfo"><div class="spread" style="align-items:flex-start;flex-wrap:nowrap"><div style="min-width:0"><h1>${esc(e.name||"Podujatie")}</h1>${p?`<p class="sub">projekt <button class="btn ghost sm" data-go="projekt" data-id="${esc(p.id)}">${esc(p.name)}</button></p>`:""}</div>
+  <div class="evinfo"><div class="spread" style="align-items:flex-start;flex-wrap:nowrap"><div style="min-width:0"><h1>${esc(e.name||"Podujatie")}</h1></div>
     <div class="row" style="flex:none;flex-wrap:nowrap;gap:8px">${chip("estat",e.status)}${driveIco(folderId(e.driveFolder))}<button class="evedit" data-peek="events:${id}" title="Upraviť" aria-label="Upraviť podujatie">${PEN}</button></div></div>
-    <div class="facts evf"><div><span>Dátum</span><b>${when||"—"}</b>${rel?`<span>${rel}</span>`:""}</div>
-      <div class="evmiesto"><span>Miesto</span><b>${esc(e.place||"—")}</b></div></div>
+    <div class="facts evf"><div class="evfi"><span class="evic" role="img" aria-label="Dátum" title="Dátum">${ICON.kalendar}</span><div><b>${when||"—"}</b>${rel?`<span>${rel}</span>`:""}</div></div>
+      <div class="evfi evmiesto"><span class="evic" role="img" aria-label="Miesto" title="Miesto">${EV_PIN}</span><div><b>${esc(e.place||"—")}</b></div></div></div>
     ${url?`<div class="row" style="margin-top:14px"><a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">Odkaz na podujatie</a></div>`:""}
     ${e.note?`<p class="desc">${esc(e.note)}</p>`:""}</div></section>
   ${eventTabs(e)}`;
