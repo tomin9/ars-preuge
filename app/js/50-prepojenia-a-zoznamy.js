@@ -166,7 +166,7 @@ function picker(box,initial,onSet){
   let val=initial||"";
   function draw(){
     if(val){
-      box.innerHTML=`<div class="chosen">${avatar(val)}<span>${esc(personName(val))}</span><button type="button">Zmeniť</button></div>`;
+      box.innerHTML=`<div class="chosen">${iniBadge(val)}<button type="button">Zmeniť</button></div>`;   /* len iniciály (od 2.0.97), meno v bublinke */
       box.querySelector("button").onclick=()=>{val="";draw();const i=box.querySelector("input");i.focus();};
     }else{
       box.innerHTML=`<div class="picker"><input type="search" placeholder="${user?"Hľadať člena tímu alebo napísať meno":"Meno"}" autocomplete="off" aria-label="Osoba"><div class="menu" hidden></div></div>`;

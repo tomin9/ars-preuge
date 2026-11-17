@@ -90,6 +90,7 @@ PROJEKT ──┬── GRANT ──────── rozpočtové položky ◄
 - Zápis: `add`, `upd`, `del`, `saveSettings`. Zmena sa hneď ukáže a uloží na pozadí.
 - Staré záznamy sa pri načítaní dopĺňajú/prevádzajú (`norm`, a pri kontaktoch a Zabezpečení automatické opravy po načítaní).
 - Texty v aplikácii sú po slovensky; názvy v kóde po slovensky bez diakritiky alebo anglicky.
+- Pridelený člen tímu (zodpovedný za úlohu, človek pri podklade a položke marketingu, výber osoby v bočnom paneli) sa od 2.0.97 ukazuje **len iniciálami** v krúžku (`iniBadge`, `who`, trieda `.avi`), celé meno je v bublinke pri myši (želanie majiteľa). Mená v komentároch, histórii zmien a kontakty ostávajú celé.
 
 ## Rozdelenie `app/index.html` (hotové)
 

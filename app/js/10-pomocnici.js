@@ -33,7 +33,10 @@ function rel(ts){if(!ts)return"";const m=Math.round((Date.now()-ts)/6e4);if(m<1)
 function personName(v){if(!v)return"";if(v[0]==="~")return v.slice(1);if(v.startsWith("c:")){const c=get("contacts",v.slice(2));return c?(c.name||"Bez mena"):"Kontakt";}const lc=typeof contactOfUser==="function"&&v.startsWith("wp_")?contactOfUser(v):null;if(lc&&lc.name)return lc.name;   /* prepojený kontakt → meno z kontaktu (s diakritikou) */
   const p=S.people[v];if(p&&p.name)return p.name;if(S.me&&v===S.me.id)return S.me.name||"Vy";return"Člen tímu";}
 function avatar(v){if(v&&v.startsWith("c:")){const c=get("contacts",v.slice(2)),u=c&&ctUserId(c);v=u||"";}const p=v&&v[0]!=="~"&&S.people[v];return p&&p.avatarUrl?`<img class="av sm" alt="" src="${esc(p.avatarUrl)}">`:"";}
-function who(v){const n=personName(v);return n?`<span class="row" style="gap:5px;flex-wrap:nowrap">${avatar(v)}${esc(n)}</span>`:"";}
+/* pridelený človek (úlohy, podklady, marketing) sa od 2.0.97 ukazuje len iniciálami v krúžku – celé meno je v bublinke pri myši */
+const initials=n=>{const p=String(n||"").replace(/[()"„“]/g," ").trim().split(/\s+/).filter(Boolean);return p.length?((p[0][0]||"")+(p.length>1?(p[p.length-1][0]||""):"")).toUpperCase():"";};
+function iniBadge(v){const n=personName(v);return n?`<span class="avi" title="${esc(n)}" aria-label="${esc(n)}">${esc(initials(n))}</span>`:"";}
+function who(v){return iniBadge(v);}
 function bar(val,max,color,val2){const p=Math.min(pct(val,max),100),p2=val2?Math.min(pct(val+val2,max),100):0;return`<div class="bar">${val2?`<i class="b2" style="width:${p2}%"></i>`:""}<i class="${pct(val,max)>100?"over":""}" style="width:${p}%;${color?`background:${esc(color)}`:""}"></i></div>`;}
 function dueHtml(d,done){if(!d)return"";const n=daysTo(d);if(!done&&n<0)return`<span class="late">${fdateS(d)}</span>`;if(!done&&n===0)return`<span class="late">dnes</span>`;if(n===1)return"zajtra";return fdateS(d);}
 function toast(msg,ms){document.querySelectorAll(".toast").forEach(t=>t.remove());const el=document.createElement("div");el.className="toast";el.setAttribute("role","status");el.textContent=msg;el.onclick=()=>el.remove();document.body.appendChild(el);setTimeout(()=>el.remove(),ms||3200);}
