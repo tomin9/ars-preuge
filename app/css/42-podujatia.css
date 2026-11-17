@@ -158,6 +158,19 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .mkl .dt{flex:none;width:44px;margin-right:-4px;color:var(--muted);font-size:13.5px}   /* stĺpec dátumu len taký široký ako „28. 12.“ – hneď za ním je bodka stavu */
 .mkl .gbndate{flex:none;width:44px;margin-right:-4px;justify-content:flex-start}
 .mkl .gbndate .tplus.pkv{padding:0 4px;margin-left:-4px}
+/* Úlohy podujatia: sekcie podľa pôvodu; zadania z Podkladov s bodkou stavu, pod nimi pripojené úlohy; pri Zabezpečení úlohy pod názvom diela */
+.telist .uldot{flex:none;width:10px;height:10px;margin:0 3px}
+.telist li.ulsub{padding-left:26px}
+.telist li.uldone .t{color:var(--muted)}
+.telist li.ulhead{font-weight:600;padding-top:12px}
+.telist li.ulhead .ulnum{color:var(--accent);font-variant-numeric:tabular-nums}
+.ulmain .ullink{padding:0 26px 16px}
+.ulmain .ullink .linksel{max-width:none}
+.ulmain>.empty{padding:16px 26px 22px}
+@media(max-width:860px){
+  .ulmain .ullink{padding:0 16px 14px}
+  .ulmain>.empty{padding:14px 16px 18px}
+}
 /* Marketing: položka sa dá chytiť a presunúť (poradie v zozname; pustením na oblasť vľavo iná oblasť); za poslednou je prázdny riadok na pridanie */
 .mkl li.dragging{opacity:.4}
 .mkl li.rowdrop{box-shadow:inset 0 2px 0 var(--accent)}
