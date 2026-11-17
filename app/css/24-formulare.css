@@ -22,6 +22,8 @@ textarea{width:100%;min-height:80px;resize:vertical;line-height:1.45}
 .urlrow{display:flex;gap:4px;align-items:center}
 .urlrow input{flex:1;border-color:transparent;background:transparent}
 .urlrow input:hover{background:var(--surface3)}
+.urlrow>input{min-width:0}
+.urlrow>.tplus{flex:none}   /* ikona kopírovať pri čísle účtu sa nezúži */
 .mchips{display:flex;flex-wrap:wrap;gap:5px;padding:4px 0}
 .mchips button{all:unset;cursor:pointer;font-size:12.5px;padding:1px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
 .mchips button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent);font-weight:600}
@@ -50,6 +52,9 @@ textarea{width:100%;min-height:80px;resize:vertical;line-height:1.45}
 .linksel{margin-top:14px;color:var(--muted);max-width:340px;width:100%}
 @media (max-width:760px){
   .props{grid-template-columns:120px 1fr}
+  .props>label.lbiban,.props .pviban{grid-column:1/-1}   /* číslo účtu sa na mobile zmestí celé: nadpis nad ním */
+  .props>label.lbiban{padding-bottom:0}
+  .props .pviban{margin-left:-11px}   /* text čísla zarovnaný s nadpisom IBAN (pole má vnútorný okraj) */
 }
 .acc-ro{cursor:default}                     /* pole len na čítanie (prístupy) */
 .acc-blur{filter:blur(5px);user-select:none;cursor:default}   /* sumy skryté (prístupy) */

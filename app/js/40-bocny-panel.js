@@ -110,7 +110,7 @@ function dProps(e,r){
     if(e==="contacts"&&f.k==="ctype"){ct=`<div class="pv full ctt">${fInput(e,r,f)}</div>`;return"";}
     if(e==="contacts"&&(f.k==="tags"||f.k==="orgIds")&&!(DW&&DW.edit))return`<div class="pv full">${fInput(e,r,f)}</div>`;
     return full?`<label class="full" for="f-${f.k}">${esc(lab(f))}</label><div class="pv full">${fInput(e,r,f)}</div>`
-      :`<label for="f-${f.k}">${esc(lab(f))}</label><div class="pv">${fInput(e,r,f)}</div>`;};
+      :`<label for="f-${f.k}"${f.k==="iban"?' class="lbiban"':""}>${esc(lab(f))}</label><div class="pv${f.k==="iban"?" pviban":""}">${fInput(e,r,f)}</div>`;};   /* IBAN má na mobile celý riadok (lbiban, pviban) */
   const rows=fl.map(mk).join("");
   if(e==="tasks"){  /* úloha v podobe kontaktu: karty s ikonou; prázdne doplnkové polia sa ukážu až po kliknutí na ceruzku */
     const ed=DW&&DW.edit,F=k=>ENT.tasks.fields.find(f=>f.k===k);
@@ -137,12 +137,16 @@ function relOpts(f,r){
   if(f.e==="ledger")return list.filter(x=>x.type==="prijem"||x.id===r[f.k]).sort((a,b)=>(b.date||"").localeCompare(a.date||""));   /* platba k predaju z inventára: príjmy, najnovšie hore */
   return [...list].sort((a,b)=>ttl(f.e,a).localeCompare(ttl(f.e,b),"sk"));
 }
+/* kopírovanie čísla účtu ikonou – bez medzier (ako pri kopírovaní označeného textu nižšie), aby sa dalo vložiť do bankovej aplikácie */
+document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("[data-copyiban]");if(!b)return;const i=document.getElementById(b.dataset.copyiban),t=String(i?i.value:"").replace(/\s+/g,"");if(!t)return;
+  try{await navigator.clipboard.writeText(t);toast("Číslo účtu skopírované.");}catch(_){toast("Kopírovanie sa nepodarilo.");}});
 document.addEventListener("copy",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.iban){const sel=String(t.value).substring(t.selectionStart,t.selectionEnd);if(sel){e.clipboardData.setData("text/plain",sel.replace(/\s+/g,""));e.preventDefault();}}});
 function fmtIban(v){return String(v||"").replace(/\s+/g,"").toUpperCase().replace(/(.{4})(?=.)/g,"$1 ");}
 function fInput(e,r,f){
   const v=f.k==="cofinGrantId"?cofinG(r):r[f.k],id=`f-${f.k}`;
   switch(f.t){
     case"text":{const inp=`<input type="text" id="${id}" data-f="${f.k}" ${f.k==="iban"?'data-iban="1" ':""}value="${esc(f.k==="iban"?fmtIban(v):v)}" placeholder="${esc(f.ph||"—")}">`;
+      if(f.k==="iban"&&v)return`<div class="urlrow">${inp}<button type="button" class="tplus" data-copyiban="${id}" title="Kopírovať číslo účtu" aria-label="Kopírovať číslo účtu">${TXI.copy}</button></div>`;   /* od 2.1.3: ikona kopírovať pri čísle účtu */
       return inp;}
     case"email":case"tel":case"url":{
       const href=v?(f.t==="email"?"mailto:"+v:f.t==="tel"?"tel:"+String(v).replace(/\s/g,""):(/^https?:\/\//.test(v)?v:"https://"+v)):"";
