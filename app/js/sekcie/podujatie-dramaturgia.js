@@ -41,23 +41,29 @@ async function drAutoLink(e){const ui=drUi(e.id);if(ui.linked||S.loading||!isNox
   for(const r of W){if(S.d.zab.some(z=>z.progId===r.id))continue;const k=zbKey(r.title);if(!k||W.filter(x=>zbKey(x.title)===k).length!==1)continue;
     const C=S.d.zab.filter(z=>!z.progId&&zbKey(z.title)===k);if(C.length===1)await upd("zab",C[0].id,{progId:r.id});}}
 const drSrc=z=>z&&(z.srcPower||z.srcNote)?`<div class="zb-src">${z.srcKind?`<span class="zb-tag k-${esc(z.srcKind)}">${esc(ZB_KIND[z.srcKind]||z.srcKind)}</span>`:""}<b>Podľa podkladu:</b> ${esc(z.srcPower||"")}${z.srcNote?`<div class="pp">${esc(z.srcNote)}</div>`:""}</div>`:"";
-/* karta diela alebo bodu programu – hlavička ako v Zabezpečení (fotka, číslo, názov, stav, autor), pod ňou sa rozbalia Údaje diela alebo Zabezpečenie (naraz je rozbalená jedna časť jednej karty) */
+/* fotka diela: vlastná (pole photo prvku programu, od 2.0.77 sa dá nahrať priamo v karte), inak fotka z jeho zabezpečenia; nahratá sa zapíše do oboch */
+const drPhoto=(r,z)=>zbPhoto(r.photo?r:(z||{}));
+const DR_IMG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>';
+/* karta diela alebo bodu programu – hlavička ako v Zabezpečení (fotka vľavo, číslo, názov, stav, autor, popis), pod ňou sa rozbalia Údaje diela alebo Zabezpečenie (naraz je rozbalená jedna časť jednej karty) */
 function drCard(e,r,B,ed){
   const id=esc(r.id),z=drZab(r,e),ui=drUi(e.id),op=ui.open&&ui.open.id===r.id?ui.open.part:"",kind=drKind(r),nox=isNox(e)&&kind==="dielo",ro=ed?"":" readonly";
-  const st=z?(z.stav||"navrh"):(r.status||"nevybavene"),cls=z?st:(DR_PST[st]||"navrh"),ph=z?zbPhoto(z):"";
+  const st=z?(z.stav||"navrh"):(r.status||"nevybavene"),cls=z?st:(DR_PST[st]||"navrh"),ph=drPhoto(r,z);
+  const phBox=ph?`<div class="zb-ph drph"><img src="${esc(ph)}" alt="Fotografia: ${esc(r.title||"")}" loading="lazy">${ed?`<div class="dcov-btns"><label class="icb" title="Zmeniť fotku" aria-label="Zmeniť fotku">${DR_IMG}<input type="file" accept="image/*" data-drphoto="${id}" hidden></label><button type="button" class="icb" data-drphotorm="${id}" title="Odstrániť fotku" aria-label="Odstrániť fotku">${TI.del}</button></div>`:""}</div>`
+    :ed?`<label class="zb-ph drph drphadd" title="Pridať fotku">${DR_IMG}<span>Pridať fotku</span><input type="file" accept="image/*" data-drphoto="${id}" hidden></label>`:`<div class="zb-ph">bez fotky</div>`;
   const cn=k=>{const c=r[k]&&get("contacts",r[k]);return c?(c.name||""):"";};
   const meta=[kind==="sprievodny"?[DR_DAY[r.day||"oba"],r.time].filter(Boolean).join(" "):"",r.place,cn("prepId")?"pripravuje "+cn("prepId"):"",
     kind!=="dielo"?"":r.noGuard?"netreba strážiť":[cn("guardFri")?"stráži pi "+cn("guardFri"):"",cn("guardSat")?(cn("guardFri")?"so ":"stráži so ")+cn("guardSat"):""].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
   const tg=(part,l)=>`<button type="button" role="tab" data-drx="${esc(e.id)}|${id}|${part}" aria-selected="${op===part}">${l}</button>`;
   const body=op==="udaje"?`<div class="drxbody" id="dr-main" data-drmain="${id}" data-cmb="prog:${id}">${drFields(e,r,B,ed)}</div>`:op==="zab"&&nox?(z?zbPlan(z,true):drNoZab(e,r,ed)):"";
   return`<article class="zb-card st-${cls}" id="dr-card-${id}">
-  <div class="zb-head"${ph?"":' style="grid-template-columns:minmax(0,1fr)"'}>${ph?`<div class="zb-ph"><img src="${esc(ph)}" alt="Fotografia lokality: ${esc(r.title||"")}" loading="lazy"></div>`:""}
+  <div class="zb-head">${phBox}
     <div class="zb-info">
       <div class="zb-tr">${z&&z.ord?`<span class="zb-num">${esc(z.ord)}</span>`:""}
         <input class="zb-title" id="dr-${id}-t" data-keep data-drh="${id}|title" value="${esc(r.title||"")}" placeholder="Názov" aria-label="Názov"${ro}>
         <select class="zb-stav s-${cls}" id="dr-${id}-st" data-drh="${id}|${z?"stav":"status"}" aria-label="Stav"${ed?"":" disabled"}>${(z?ZB_STAV:OPT.pst).map(([k,l])=>`<option value="${k}" ${st===k?"selected":""}>${l}</option>`).join("")}</select>
         ${ed?`<button type="button" class="tplus tdel" data-drdel="${id}" title="Odstrániť" aria-label="Odstrániť">${TI.del}</button>`:""}</div>
       <input class="zb-author" id="dr-${id}-a" data-keep data-drh="${id}|author" value="${esc(r.author||"")}" placeholder="Autor / účinkujúci" aria-label="Autor / účinkujúci"${ro}>
+      <textarea class="zb-desc pkta" id="dr-${id}-d" rows="1" data-keep data-drh="${id}|desc" placeholder="Popis…" aria-label="Popis"${ro}>${esc(r.desc||"")}</textarea>
       ${meta?`<div class="meta" style="white-space:normal;padding-left:0">${esc(meta)}</div>`:""}${drSrc(z)}
     </div></div>
   <div class="ptabs evbtabs drx" role="tablist">${tg("udaje","Údaje diela")}${nox?tg("zab","Zabezpečenie"):""}</div>${body}</article>`;
@@ -178,6 +184,7 @@ function drBind(v){
   const mp=v.querySelector("#dr-map");
   if(mp){const eid=mp.dataset.drmap;mp.querySelectorAll("textarea.pkta").forEach(t=>pkGrow(t,true));const lf=mp.querySelector("#dr-leaf");if(lf)drMapSync(lf);
     sdBind(mp,eid,fn=>{const e0=get("events",eid);if(!e0)return Promise.resolve();const M=e0.dramMap||{};return upd("events",eid,{dramMap:Object.assign({},M,{docs:fn(Array.isArray(M.docs)?M.docs:[])})});},()=>{});}
+  v.querySelectorAll("textarea.zb-desc").forEach(t=>pkGrow(t,true));   /* popis v hlavičke karty má výšku podľa textu */
   const m=v.querySelector("#dr-main");if(!m)return;const r=get("prog",m.dataset.drmain);if(!r)return;
   bindPart(m,"prog",r);m.querySelectorAll("textarea.pkta").forEach(t=>pkGrow(t,true));
 }
@@ -191,7 +198,9 @@ document.addEventListener("change",ev=>{const t=ev.target;if(!t||!t.dataset)retu
   if(t.dataset.drh){const[rid,f]=t.dataset.drh.split("|"),r=get("prog",rid);if(!r)return;const e0=get("events",r.eventId),z=e0&&drZab(r,e0),v=String(t.value).trim();   /* hlavička karty: názov a autor idú do diela aj do jeho zabezpečenia, stav do toho, čo sa ukazuje */
     if(f==="stav"){if(z)upd("zab",z.id,{stav:v,progId:rid});return;}
     if(f==="status"){upd("prog",rid,{status:v});return;}
-    if((r[f]||"")===v)return;if(z)upd("zab",z.id,{[f]:v,progId:rid});upd("prog",rid,{[f]:v});return;}
+    if((r[f]||"")===v)return;if(z&&f!=="desc")upd("zab",z.id,{[f]:v,progId:rid});upd("prog",rid,{[f]:v});return;}   /* popis je len v diele */
+  if(t.dataset.drphoto){const rid=t.dataset.drphoto,r=get("prog",rid),f=t.files&&t.files[0];t.value="";if(!r||!f)return;   /* fotka diela: nahrá sa a zapíše do diela aj do jeho zabezpečenia */
+    (async()=>{toast("Nahrávam fotku…");const v=await uploadImage(f,1600);if(!v)return;const e0=get("events",r.eventId),z=e0&&drZab(r,e0);if(z)await upd("zab",z.id,{photo:v,progId:rid});await upd("prog",rid,{photo:v});})();return;}
   if(t.dataset.drsecname){const[eid,old]=drCut(t.dataset.drsecname),e0=get("events",eid),nv=String(t.value).replace(/\|/g,"/").replace(/\s+/g," ").trim().slice(0,80);if(!e0)return;   /* premenovanie bloku: nový názov dostanú aj všetky jeho diela */
     if(!nv||nv===old){t.value=old;return;}
     const ALL=drItems(e0),B=drSecs(e0,ALL),b=B.find(y=>y.t===old);if(!b)return;
@@ -219,5 +228,6 @@ document.addEventListener("click",async ev=>{const q=s=>ev.target.closest&&ev.ta
   if((x=q("[data-drplace]"))){const[eid,rid]=x.dataset.drplace.split("|"),ui=drUi(eid);ui.place=ui.place===rid&&ui.sel==="mapa"?"":rid;ui.sel="mapa";render();setTimeout(()=>{const m=document.getElementById("dr-map");if(m&&m.scrollIntoView)m.scrollIntoView({block:"nearest"});},60);return;}
   if((x=q("[data-drplacex]"))){drUi(x.dataset.drplacex).place="";render();return;}
   if((x=q("[data-drunpin]"))){upd("prog",x.dataset.drunpin,{lat:null,lng:null});return;}
+  if((x=q("[data-drphotorm]"))){const r=get("prog",x.dataset.drphotorm);if(!r)return;if(!await ask(`Odstrániť fotku pri „${r.title||"Bez názvu"}“?`,"Odstrániť"))return;const e0=get("events",r.eventId),z=e0&&drZab(r,e0);if(z&&z.photo)await upd("zab",z.id,{photo:""});if(r.photo)await upd("prog",r.id,{photo:""});return;}
   if((x=q("[data-drdel]"))){const r=get("prog",x.dataset.drdel);if(!r)return;const e0=get("events",r.eventId),z=e0&&drZab(r,e0);if(!await ask(`Odstrániť „${r.title||"Bez názvu"}“ z Dramaturgie? Toto sa nedá vrátiť.${z?" Jeho zabezpečenie ostane v záložke Zabezpečenie.":""}`,"Odstrániť"))return;await del("prog",r.id);return;}
 });

@@ -64,7 +64,7 @@ const ENT={
     {k:"projectIds",l:"Projekty",t:"mrel",e:"projects"},{k:"grantIds",l:"Granty",t:"mrel",e:"grants"},{k:"eventIds",l:"Podujatia",t:"mrel",e:"events"},{k:"note",l:"Poznámka",t:"long"}]},
   partnerships:{col:"partnerships",one:"Spolupráca",many:"Spolupráce",title:"state",fields:[]},
   prog:{col:"programItems",one:"Prvok programu",many:"Program",title:"title",fields:[
-    {k:"status",l:"Stav",t:"sel",o:"pst"},{k:"kind",l:"Druh",t:"sel",o:"pkind"},{k:"section",l:"Kategória",t:"sel",o:"psec"},{k:"author",l:"Autor / účinkujúci",t:"text"},{k:"contactId",l:"Autor – kontakt",t:"rel",e:"contacts"},
+    {k:"status",l:"Stav",t:"sel",o:"pst"},{k:"kind",l:"Druh",t:"sel",o:"pkind"},{k:"section",l:"Kategória",t:"sel",o:"psec"},{k:"author",l:"Autor / účinkujúci",t:"text"},{k:"desc",l:"Popis",t:"long"},{k:"contactId",l:"Autor – kontakt",t:"rel",e:"contacts"},
     {k:"day",l:"Deň",t:"sel",o:"pday"},{k:"time",l:"Čas",t:"text",ph:"napr. 17.00 – 22.00"},{k:"place",l:"Miesto",t:"text"},
     {k:"prepId",l:"Pripravuje",t:"rel",e:"contacts"},{k:"noGuard",l:"Netreba strážiť",t:"check"},{k:"guardFri",l:"Stráži – piatok",t:"rel",e:"contacts"},{k:"guardSat",l:"Stráži – sobota",t:"rel",e:"contacts"},
     {k:"needOrg",l:"Organizačne treba",t:"long"},{k:"needMat",l:"Materiál a technika",t:"long"},{k:"eventId",l:"Podujatie",t:"rel",e:"events"},{k:"note",l:"Poznámka",t:"long"}]},

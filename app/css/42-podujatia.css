@@ -192,6 +192,19 @@ textarea.txbody{display:block;width:100%;box-sizing:border-box;min-height:360px;
 .drmain{overflow:visible}
 .drlist .drsep{margin-bottom:8px}   /* čiara medzi Konceptom s Mapou a blokmi programu – pod ňou rovnaká medzera ako nad „Pridať blok“ */
 .gnew.dradd{width:100%;box-sizing:border-box;min-height:64px;margin-top:18px}   /* „+ Pridať dielo“ pod posledným dielom bloku */
+/* karta diela v Dramaturgii: fotka vľavo sa dá pridať, zmeniť a odstrániť (tlačidlá ako pri titulnom obrázku); pod autorom popis */
+.drph{position:relative}
+.drph .dcov-btns{top:6px;right:6px;opacity:0;transition:opacity .12s}
+.drph:hover .dcov-btns,.drph:focus-within .dcov-btns{opacity:1}
+@media(hover:none){.drph .dcov-btns{opacity:1}}
+.zb-ph.drphadd{flex-direction:column;gap:8px;cursor:pointer;border-style:dashed;background:transparent}
+.zb-ph.drphadd:hover{color:var(--ink);border-color:var(--muted)}
+.zb-ph.drphadd svg{width:26px;height:26px}
+textarea.zb-desc{display:block;width:100%;box-sizing:border-box;min-height:0;border:1px solid transparent;border-radius:6px;background:transparent;padding:2px 6px;margin-left:-6px;font:inherit;font-size:14.5px;line-height:1.5;color:var(--ink);resize:none;overflow:hidden;outline:none;box-shadow:none}
+textarea.zb-desc:hover,textarea.zb-desc:focus{border-color:var(--line);background:var(--surface3)}
+@media(max-width:760px){
+  .zb-ph.drphadd{aspect-ratio:auto;height:56px;flex-direction:row}   /* na mobile (kde je fotka nad údajmi) je prázdne miesto na fotku len úzky pás */
+}
 .drleafw{position:relative;z-index:0;isolation:isolate;border-bottom:1px solid var(--line)}   /* vlastná vrstva – ovládanie mapy neprekryje okná a panely */
 .drleaf{height:520px;background:var(--surface2);font:inherit}
 .drleaf.placing,.drleaf.placing .leaflet-interactive{cursor:crosshair}
