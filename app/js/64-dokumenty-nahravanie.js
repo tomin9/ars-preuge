@@ -2,9 +2,24 @@
    Časť programu – plugin ju vloží do app/index.html na miesto riadku //@subor js/64-dokumenty-nahravanie.js. Nie je to samostatný skript. ===== */
 /* ===== document attachments (global, works in pages and drawer) ===== */
 document.addEventListener("change",ev=>{const sl=ev.target.closest&&ev.target.closest("[data-lline]");if(!sl)return;upd("ledger",sl.dataset.lline,{lineId:sl.value});});
+/* nahratie súborov k záznamu (pole docs, druh kind) – z tlačidla „Nahrať súbor“ aj pretiahnutím súboru z počítača */
+async function docAddFiles(en,id,kind,fs){if(!get(en,id)||!fs.length)return;const out=[];for(const f of fs){const d=await uploadDoc(f,{en,id,kind});if(d)out.push(Object.assign(d,{kind,at:Date.now()}));}
+  if(out.length){await upd(en,id,{docs:[...(get(en,id).docs||[]),...out]});if(DW&&DW.id===id)drawerRefresh(true);}}
 document.addEventListener("change",async ev=>{const inp=ev.target.closest&&ev.target.closest("[data-dfile]");if(!inp)return;const fs=[...(inp.files||[])];if(!fs.length)return;
-  const[en,id,kind]=inp.dataset.dfile.split(":");if(!get(en,id))return;const out=[];for(const f of fs){const d=await uploadDoc(f,{en,id,kind});if(d)out.push(Object.assign(d,{kind,at:Date.now()}));}inp.value="";
-  if(out.length){await upd(en,id,{docs:[...(get(en,id).docs||[]),...out]});if(DW&&DW.id===id)drawerRefresh(true);}});
+  const[en,id,kind]=inp.dataset.dfile.split(":");inp.value="";await docAddFiles(en,id,kind,fs);});
+/* pretiahnutie súboru (napr. z Findera) na miesto s data-ddrop="druh:id:kind" – od 2.1.4 pri dokumentoch platby (Zmluva, Faktúra, Potvrdenie z banky).
+   Súbor pustený inde na stránke sa neotvorí v prehliadači (aplikácia by sa zavrela) – kurzor ukáže, že sem sa pustiť nedá. */
+(()=>{const hasF=ev=>!!ev.dataTransfer&&[...(ev.dataTransfer.types||[])].includes("Files"),zone=ev=>ev.target.closest&&ev.target.closest("[data-ddrop]");
+  const unmark=keep=>document.querySelectorAll("[data-ddrop].ddrop").forEach(z=>{if(z!==keep)z.classList.remove("ddrop");});
+  document.addEventListener("dragover",ev=>{if(!hasF(ev))return;ev.preventDefault();const z=zone(ev);unmark(z);
+    if(z){ev.dataTransfer.dropEffect="copy";z.classList.add("ddrop");}else ev.dataTransfer.dropEffect="none";});
+  document.addEventListener("dragleave",ev=>{const z=zone(ev);if(z&&!(ev.relatedTarget&&z.contains(ev.relatedTarget)))z.classList.remove("ddrop");});
+  document.addEventListener("drop",async ev=>{if(!hasF(ev))return;ev.preventDefault();unmark(null);const z=zone(ev);if(!z)return;
+    const it=[...(ev.dataTransfer.items||[])].filter(i=>i.kind==="file"),dir=it.filter(i=>{const en=i.webkitGetAsEntry&&i.webkitGetAsEntry();return!!en&&en.isDirectory;});   /* priečinok sa nahrať nedá */
+    const fs=it.length?it.filter(i=>!dir.includes(i)).map(i=>i.getAsFile()).filter(Boolean):[...(ev.dataTransfer.files||[])];
+    if(dir.length)toast(fs.length?"Priečinok sa nedá nahrať – nahrali sa len súbory.":"Priečinok sa nedá nahrať. Pretiahnite súbory z neho.",5000);
+    const[en,id,kind]=z.dataset.ddrop.split(":");if(fs.length)await docAddFiles(en,id,kind,fs);});
+  document.addEventListener("dragend",()=>unmark(null));})();
 document.addEventListener("click",async ev=>{
   const rm=ev.target.closest&&ev.target.closest("[data-docrm]");
   if(rm){ev.stopPropagation();ev.preventDefault();const[en,id,i]=rm.dataset.docrm.split(":");if(await ask("Odstrániť dokument?","Odstrániť")){await upd(en,id,{docs:(get(en,id).docs||[]).filter((_,j)=>j!==+i)});if(DW&&DW.id===id)drawerRefresh(true);}return;}
