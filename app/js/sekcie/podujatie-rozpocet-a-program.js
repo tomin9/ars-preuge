@@ -87,10 +87,59 @@ function eventBudget(e){
   const seg=(v,cls,t)=>v>0?`<i class="${cls}" style="width:${v/bmax*100}%" data-tip="${t}: ${eur(v)}" tabindex="0"></i>`:"";
   const bRow=(lbl,tot,cls,segs,tt)=>`<div class="bgr"><div class="bgl"><b>${lbl}</b><span class="${cls}" title="${tt}">${eur0(tot)}</span></div><div class="bgt">${segs}</div></div>`;
   return`<div class="bgraph">${bRow("Príjmy",TI,"pos",seg(IG,"pos","Prijaté")+seg(IP,"pos pl","Ešte majú poslať"),"Súčet grantov pod podujatím"+(TI-gTot>0.005?" + ďalšie príjmy":""))}${bRow("Výdavky",tExp,"neg",seg(tPaid,"neg","Zaplatené")+seg(unpaid,"neg pl","Plánované")+seg(free,"fr","Ešte nepridelené"),tExp>TI?"Výdavky prevyšujú príjmy o "+eur(tExp-TI):"Nepridelené: "+eur(free))}</div>
-  <div class="panel"><div class="spread" style="margin-bottom:10px"><div class="tabs"><button data-evbmode="sekcie" aria-pressed="${B.mode==="sekcie"}">Časti programu</button><button data-evbmode="granty" aria-pressed="${B.mode==="granty"}">Granty</button></div><button class="btn sm" data-create="ledger" data-defs='${esc(JSON.stringify(defs))}'>+ Položka</button></div>
+  <div class="panel"><div class="spread" style="margin-bottom:10px"><div class="tabs"><button data-evbmode="sekcie" aria-pressed="${B.mode==="sekcie"}">Časti programu</button><button data-evbmode="granty" aria-pressed="${B.mode==="granty"}">Granty</button></div><div class="row" style="flex:none;gap:8px">${!HIDE_AMT&&(all.length||gIds.length)?`<button class="btn sm" data-evbpdf="${esc(e.id)}" title="Rozpočet s položkami podľa grantov a podľa kategórií – v okne tlače zvoľte Uložiť ako PDF">PDF rozpočtu</button>`:""}<button class="btn sm" data-create="ledger" data-defs='${esc(JSON.stringify(defs))}'>+ Položka</button></div></div>
   ${T.length?sub:""}${gPanel}
   ${rows.length?table([["",x=>`<span class="rh" data-rowdrag="${esc(x.id)}" title="Potiahnutím presuniete riadok" aria-label="Presunúť riadok">⠿</span>`,"rhc"],["Dátum",x=>x.date?`<span class="meta">${fdateS(x.date)||"plánované"}</span>`:'<span class="meta">plánované</span>'],["Popis",x=>`<span class="drow"><span class="cut">${esc(x.desc||"—")}</span>${clip(x)}</span>`,"t"],["Suma",x=>`<span class="${isInc(x)?"pos":"neg"}">${eur(x.amount||0)}</span>`,"num"],["Meno",x=>ctLink(x.contactId)],...(B.mode==="sekcie"?[other]:[grCol,other])],rows,x=>"ledger:"+esc(x.id),
     "")
    :`<div class="empty">${all.length?"V tejto časti nie sú žiadne položky.":"Zatiaľ žiadne položky z finančného denníka. Platbe vo finančnom denníku nastavte podujatie, kategóriu (časť programu) a grant – tu sa zobrazí automaticky."}</div>`}
   ${avail.length?`<select class="linksel" data-linkadd="events:${esc(e.id)}|ledger" style="margin-top:10px"><option value="">↗ Priradiť existujúcu platbu z denníka…</option>${avail.map(x=>`<option value="${esc(x.id)}">${esc(x.desc||"Platba")} · ${fdateS(x.date)||"plánované"} · ${eur(x.amount)}</option>`).join("")}</select>`:""}</div>`;
 }
+/* ===== PDF rozpočtu podujatia (od 2.1.5): tlačidlo „PDF rozpočtu“ v záložke Rozpočet otvorí dokument na tlač (ako zmluva o dielo) – v okne tlače
+   sa zvolí „Uložiť ako PDF“. Obsah: súhrn, príjmy (granty a ostatné), výdavky podľa grantov (po rozpočtových položkách) a podľa kategórií
+   (časti programu), pri každej skupine medzisúčet. Počíta sa rovnako ako graf v záložke. Nič sa neukladá. ===== */
+function evbPdf(e){
+  const all=related("events",e,"ledger"),isInc=x=>x.type==="prijem",paid=x=>x.paid!==false&&!!x.date;
+  const ord=(a,b)=>(!!a.date!==!!b.date?(a.date?-1:1):String(a.date||"").localeCompare(String(b.date||"")))||(a.createdAt||0)-(b.createdAt||0);
+  const EX=all.filter(x=>!isInc(x)).sort(ord),IN=all.filter(isInc).sort(ord),amt=L=>sum(L,x=>x.amount);
+  const gIds=[...new Set([...(e.grantIds||[]),...all.map(x=>x.grantId)].filter(Boolean))],po=e.provOrder||[];
+  const G=gIds.map(id=>get("grants",id)).filter(Boolean).sort((a,b)=>{const i=g=>{const k=po.indexOf(g.id);return k<0?1e9:k;};return i(a)-i(b)||String(a.name||"").localeCompare(String(b.name||""),"sk");});
+  const gExp=g=>+g.approved||amt(IN.filter(x=>x.grantId===g.id));
+  const TI=sum(G,gExp)+amt(IN.filter(x=>!x.grantId||!gIds.includes(x.grantId))),IG=amt(IN.filter(paid)),tExp=amt(EX),tPaid=amt(EX.filter(paid));
+  const cn=x=>{const c=x.contactId&&get("contacts",x.contactId);return c?c.name||"":"";},gl=g=>[g.name||"Grant",provName(g)].filter(Boolean).join(" – ");
+  const st=x=>paid(x)?"zaplatené":"plánované",dt=x=>x.date?fdate(x.date):"—";
+  const tbl=(L,xh,xv)=>`<table class="it it6"><thead><tr><th class="d">Dátum</th><th>Popis</th><th class="c">Komu / od koho</th><th class="x">${xh}</th><th class="n">Suma</th><th class="s">Stav</th></tr></thead><tbody>${L.map(x=>`<tr><td class="d">${dt(x)}</td><td>${esc(x.desc||"—")}</td><td>${esc(cn(x))}</td><td class="m">${esc(xv(x))}</td><td class="n">${eur(x.amount)}</td><td class="s${paid(x)?"":" pl"}">${st(x)}</td></tr>`).join("")}</tbody></table>`;
+  const grp=(t,L,note,body)=>`<div class="grp"><h3><span>${esc(t)}${note?` <small>${esc(note)}</small>`:""}</span><span class="n">${eur(amt(L))}</span></h3>${body}</div>`;
+  /* výdavky podľa grantov: v rámci grantu po rozpočtových položkách (poradie ako v grante), potom bez položky; nakoniec výdavky bez grantu */
+  const byG=G.map(g=>{const L=EX.filter(x=>x.grantId===g.id);if(!L.length)return"";
+    const lines=S.d.lines.filter(l=>l.grantId===g.id).sort((a,b)=>(a.ord??1e9)-(b.ord??1e9)||String(a.name||"").localeCompare(String(b.name||""),"sk"));
+    const parts=lines.map(l=>{const M=L.filter(x=>x.lineId===l.id),bud=+l.fromGrant||+l.total||0;return M.length?grp(l.name||"Položka",M,bud?"rozpočet položky "+eur(bud):"",tbl(M,"Kategória",x=>x.category||"")):"";}).join("");
+    const rest=L.filter(x=>!x.lineId||!lines.some(l=>l.id===x.lineId));
+    return`<section class="gr"><h2><span>${esc(gl(g))}${+g.approved?` <small>schválené ${eur(+g.approved)}</small>`:""}</span><span class="n">${eur(amt(L))}</span></h2>${parts}${rest.length?(lines.length?grp("Bez rozpočtovej položky",rest,"",tbl(rest,"Kategória",x=>x.category||"")):tbl(rest,"Kategória",x=>x.category||"")):""}</section>`;}).join("");
+  const noG=EX.filter(x=>!x.grantId||!gIds.includes(x.grantId));
+  const gName0=x=>{const g=x.grantId&&get("grants",x.grantId);return g?g.name||"Grant":"";};
+  const secs=evSections(e,EX),byC=[...secs.map(c=>[c,EX.filter(x=>x.category===c)]),["Nezaradené",EX.filter(x=>!x.category||!secs.includes(x.category))]].filter(([,L])=>L.length)
+    .map(([c,L])=>grp(c,L,"",tbl(L,"Grant",gName0))).join("");
+  const r=(l,v,cls)=>`<tr class="${cls||""}"><td>${l}</td><td class="n">${eur(v)}</td></tr>`;
+  const sumT=`<table class="sum">${r("Príjmy spolu",TI,"b")}${r("z toho prijaté",IG,"sub")}${r("ešte majú prísť",Math.max(0,TI-IG),"sub")}${r("Výdavky spolu",tExp,"b")}${r("z toho zaplatené",tPaid,"sub")}${r("plánované",tExp-tPaid,"sub")}${r(TI-tExp<0?"Chýba (výdavky prevyšujú príjmy)":"Zostáva (príjmy − výdavky)",TI-tExp,"tot")}</table>`;
+  const inR=[...G.map(g=>({t:"Grant: "+gl(g),e:gExp(g),got:amt(IN.filter(x=>x.grantId===g.id&&paid(x)))})),...IN.filter(x=>!x.grantId||!gIds.includes(x.grantId)).map(x=>({t:(x.desc||"Príjem")+(cn(x)?" – "+cn(x):""),e:+x.amount||0,got:paid(x)?+x.amount||0:0}))];
+  const inT=inR.length?`<table class="it it3"><thead><tr><th>Zdroj</th><th class="n">Schválené / očakávané</th><th class="n">Prijaté</th></tr></thead><tbody>${inR.map(x=>`<tr><td>${esc(x.t)}</td><td class="n">${eur(x.e)}</td><td class="n">${eur(x.got)}</td></tr>`).join("")}</tbody><tfoot><tr><td>Spolu</td><td class="n">${eur(TI)}</td><td class="n">${eur(IG)}</td></tr></tfoot></table>`:`<p class="empty">Podujatie zatiaľ nemá príjmy ani granty.</p>`;
+  const p=get("projects",e.projectId),when=e.date?fdate(e.date)+(e.dateTo&&e.dateTo!==e.date?" – "+fdate(e.dateTo):""):"";
+  const meta=[when,e.place,p&&p.name?"projekt "+p.name:""].filter(Boolean).map(esc).join(" · ");
+  const css=`@page{size:A4;margin:1.6cm 1.5cm}body{font-family:Arial,Helvetica,sans-serif;font-size:9.5pt;color:#111;margin:0}.org{font-size:8.5pt;color:#666;margin-bottom:4pt}h1{font-size:18pt;margin:0 0 3pt}.meta{color:#444;margin:0 0 2pt}.gen{color:#888;font-size:8pt;margin:0 0 14pt}
+    h2{font-size:12.5pt;margin:18pt 0 6pt;padding-bottom:3pt;border-bottom:1.2pt solid #111;display:flex;justify-content:space-between;gap:12pt}h2.part{border-bottom-width:2pt;margin-top:22pt}
+    h3{font-size:10.5pt;margin:10pt 0 3pt;display:flex;justify-content:space-between;gap:12pt}small{font-weight:normal;color:#666;font-size:8.5pt}
+    table{width:100%;border-collapse:collapse}th{text-align:left;font-weight:600;color:#555;font-size:8.5pt;border-bottom:.8pt solid #999;padding:3pt 4pt}td{padding:3pt 4pt;border-bottom:.4pt solid #ddd;vertical-align:top}
+    .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.d{white-space:nowrap;width:62pt}.s{white-space:nowrap;width:52pt}.pl{color:#8a6d00}.m{color:#555}tfoot td{font-weight:700;border-top:.8pt solid #999;border-bottom:0}
+    .sum{width:60%;margin-bottom:4pt}.sum td{border-bottom:.4pt solid #e3e3e3}.sum .b td{font-weight:700}.sum .sub td:first-child{padding-left:16pt;color:#555}.sum .tot td{font-weight:700;border-top:1.2pt solid #111;border-bottom:0;font-size:10.5pt}
+    .it6{table-layout:fixed}.it6 th.d{width:62pt}.it6 th.c{width:19%}.it6 th.x{width:15%}.it6 th.n{width:70pt}.it6 th.s{width:54pt}.it6 td{overflow-wrap:anywhere}   /* rovnaké stĺpce vo všetkých tabuľkách položiek */
+    .it3 th.n{width:110pt}thead{display:table-header-group}tr,h3{page-break-inside:avoid;break-inside:avoid}h2,h3{break-after:avoid}.empty{color:#666}`;
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Rozpočet – ${esc(e.name||"Podujatie")}</title><style>${css}</style></head><body>
+    <div class="org">${esc(ORG.name)}</div><h1>Rozpočet podujatia ${esc(e.name||"")}</h1>${meta?`<p class="meta">${meta}</p>`:""}<p class="gen">Stav k ${esc(fdate(today()))}</p>
+    <h2>Súhrn</h2>${sumT}<h2>Príjmy</h2>${inT}
+    <h2 class="part"><span>Výdavky podľa grantov</span><span class="n">${eur(tExp)}</span></h2>${byG}${noG.length?`<section class="gr"><h2><span>Bez grantu</span><span class="n">${eur(amt(noG))}</span></h2>${tbl(noG,"Kategória",x=>x.category||"")}</section>`:""}${EX.length?"":`<p class="empty">Zatiaľ žiadne výdavky.</p>`}
+    <h2 class="part"><span>Výdavky podľa kategórií</span><span class="n">${eur(tExp)}</span></h2>${byC||`<p class="empty">Zatiaľ žiadne výdavky.</p>`}
+  </body></html>`;
+  const w=window.open("","_blank");if(!w){toast("Prehliadač zablokoval nové okno. Povoľte okná pre túto stránku a skúste znova.",6000);return;}
+  w.document.write(html);w.document.close();setTimeout(()=>{try{w.focus();w.print();}catch(_){}},400);
+}
+document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest("[data-evbpdf]");if(!b)return;const e0=get("events",b.dataset.evbpdf);if(e0)evbPdf(e0);});
