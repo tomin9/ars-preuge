@@ -74,7 +74,7 @@ function gaiReview(gid,j,src,box,close){
   if(!rows.length)return fin("Claude vo formulári nenašiel žiadne časti, do ktorých sa píše text.");
   box.innerHTML=`<h2 style="margin:0 0 4px">Skontrolujte časti žiadosti</h2><p class="small muted" style="margin:0 0 10px">Zdroj: ${esc(src)}. Zaškrtnuté časti sa pridajú na koniec žiadosti. Časti, ktoré už máte, sa nezmenia.</p>
     <div class="aivlist">${rows.map((x,i)=>`<label class="aivrow${x.dup?" same":""}"><input type="checkbox" data-i="${i}" ${x.dup?"disabled":"checked"}><span class="aivl">${esc(x.title)}</span><span class="aivv">${x.hint?`<span class="aivtx">${esc(x.hint)}</span>`:'<span class="muted">bez pokynu</span>'}<small>${x.dup?"takú časť už máte – nezmení sa":[x.limit?`limit ${x.limit.toLocaleString("sk-SK")} znakov`:"bez limitu",x.body.trim()?`s textom (${x.body.length.toLocaleString("sk-SK")} znakov)`:""].filter(Boolean).join(" · ")}</small></span></label>`).join("")}</div>
-    <p class="small muted" style="margin:10px 0 0">${aiCost(j.usage)}</p>
+    <p class="small muted" style="margin:10px 0 0">${aiCost(j.usage,j.model)}</p>
     <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-a="x">Zrušiť</button><button class="btn pri" data-a="save">Pridať vybrané</button></div>`;
   box.querySelector('[data-a="x"]').onclick=close;
   box.querySelector('[data-a="save"]').onclick=async()=>{

@@ -6,7 +6,7 @@
  */
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_CLAUDE_MODEL', 'claude-opus-5-5');
+define('ARSP_CLAUDE_MODEL', 'claude-haiku-5-5');   /* od 2.1.6 najlacnejší model (želanie majiteľa) – výzvu a formulár žiadosti prečíta za zlomok ceny; do 2.1.5 claude-opus-5-5 */
 define('ARSP_CLAUDE_URL', 'https://api.anthropic.com/v1/messages');
 
 function arsp_claude_key() { return trim((string) get_option('arsp_claude_key', '')); }
@@ -25,20 +25,13 @@ function arsp_claude_call($content, $system, $schema, $effort = 'medium', $max_t
         'max_tokens' => $max_tokens,
         'system' => $system,
         'output_config' => array('effort' => $effort, 'format' => array('type' => 'json_schema', 'schema' => $schema)),
-        'fallbacks' => 'default',                       /* keď Claude požiadavku odmietne, API ju zopakuje na vhodnom náhradnom modeli */
+        /* bez 'fallbacks': Claude Haiku 5.5 náhradný model pri odmietnutí nemá (odmietnutie vráti chybu nižšie); premýšľanie je zapnuté samo, riadi ho effort */
         'messages' => array(array('role' => 'user', 'content' => $content)),
     );
-    $headers = array('content-type' => 'application/json', 'x-api-key' => $key, 'anthropic-version' => '2026-10-21', 'anthropic-beta' => 'server-side-fallback-2026-07-01');
-    $res = wp_remote_post(ARSP_CLAUDE_URL, array('timeout' => 240, 'headers' => $headers, 'body' => wp_json_encode($body)));
+    $headers = array('content-type' => 'application/json', 'x-api-key' => $key, 'anthropic-version' => '2026-10-21');
+    $res = wp_remote_post(ARSP_CLAUDE_URL, array('timeout' => 290, 'headers' => $headers, 'body' => wp_json_encode($body)));
     $code = is_wp_error($res) ? 0 : (int) wp_remote_retrieve_response_code($res);
     $j = is_wp_error($res) ? null : json_decode((string) wp_remote_retrieve_body($res), true);
-    /* ak by náhradný model (fallbacks) nebol pre účet dostupný, zopakovať raz bez neho */
-    if ($code === 400 && is_array($j) && stripos((string) ($j['error']['message'] ?? ''), 'fallback') !== false) {
-        unset($body['fallbacks'], $headers['anthropic-beta']);
-        $res = wp_remote_post(ARSP_CLAUDE_URL, array('timeout' => 240, 'headers' => $headers, 'body' => wp_json_encode($body)));
-        $code = is_wp_error($res) ? 0 : (int) wp_remote_retrieve_response_code($res);
-        $j = is_wp_error($res) ? null : json_decode((string) wp_remote_retrieve_body($res), true);
-    }
     if (is_wp_error($res)) return new WP_Error('ai_net', 'Nepodarilo sa spojiť s Claude (' . $res->get_error_message() . '). Skúste znova; ak to trvá dlho, hosting môže mať nízky časový limit.', array('status' => 502));
     if ($code >= 400 || !is_array($j)) {
         $type = is_array($j) ? (string) ($j['error']['type'] ?? '') : '';
@@ -53,7 +46,7 @@ function arsp_claude_call($content, $system, $schema, $effort = 'medium', $max_t
         return new WP_Error('ai_api', $t, array('status' => 502, 'code' => $code, 'type' => $type));
     }
     $stop = (string) ($j['stop_reason'] ?? '');
-    if ($stop === 'refusal') return new WP_Error('ai_refusal', 'Claude tento dokument odmietol spracovať.', array('status' => 422));
+    if ($stop === 'refusal') return new WP_Error('ai_refusal', 'Claude tento dokument odmietol spracovať. Skúste iný súbor alebo odkaz, prípadne údaje doplňte ručne.', array('status' => 422));
     if ($stop === 'max_tokens') return new WP_Error('ai_long', 'Odpoveď bola príliš dlhá a nedokončila sa – skúste kratší dokument.', array('status' => 422));
     $text = '';
     foreach ((array) ($j['content'] ?? array()) as $b) { if (($b['type'] ?? '') === 'text') $text .= (string) ($b['text'] ?? ''); }
@@ -136,11 +129,11 @@ function arsp_claude_app_schema() {
 
 function arsp_claude_app_system() {
     return "Pomáhaš občianskemu združeniu Ars Preuge (kultúra, Prievidza) písať grantové žiadosti. Dostaneš formulár žiadosti (vzor z grantového systému alebo vyplnenú žiadosť) a vypíšeš jeho časti, do ktorých žiadateľ píše vlastný text.\n"
-        . "- Vypíš len textové časti (napr. Popis projektu, Ciele, Cieľové skupiny, Harmonogram, Propagácia, Udržateľnosť). Vynechaj identifikačné údaje (názov, IČO, adresa, banka, štatutár), tabuľky rozpočtu, zaškrtávacie polia a prílohy.\n"
-        . "- Poradie zachovaj ako vo formulári. title: názov časti presne podľa formulára (bez čísla, ak je len poradové).\n"
+        . "- Vypíš všetky polia, do ktorých žiadateľ píše text – dlhé (napr. Popis projektu, Ciele, Cieľové skupiny, Harmonogram, Propagácia, Udržateľnosť) aj krátke (napr. Názov projektu, Miesto realizácie). Vynechaj len identifikačné údaje žiadateľa (IČO, adresa, banka, štatutár), tabuľky rozpočtu, zaškrtávacie polia a prílohy.\n"
+        . "- Každé pole je jedna časť, v presne takom poradí, v akom idú vo formulári – nič nezlučuj, nerozdeľuj ani nepresúvaj. title: názov poľa presne podľa formulára (bez čísla, ak je len poradové).\n"
         . "- hint: čo má časť podľa formulára obsahovať (otázka alebo pokyn), stručne, po slovensky.\n"
         . "- limit: najväčší povolený počet znakov, ak ho formulár uvádza; inak null. Ak je limit v slovách alebo stranách, daj null a uveď ho v hint.\n"
-        . "- body: text, ktorý je v časti už vyplnený (pri vyplnenej žiadosti) – presne, bez úprav; pri prázdnom vzore \"\". Nič si nevymýšľaj.";
+        . "- body: celé znenie, ktoré je v poli už vyplnené (pri vyplnenej žiadosti) – doslova, slovo od slova, nič neskracuj, nezhŕňaj ani neopravuj a nevynechaj žiadnu vetu; zachovaj odseky a odrážky (každý odsek a odrážka na novom riadku). Pri prázdnom vzore \"\". Nič si nevymýšľaj.";
 }
 
 add_action('rest_api_init', function () {
@@ -156,7 +149,7 @@ add_action('rest_api_init', function () {
             if (is_wp_error($block)) return $block;
             set_transient($lock, 1, 300);
             $content = array($block, array('type' => 'text', 'text' => 'Toto je grantová výzva. Vytiahni z nej údaje podľa pokynov. Dnešný dátum: ' . wp_date('Y-m-d') . '.'));
-            $out = arsp_claude_call($content, arsp_claude_call_system(), arsp_claude_call_schema(), 'medium', 16000);
+            $out = arsp_claude_call($content, arsp_claude_call_system(), arsp_claude_call_schema(), 'high', 16000);   /* high: pri Haiku presnejšie čítanie podmienok a termínov, odpoveď je krátka */
             delete_transient($lock);
             if (is_wp_error($out)) return $out;
             return array('fields' => $out['data'], 'usage' => $out['usage'], 'model' => $out['model']);
@@ -172,8 +165,8 @@ add_action('rest_api_init', function () {
             $block = $r->get_param('asset') ? arsp_claude_asset_block($r->get_param('asset')) : arsp_claude_url_block($r->get_param('url'));
             if (is_wp_error($block)) return $block;
             set_transient($lock, 1, 300);
-            $content = array($block, array('type' => 'text', 'text' => 'Toto je formulár grantovej žiadosti. Vypíš jeho textové časti podľa pokynov.'));
-            $out = arsp_claude_call($content, arsp_claude_app_system(), arsp_claude_app_schema(), 'medium', 32000);
+            $content = array($block, array('type' => 'text', 'text' => 'Toto je formulár grantovej žiadosti. Vypíš všetky jeho polia v poradí formulára a pri vyplnenej žiadosti celé ich znenie doslova, podľa pokynov.'));
+            $out = arsp_claude_call($content, arsp_claude_app_system(), arsp_claude_app_schema(), 'medium', 64000);   /* celé znenie všetkých polí – dosť miesta aj pre dlhú vyplnenú žiadosť */
             delete_transient($lock);
             if (is_wp_error($out)) return $out;
             $sec = isset($out['data']['sections']) && is_array($out['data']['sections']) ? $out['data']['sections'] : array();

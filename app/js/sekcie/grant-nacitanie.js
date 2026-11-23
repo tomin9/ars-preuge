@@ -38,7 +38,10 @@ function aiSource(gid,o){
     o.done(j,src,url,box,close);
   };
 }
-const aiCost=u=>{u=u||{};const c=((+u.input_tokens||0)*4+(+u.output_tokens||0)*20)/1e6;return`Spotreba: ${(+u.input_tokens||0).toLocaleString("sk-SK")} + ${(+u.output_tokens||0).toLocaleString("sk-SK")} tokenov (približne ${c.toLocaleString("sk-SK",{maximumFractionDigits:2})} $).`;};
+/* odhad ceny podľa modelu, ktorý odpovedal ($ za milión tokenov vstup / výstup); Haiku 5.5 má nad 100 000 tokenov vstupu vyššiu sadzbu */
+const AI_PRICE=(m,inp)=>/haiku-5-5/.test(m)?(inp>100000?[0.5,2.5]:[0.1,0.5]):/sonnet-5-5|sonnet-5\b/.test(m)?[2,10]:/opus-5-5/.test(m)?[4,20]:/haiku-4-5/.test(m)?[1,5]:[5,25];
+const aiCost=(u,m)=>{u=u||{};const i=+u.input_tokens||0,o=+u.output_tokens||0,[pi,po]=AI_PRICE(String(m||""),i),c=(i*pi+o*po)/1e6;
+  return`Spotreba: ${i.toLocaleString("sk-SK")} + ${o.toLocaleString("sk-SK")} tokenov (približne ${c<0.001?"menej ako 0,001":c.toLocaleString("sk-SK",{maximumFractionDigits:3})} $).`;};
 function aivOpen(gid){const g=get("grants",gid);if(!g)return;
   aiSource(gid,{title:"Načítať výzvu",intro:"Claude prečíta výzvu a navrhne údaje (termíny, sumy, kto môže žiadať, prílohy…).",urlLabel:"Odkaz na stránku alebo PDF výzvy",
     url:g.callUrl&&/^https?:/.test(g.callUrl)?g.callUrl:"",kind:"vyzva",endpoint:"ai/vyzva",wait:"Claude číta výzvu",ok:j=>!!j.fields,done:(j,src,url,box,close)=>aivReview(gid,j,src,url,box,close)});}
@@ -52,7 +55,7 @@ function aivReview(gid,j,src,url,box,close){
   if(!rows.length){box.innerHTML=`<h2 style="margin:0 0 10px">Načítať výzvu</h2><p style="white-space:normal">Claude vo výzve nenašiel žiadne z hľadaných údajov.</p><div class="row" style="justify-content:flex-end"><button class="btn" data-a="x">Zavrieť</button></div>`;box.querySelector('[data-a="x"]').onclick=close;return;}
   box.innerHTML=`<h2 style="margin:0 0 4px">Skontrolujte údaje z výzvy</h2><p class="small muted" style="margin:0 0 10px">Zdroj: ${esc(src)}. Zaškrtnuté polia sa uložia ku grantu. Prázdne polia sú zaškrtnuté vopred, prepísanie existujúcej hodnoty zaškrtnite sami.</p>
     <div class="aivlist">${rows.map((x,i)=>`<label class="aivrow${x.same?" same":""}"><input type="checkbox" data-i="${i}" ${x.empty&&!x.note?"checked":""} ${x.same||x.note?"disabled":""}><span class="aivl">${esc(x.l)}</span><span class="aivv">${aivShow(x.nv,x.t)}${x.same?'<small>rovnaké ako teraz</small>':x.note?`<small>${esc(x.note)}</small>`:!x.empty?`<small>teraz: ${x.t==="l"?esc(String(x.cur).slice(0,90))+(String(x.cur).length>90?"…":""):aivShow(x.cur,x.t)}</small>`:""}</span></label>`).join("")}</div>
-    <p class="small muted" style="margin:10px 0 0">${aiCost(j.usage)}</p>
+    <p class="small muted" style="margin:10px 0 0">${aiCost(j.usage,j.model)}</p>
     <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-a="x">Zrušiť</button><button class="btn pri" data-a="save">Uložiť vybrané</button></div>`;
   box.querySelector('[data-a="x"]').onclick=close;
   box.querySelector('[data-a="save"]').onclick=async()=>{
