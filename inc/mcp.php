@@ -3,7 +3,8 @@
  * Ars Preuge – pripojenie pre AI agenta (napr. Hermes) cez MCP (Model Context Protocol, prenos „Streamable HTTP“, odpovede JSON).
  * Adresa: /wp-json/arsp/v1/mcp. Agent sa prihlasuje kľúčom v hlavičke X-Arsp-Token (alebo Authorization: Bearer …), ktorý administrátor
  * vytvorí vo WordPresse (Ars Preuge → AI) a priradí ho účtu agenta. Agent vidí to isté, čo ten účet (prístupy z inc/pristupy.php platia),
- * nič nemaže ani neprepisuje – jediný zápis je „pridaj_ulohu“. Kontakty ani jednotlivé platby neposiela (len mená ľudí a súčty rozpočtu).
+ * nič nemaže ani neprepisuje – jediný zápis je „pridaj_ulohu“. Jednotlivé platby neposiela (len súčty rozpočtu); z kontaktov (od 2.1.8, nástroj „kontakty“)
+ * len meno, typ, roly, organizácie s funkciou, e-mail a telefón – nikdy rodné číslo, OP, IBAN, adresu, IČO/DIČ ani poznámky.
  */
 if (!defined('ABSPATH')) exit;
 
@@ -192,6 +193,33 @@ function arsp_mcp_zb_home() {
     return $best;
 }
 
+/* kontakty: len meno, typ, roly, organizácie, e-mail a telefón (citlivé polia sa nikdy neposielajú) */
+function arsp_mcp_contact_tags() {
+    $t = array('dobrovolnik' => 'Dobrovoľník', 'partner' => 'Partner', 'sponzor' => 'Sponzor', 'mediapartner' => 'Mediálny partner',
+        'tim' => 'Člen tímu', 'umelec' => 'Umelec', 'dodavatel' => 'Dodávateľ', 'medium' => 'Médium', 'institucia' => 'Inštitúcia', 'firma' => 'Firma', 'externy' => 'Externý');
+    $st = arsp_mcp_get('settings', 'main'); $rt = $st && isset($st['roleTags']) && is_array($st['roleTags']) ? $st['roleTags'] : array();
+    foreach ($rt as $list) foreach ((array) $list as $x) if (is_array($x) && isset($x[0], $x[1])) $t[(string) $x[0]] = (string) $x[1];   /* vlastné roly z aplikácie */
+    return $t;
+}
+function arsp_mcp_contact_roles($c) {
+    $T = arsp_mcp_contact_tags(); $k = isset($c['tags']) && is_array($c['tags']) ? $c['tags'] : array();
+    if (!$k && !empty($c['role'])) $k = array($c['role']);
+    $out = array(); foreach ($k as $x) $out[] = isset($T[$x]) ? $T[$x] : (string) $x;
+    return $out;
+}
+function arsp_mcp_contact_out($c) {
+    $types = array('osoba' => 'Osoba', 'firma' => 'Firma', 'organizacia' => 'Organizácia', 'media' => 'Médiá');
+    $orgs = array(); $ids = isset($c['orgIds']) && is_array($c['orgIds']) ? $c['orgIds'] : (!empty($c['orgId']) ? array($c['orgId']) : array());
+    foreach ($ids as $oid) { $n = arsp_mcp_name('contacts', $oid); if ($n === '') continue; $fn = isset($c['orgFn'][$oid]) ? trim((string) $c['orgFn'][$oid]) : ''; $orgs[] = $fn !== '' ? $n . ' (' . $fn . ')' : $n; }
+    $name = trim(implode(' ', array_filter(array(isset($c['titleBefore']) ? trim($c['titleBefore']) : '', isset($c['name']) ? trim($c['name']) : ''))));
+    if (!empty($c['titleAfter'])) $name .= ', ' . trim($c['titleAfter']);
+    return arsp_mcp_clean(array(
+        'id' => $c['id'], 'meno' => $name, 'typ' => arsp_mcp_lbl($types, isset($c['ctype']) && $c['ctype'] !== '' ? $c['ctype'] : 'osoba'),
+        'roly' => arsp_mcp_contact_roles($c), 'organizacie' => $orgs, 'funkcia' => isset($c['position']) ? trim((string) $c['position']) : '',
+        'email' => isset($c['email']) ? trim((string) $c['email']) : '', 'telefon' => isset($c['phone']) ? trim((string) $c['phone']) : '',
+    ));
+}
+
 /* ------------------------------------------------------------------ nástroje */
 
 function arsp_mcp_tools() {
@@ -237,6 +265,13 @@ function arsp_mcp_tools() {
                 'hladaj' => $str))),
         array('name' => 'grant', 'description' => 'Podrobnosti grantu: údaje výzvy, termíny, rozpočtové položky s čerpaním, časti žiadosti, prepojené podujatia a otvorené úlohy.',
             'inputSchema' => array('type' => 'object', 'required' => array('grant'), 'properties' => array('grant' => $str + array('description' => 'Id alebo názov grantu.')))),
+        array('name' => 'kontakty', 'description' => 'Vyhľadá kontakty (ľudí, firmy, organizácie, médiá) a vráti meno, typ, roly, organizácie s funkciou, e-mail a telefón. Iné osobné údaje nevracia. Bez filtra vráti prvých 30 kontaktov podľa abecedy.',
+            'inputSchema' => array('type' => 'object', 'properties' => array(
+                'hladaj' => $str + array('description' => 'Meno, časť mena, názov organizácie, funkcia, e-mail alebo telefón.'),
+                'rola' => $str + array('description' => 'Rola, napr. Dobrovoľník, Partner, Sponzor, Mediálny partner, Umelec.'),
+                'typ' => array('type' => 'string', 'enum' => array('osoba', 'firma', 'organizacia', 'media')),
+                'podujatie' => $str + array('description' => 'Id alebo názov podujatia – len ľudia a partneri tohto podujatia (Spolupráce).'),
+                'limit' => $int + array('description' => 'Najviac koľko kontaktov (predvolene 30, najviac 200).')))),
     );
 }
 
@@ -474,6 +509,38 @@ function arsp_mcp_call($name, $a) {
             'poznamka' => arsp_mcp_cut(isset($g['note']) ? $g['note'] : '', 800),
         ));
     }
+
+    case 'kontakty': {
+        if (function_exists('arsp_acc_level') && arsp_acc_level('kontakty', arsp_acc_user()) < 1) throw new Exception('Účet agenta nemá prístup ku kontaktom (Ars Preuge → Prístupy).');
+        $q = isset($a['hladaj']) ? arsp_mcp_norm($a['hladaj']) : ''; $qd = preg_replace('/\D/', '', isset($a['hladaj']) ? (string) $a['hladaj'] : '');
+        $rola = isset($a['rola']) ? arsp_mcp_norm($a['rola']) : ''; $typ = isset($a['typ']) ? (string) $a['typ'] : '';
+        $lim = max(1, min(200, (int) (isset($a['limit']) ? $a['limit'] : 30)));
+        $ev = isset($a['podujatie']) && $a['podujatie'] !== '' ? arsp_mcp_find('events', $a['podujatie'], 'Podujatie') : null;
+        $inEv = array(); $sec = array();
+        if ($ev) {   /* ľudia podujatia ako v záložke Spolupráce: prepojené kontakty, sekcie (roles) a spolupráce (partnerships) */
+            $secs = isset($ev['teamSecs']) && is_array($ev['teamSecs']) ? $ev['teamSecs'] : array(array('tim', 'Tím'), array('partner', 'Partneri'), array('sponzor', 'Sponzori'), array('dobrovolnik', 'Dobrovoľníci'));
+            $sl = array(); foreach ($secs as $x) if (is_array($x) && isset($x[0], $x[1])) $sl[(string) $x[0]] = (string) $x[1];
+            foreach (arsp_mcp_list('contacts') as $c) if (in_array($ev['id'], (array) (isset($c['eventIds']) ? $c['eventIds'] : array()), true)) $inEv[$c['id']] = true;
+            foreach ((array) (isset($ev['roles']) ? $ev['roles'] : array()) as $cid => $k) { $inEv[(string) $cid] = true; if (isset($sl[(string) $k])) $sec[(string) $cid] = $sl[(string) $k]; }
+            foreach (arsp_mcp_list('partnerships') as $p) if ((isset($p['eventId']) ? $p['eventId'] : '') === $ev['id'] && !empty($p['contactId'])) $inEv[(string) $p['contactId']] = true;
+        }
+        $out = array();
+        foreach (arsp_mcp_list('contacts') as $c) {
+            if ($ev && !isset($inEv[$c['id']])) continue;
+            if ($typ !== '' && (isset($c['ctype']) && $c['ctype'] !== '' ? $c['ctype'] : 'osoba') !== $typ) continue;
+            $o = arsp_mcp_contact_out($c);
+            if ($rola !== '') { $ok = false; foreach ((isset($o['roly']) ? $o['roly'] : array()) as $r) if (strpos(arsp_mcp_norm($r), $rola) !== false) $ok = true; if (!$ok) continue; }
+            if ($q !== '') {
+                $hay = arsp_mcp_norm(implode(' ', array(isset($o['meno']) ? $o['meno'] : '', isset($c['legalName']) ? $c['legalName'] : '', implode(' ', isset($o['organizacie']) ? $o['organizacie'] : array()), isset($o['funkcia']) ? $o['funkcia'] : '', isset($o['email']) ? $o['email'] : '')));
+                $tel = preg_replace('/\D/', '', isset($o['telefon']) ? $o['telefon'] : '');
+                if (strpos($hay, $q) === false && !(strlen($qd) >= 4 && strpos($tel, $qd) !== false)) continue;
+            }
+            if (isset($sec[$c['id']])) $o['sekcia_na_podujati'] = $sec[$c['id']];
+            $out[] = $o;
+        }
+        usort($out, function ($x, $y) { return strcoll(arsp_mcp_norm(isset($x['meno']) ? $x['meno'] : ''), arsp_mcp_norm(isset($y['meno']) ? $y['meno'] : '')); });
+        return array('pocet' => count($out), 'kontakty' => array_slice($out, 0, $lim));
+    }
     }
     throw new Exception('Neznámy nástroj: ' . $name);
 }
@@ -496,7 +563,8 @@ function arsp_mcp_one($m) {
                 'serverInfo' => array('name' => 'ars-preuge', 'title' => 'Ars Preuge – pracovný priestor', 'version' => defined('ARSP_VER') ? ARSP_VER : ''),
                 'instructions' => 'Pracovný priestor občianskeho združenia Ars Preuge (kultúra, Prievidza): projekty, granty, podujatia a úlohy tímu. '
                     . 'Odpovedaj po slovensky. Dátumy sú v tvare RRRR-MM-DD, sumy v eurách. Nástroje vracajú len to, čo smie vidieť účet agenta. '
-                    . 'Zapisovať vieš len novú úlohu (pridaj_ulohu) – urob to iba vtedy, keď o to človek výslovne požiada, a potvrď, čo si pridal.',
+                    . 'Zapisovať vieš len novú úlohu (pridaj_ulohu) – urob to iba vtedy, keď o to človek výslovne požiada, a potvrď, čo si pridal. '
+                    . 'E-maily a telefóny z nástroja kontakty používaj len pre potreby tímu a neposielaj ich nikomu mimo neho.',
             ));
         case 'ping': return $ok(new stdClass());
         case 'tools/list': return $ok(array('tools' => arsp_mcp_tools()));
@@ -544,7 +612,7 @@ function arsp_mcp_admin_section() {
     $uid = (int) get_option('arsp_mcp_user', 0); $on = $uid && get_option('arsp_mcp_hash', '') !== '';
     $u = $uid ? get_userdata($uid) : null;
     echo '<h2 style="margin-top:0">Prepojenie pre AI agenta (napr. Hermes)</h2>';
-    echo '<p>Agent cez toto prepojenie číta úlohy, termíny, podujatia a granty a vie <b>pridať úlohu</b>. Nič nemaže ani neprepisuje, kontakty ani jednotlivé platby nevidí (len súčty rozpočtov). Vidí to isté, čo účet, ku ktorému kľúč patrí.</p>';
+    echo '<p>Agent cez toto prepojenie číta úlohy, termíny, podujatia a granty a vie <b>pridať úlohu</b>. Nič nemaže ani neprepisuje. Z kontaktov vidí len meno, roly, organizácie, e-mail a telefón (nie rodné číslo, OP, IBAN, adresu ani poznámky), z financií len súčty rozpočtov. Vidí to isté, čo účet, ku ktorému kľúč patrí.</p>';
     $show = get_transient('arsp_mcp_new_' . get_current_user_id());
     if ($show) {
         delete_transient('arsp_mcp_new_' . get_current_user_id());
