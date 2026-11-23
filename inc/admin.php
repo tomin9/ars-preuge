@@ -182,6 +182,7 @@ function arsp_admin_page_ai() {
     if (!current_user_can('manage_options')) return;
     arsp_admin_top('AI – napojenie na Claude', 'Načítanie grantovej výzvy a formulára žiadosti cez Claude. Kľúč je uložený len na tomto serveri, tím ho nevidí.');
     echo '<div class="arsp-card">'; arsp_claude_admin_section(); echo '</div>';
+    if (function_exists('arsp_mcp_admin_section')) { echo '<div class="arsp-card">'; arsp_mcp_admin_section(); echo '</div>'; }
     echo '</div>';
 }
 
