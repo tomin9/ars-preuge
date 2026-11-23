@@ -94,11 +94,12 @@ const GDOCS=[["ziadost","Žiadosť","podaná žiadosť, prílohy, rozpočet zo �
 /* ===== Grant – záložka Dokumenty (od 2.0.8): sekcie s náhľadmi dokumentov. Pevné sekcie Výzva · Žiadosť · Zmluva · Vyúčtovanie sa dajú
    premenovať (g.docNames {druh: názov}), vlastné sekcie sú v g.docSecs [{id,label}] (dokument má kind = id sekcie).
    Dokumenty bez známej sekcie sa ukážu v „Ostatné“. Nahrávanie a odkazy idú cez spoločné data-dfile / data-dlink (64-dokumenty-nahravanie.js). */
-/* dokumenty fungujú pre grant aj podujatie (od 2.0.30): záznam sa nájde podľa id; podujatie má jednu pevnú sekciu „Dokumenty“ (doterajšie dokumenty bez druhu) */
-const gdKind=id=>get("events",id)&&!get("grants",id)?"events":"grants";
+/* dokumenty fungujú pre grant, podujatie (od 2.0.30) aj projekt (od 2.1.9): záznam sa nájde podľa id; podujatie a projekt majú jednu pevnú sekciu „Dokumenty“
+   (dokumenty bez druhu), ďalšie sekcie si pridajú cez „+ Pridať sekciu“ */
+const gdKind=id=>get("grants",id)?"grants":get("events",id)?"events":get("projects",id)?"projects":"grants";
 const gdGet=id=>get(gdKind(id),id);
 const gdUpd=(id,p)=>upd(gdKind(id),id,p);
-const gdBase=g=>gdKind(g.id)==="events"?[["","Dokumenty"]]:GD_BASE;
+const gdBase=g=>gdKind(g.id)!=="grants"?[["","Dokumenty"]]:GD_BASE;
 const GD_BASE=[["vyzva","Výzva"],["ziadost","Žiadosť"],["zmluva","Zmluva"],["vyuctovanie","Vyúčtovanie"]];
 const GD_I={up:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7 10l5-5 5 5M5 20h14"/></svg>',
   link:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
@@ -128,7 +129,7 @@ function gDocsTab(g){   /* ako Výzva a Žiadosť: zoznam sekcií vľavo, vybran
   if(!sel)return`<div class="txm"><div class="txlist galist">${list}</div><div><div class="panel txmain gdmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Dokumenty / ${esc(g.name||"")}</div><div class="txtitle" style="font-size:28px;font-weight:600">Žiadne sekcie</div></div></div>
     <div class="gdbody"><div class="gdempty">Všetky sekcie sú odstránené. Novú pridáte vľavo cez „+ Pridať sekciu“.</div></div></div></div></div>`;   /* oprava 2.0.33: po zmazaní poslednej sekcie stránka spadla */
   const D=docsOf(sel),kind=sel.id==="__ine"?"ostatne":sel.id,key=`${gdKind(g.id)}:${gid}:${esc(kind)}`;
-  const main=`<div class="panel txmain docslot gdmain"><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Dokumenty / ${esc(g.name||"")}</div>
+  const main=`<div class="panel txmain docslot gdmain"${ed?` data-ddrop="${key}"`:""}><div class="txhead"><div style="min-width:0;flex:1"><div class="kick">Dokumenty / ${esc(g.name||"")}</div>
       ${ed&&!sel.fixed?`<input type="text" class="txtitle" data-gdname="${gid}|${esc(sel.id)}" value="${esc(sel.label)}" aria-label="Názov sekcie" maxlength="80" placeholder="Názov sekcie">`:`<div class="txtitle" style="font-size:28px;font-weight:600">${esc(sel.label)}</div>`}</div>
       ${ed?`<div class="row" style="flex:none;gap:4px"><label class="tplus" title="Nahrať súbor" aria-label="Nahrať súbor">${GD_I.up}<input type="file" multiple data-dfile="${key}" hidden></label><button type="button" class="tplus" data-dlink="${key}" title="Pridať odkaz" aria-label="Pridať odkaz">${GD_I.link}</button>${sel.fixed?"":`<button type="button" class="tplus tdel" data-gddel="${gid}|${esc(sel.id)}" title="Odstrániť sekciu" aria-label="Odstrániť sekciu">${GD_I.del}</button>`}</div>`:""}</div>
     <div class="gdbody">${D.length?`<div class="gdgrid">${D.map(({d,i})=>`<div class="gdt"><a class="gdth" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Dokument")}">${gdThumb(d)}</a>${ed?`<button type="button" class="gdrm gdren" data-gdren="${gid}|${i}" title="Premenovať" aria-label="Premenovať dokument"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button><button type="button" class="gdrm" data-docrm="${gdKind(g.id)}:${gid}:${i}" title="Odstrániť dokument" aria-label="Odstrániť dokument">${GD_I.del}</button>`:""}<a class="gdn" href="${esc(docHref(d))}" target="_blank" rel="noopener" title="${esc(d.name||"Dokument")}">${esc(String(d.name||"Dokument").replace(/\.[a-z0-9]{2,4}$/i,""))}</a></div>`).join("")}</div>`

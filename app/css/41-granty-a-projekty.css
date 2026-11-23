@@ -93,6 +93,8 @@
 .gdmain .gdgrid{grid-template-columns:repeat(auto-fill,170px);gap:18px 16px}
 .gdmain .gdth{aspect-ratio:4/3}   /* dlaždica dokumentu na šírku */
 .gdmain .dform{padding:0 26px 18px}
+.gdmain.ddrop{box-shadow:inset 0 0 0 2px var(--accent)}   /* sem sa pustí pretiahnutý súbor (od 2.1.9) */
+.gdmain.ddrop .gdbody{background:var(--accent-soft)}
 .gdt{position:relative;min-width:0}
 .gdth{display:block;position:relative;aspect-ratio:3/4;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface2);color:var(--muted);text-decoration:none}
 .gdth:hover{border-color:var(--accent)}
