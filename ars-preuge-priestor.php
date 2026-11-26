@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ars Preuge – pracovný priestor
  * Description: Tímová aplikácia OZ Ars Preuge (projekty, granty, podujatia, zabezpečenie, financie, kontakty, úlohy). Otvára sa na adrese /priestor/ pre prihlásených členov tímu.
- * Version: 2.1.9
+ * Version: 2.1.10
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: OZ Ars Preuge
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('ARSP_VER', '2.1.9');
+define('ARSP_VER', '2.1.10');
 define('ARSP_DIR', plugin_dir_path(__FILE__));
 define('ARSP_CAP', 'arsp_access');
 define('ARSP_SLUG', 'priestor');
@@ -20,6 +20,7 @@ require_once ARSP_DIR . 'inc/claude.php';   /* napojenie na Claude (API kľúč 
 require_once ARSP_DIR . 'inc/pristupy.php'; /* prístupy: kto čo vidí a smie meniť */
 require_once ARSP_DIR . 'inc/admin.php';    /* administrácia: Prehľad · Prístupy · AI · Záloha */
 require_once ARSP_DIR . 'inc/mcp.php';      /* pripojenie pre AI agenta (napr. Hermes) – len čítanie a pridanie úlohy */
+require_once ARSP_DIR . 'inc/oauth.php';    /* prihlásenie pre ChatGPT a Claude (OAuth) – každý svojím účtom */
 
 /* ---------------------------------------------------------------- helpers */
 

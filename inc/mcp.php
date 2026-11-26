@@ -2,7 +2,9 @@
 /**
  * Ars Preuge – pripojenie pre AI agenta (napr. Hermes) cez MCP (Model Context Protocol, prenos „Streamable HTTP“, odpovede JSON).
  * Adresa: /wp-json/arsp/v1/mcp. Agent sa prihlasuje kľúčom v hlavičke X-Arsp-Token (alebo Authorization: Bearer …), ktorý administrátor
- * vytvorí vo WordPresse (Ars Preuge → AI) a priradí ho účtu agenta. Agent vidí to isté, čo ten účet (prístupy z inc/pristupy.php platia),
+ * vytvorí vo WordPresse (Ars Preuge → AI) a priradí ho účtu agenta. Od 2.1.10 sa dá prihlásiť aj cez OAuth (ChatGPT, Claude – inc/oauth.php):
+ * človek z tímu sa prihlási svojím účtom a aplikácia vidí to, čo on („osobné“ pripojenie: navyše „moje úlohy“).
+ * Agent vidí to isté, čo ten účet (prístupy z inc/pristupy.php platia),
  * nič nemaže ani neprepisuje – jediný zápis je „pridaj_ulohu“. Jednotlivé platby neposiela (len súčty rozpočtu); z kontaktov (od 2.1.8, nástroj „kontakty“)
  * len meno, typ, roly, organizácie s funkciou, e-mail a telefón – nikdy rodné číslo, OP, IBAN, adresu, IČO/DIČ ani poznámky.
  */
@@ -12,16 +14,30 @@ if (!defined('ABSPATH')) exit;
 
 function arsp_mcp_hash($t) { return hash_hmac('sha256', (string) $t, wp_salt('auth')); }
 
+/** token z hlavičky Authorization: Bearer … (aj keď ju hosting odovzdá PHP inou cestou) */
+function arsp_mcp_bearer($r) {
+    $h = (string) $r->get_header('authorization');
+    if ($h === '' && function_exists('arsp_oauth_auth_header')) $h = arsp_oauth_auth_header();
+    return preg_match('/^\s*Bearer\s+(\S+)/i', $h, $m) ? $m[1] : '';
+}
+/** pripojenie za konkrétneho človeka (OAuth), nie spoločný účet agenta */
+function arsp_mcp_personal() { return !empty($GLOBALS['arsp_mcp_personal']); }
+
 function arsp_mcp_auth(WP_REST_Request $r) {
+    $GLOBALS['arsp_mcp_personal'] = false;
+    $bearer = arsp_mcp_bearer($r);
     $t = trim((string) $r->get_header('x-arsp-token'));
-    if ($t === '' && preg_match('/^\s*Bearer\s+(\S+)/i', (string) $r->get_header('authorization'), $m)) $t = $m[1];
+    if ($t === '') $t = $bearer;
     $hash = (string) get_option('arsp_mcp_hash', ''); $uid = (int) get_option('arsp_mcp_user', 0);
-    if ($t === '' || $hash === '' || !$uid || !hash_equals($hash, arsp_mcp_hash($t))) {
-        return new WP_Error('unauthorized', 'Neplatný kľúč pre AI agenta (vytvorí ho administrátor vo WordPresse: Ars Preuge → AI).', array('status' => 401));
+    if ($t !== '' && $hash !== '' && $uid && hash_equals($hash, arsp_mcp_hash($t))) {
+        wp_set_current_user($uid);
+        if (!current_user_can(ARSP_CAP)) return new WP_Error('forbidden', 'Účet AI agenta nemá prístup do pracovného priestoru.', array('status' => 403));
+        return true;
     }
-    wp_set_current_user($uid);
-    if (!current_user_can(ARSP_CAP)) return new WP_Error('forbidden', 'Účet AI agenta nemá prístup do pracovného priestoru.', array('status' => 403));
-    return true;
+    /* od 2.1.10: človek z tímu prihlásený cez OAuth (ChatGPT, Claude) – token overí inc/oauth.php */
+    $u = ($bearer !== '' && function_exists('arsp_oauth_check')) ? arsp_oauth_check($bearer) : 0;
+    if ($u) { wp_set_current_user($u); $GLOBALS['arsp_mcp_personal'] = true; return true; }
+    return new WP_Error('unauthorized', 'Chýba prihlásenie alebo vypršalo. AI agent potrebuje kľúč (WordPress → Ars Preuge → AI), ChatGPT a Claude sa prihlasujú účtom vo WordPresse.', array('status' => 401));
 }
 
 /* ------------------------------------------------------------------ dáta (len to, čo účet agenta smie vidieť) */
@@ -104,7 +120,7 @@ function arsp_mcp_find($col, $q, $what) {
     if (count($exact) === 1) return $exact[0];
     if ($exact) $hit = $exact;
     if (count($hit) === 1) return $hit[0];
-    if (!$hit) throw new Exception($what . ' „' . $q . '“ ' . ($what === 'Podujatie' ? 'sa nenašlo' : 'sa nenašiel') . ' (alebo k nemu agent nemá prístup).');
+    if (!$hit) throw new Exception($what . ' „' . $q . '“ ' . ($what === 'Podujatie' ? 'sa nenašlo' : 'sa nenašiel') . ' (alebo k nemu tento účet nemá prístup).');
     $names = array(); foreach (array_slice($hit, 0, 10) as $x) $names[] = (isset($x['name']) ? $x['name'] : $x['title']) . ' (id ' . $x['id'] . ')';
     throw new Exception('Názvu „' . $q . '“ zodpovedá viac záznamov – upresnite: ' . implode('; ', $names));
 }
@@ -177,7 +193,7 @@ function arsp_mcp_money($list) {
         if (isset($x['type']) && $x['type'] === 'prijem') $inc += $a;
         else { $exp += $a; if ((!isset($x['paid']) || $x['paid'] !== false) && !empty($x['date'])) $paid += $a; }
     }
-    if ($masked) return array('sumy' => 'skryté (účet agenta nemá prístup k sumám)');
+    if ($masked) return array('sumy' => 'skryté (tento účet nemá prístup k sumám)');
     return array('prijmy' => round($inc, 2), 'vydavky' => round($exp, 2), 'z_toho_zaplatene' => round($paid, 2), 'planovane' => round($exp - $paid, 2), 'mena' => 'EUR');
 }
 
@@ -225,7 +241,7 @@ function arsp_mcp_contact_out($c) {
 function arsp_mcp_tools() {
     $str = array('type' => 'string'); $int = array('type' => 'integer');
     $date = array('type' => 'string', 'description' => 'Dátum RRRR-MM-DD');
-    return array(
+    $T = array(
         array('name' => 'prehlad', 'description' => 'Prehľad na dnes: úlohy po termíne, úlohy na najbližších 7 dní, podujatia na 30 dní a termíny grantov na 60 dní. Dobrý začiatok pre ranný súhrn.',
             'inputSchema' => array('type' => 'object', 'properties' => (object) array())),
         array('name' => 'terminy', 'description' => 'Všetky termíny v zvolenom období zoradené podľa dátumu: termíny úloh, uzávierky a ďalšie termíny grantov, podujatia, položky marketingu a podklady podujatí.',
@@ -273,7 +289,20 @@ function arsp_mcp_tools() {
                 'podujatie' => $str + array('description' => 'Id alebo názov podujatia – len ľudia a partneri tohto podujatia (Spolupráce).'),
                 'limit' => $int + array('description' => 'Najviac koľko kontaktov (predvolene 30, najviac 200).')))),
     );
+    /* názvy a označenie, čo len číta (ChatGPT sa pri nástrojoch bez readOnlyHint pýta na potvrdenie) */
+    $titles = array('prehlad' => 'Prehľad na dnes', 'terminy' => 'Termíny', 'ulohy' => 'Úlohy', 'pridaj_ulohu' => 'Pridať úlohu', 'podujatia' => 'Podujatia',
+        'podujatie' => 'Podrobnosti podujatia', 'granty' => 'Granty', 'grant' => 'Podrobnosti grantu', 'kontakty' => 'Kontakty');
+    foreach ($T as $i => $t) {
+        $T[$i]['title'] = $titles[$t['name']];
+        $w = $t['name'] === 'pridaj_ulohu';
+        $T[$i]['annotations'] = array('title' => $titles[$t['name']], 'readOnlyHint' => !$w, 'destructiveHint' => false, 'idempotentHint' => !$w, 'openWorldHint' => false);
+        if ($t['name'] === 'ulohy' && arsp_mcp_personal()) $T[$i]['inputSchema']['properties']['moje'] = array('type' => 'boolean', 'description' => 'Len úlohy, ktoré má na starosti prihlásený človek (ten, kto sa pýta).');
+    }
+    return $T;
 }
+/** id prihláseného človeka a jeho kontaktu (ako „Moje úlohy“ v aplikácii) */
+function arsp_mcp_me() { return function_exists('arsp_acc_me_keys') ? arsp_acc_me_keys() : array('wp_' . get_current_user_id() => true); }
+function arsp_mcp_mine($t) { $me = arsp_mcp_me(); return !empty($t['assignee']) && isset($me[(string) $t['assignee']]); }
 
 function arsp_mcp_call($name, $a) {
     $a = is_array($a) ? $a : array();
@@ -296,11 +325,18 @@ function arsp_mcp_call($name, $a) {
         }
         usort($ev, function ($x, $y) { return strcmp($x['date'], $y['date']); });
         $gr = arsp_mcp_call('terminy', array('dni' => 60, 'len' => 'granty'));
-        return array('dnes' => $today,
+        $out = array('dnes' => $today,
             'ulohy_po_termine' => array_map('arsp_mcp_task_out', $over),
             'ulohy_na_7_dni' => array_map('arsp_mcp_task_out', $soon),
             'podujatia_na_30_dni' => array_map('arsp_mcp_event_out', $ev),
             'terminy_grantov_na_60_dni' => $gr['terminy']);
+        if (arsp_mcp_personal()) {   /* pripojenie za konkrétneho človeka: kto to je a jeho otvorené úlohy */
+            $mine = array(); foreach (arsp_mcp_list('tasks') as $t) if (!arsp_mcp_task_done($t) && arsp_mcp_mine($t)) $mine[] = $t;
+            usort($mine, function ($x, $y) { return strcmp(!empty($x['due']) ? $x['due'] : '9999', !empty($y['due']) ? $y['due'] : '9999'); });
+            $u = wp_get_current_user(); $p = $u && $u->ID ? arsp_profile($u) : array('name' => '');
+            $out = array('prihlaseny' => $p['name']) + $out + array('moje_otvorene_ulohy' => array_map('arsp_mcp_task_out', array_slice($mine, 0, 30)));
+        }
+        return $out;
     }
 
     case 'terminy': {
@@ -366,6 +402,7 @@ function arsp_mcp_call($name, $a) {
             if ($gr && (isset($t['grantId']) ? $t['grantId'] : '') !== $gr['id']) continue;
             if ($due && (empty($t['due']) || $t['due'] > $due)) continue;
             if ($who !== '' && strpos(arsp_mcp_norm(arsp_mcp_person(isset($t['assignee']) ? $t['assignee'] : '')), $who) === false) continue;
+            if (!empty($a['moje']) && !arsp_mcp_mine($t)) continue;
             if ($q !== '' && strpos(arsp_mcp_norm(isset($t['title']) ? $t['title'] : ''), $q) === false) continue;
             $out[] = $t;
         }
@@ -397,7 +434,7 @@ function arsp_mcp_call($name, $a) {
         $id = strtolower(wp_generate_password(12, false, false)) . base_convert((string) $now, 10, 36);
         $id = preg_replace('/[^a-z0-9]/', '', $id);
         $chk = function_exists('arsp_acc_check_write') ? arsp_acc_check_write('tasks', 'set', $d, null, arsp_acc_user(), $id) : true;
-        if (is_wp_error($chk)) throw new Exception('Účet agenta nemá právo pridať túto úlohu (' . $chk->get_error_message() . ')');
+        if (is_wp_error($chk)) throw new Exception('Tento účet nemá právo pridať túto úlohu (' . $chk->get_error_message() . ')');
         global $wpdb;
         $ok = $wpdb->replace(arsp_table(), array('col' => 'tasks', 'id' => $id, 'data' => wp_json_encode((object) $d, JSON_UNESCAPED_UNICODE), 'updated' => $now, 'deleted' => 0), array('%s', '%s', '%s', '%d', '%d'));
         if (!$ok) throw new Exception('Úlohu sa nepodarilo uložiť.');
@@ -503,7 +540,7 @@ function arsp_mcp_call($name, $a) {
             'grant' => arsp_mcp_grant_out($g),
             'vyzva' => arsp_mcp_clean(array('cislo_vyzvy' => isset($g['callNo']) ? $g['callNo'] : '', 'min_dotacia' => isset($g['callMin']) ? $g['callMin'] : '', 'max_dotacia' => isset($g['callMax']) ? $g['callMax'] : '', 'spolufinancovanie' => isset($g['cofinPct']) ? $g['cofinPct'] : '', 'kto_moze_ziadat' => arsp_mcp_cut(isset($g['callApplicants']) ? $g['callApplicants'] : '', 1200), 'na_co' => arsp_mcp_cut(isset($g['callPurpose']) ? $g['callPurpose'] : '', 1500), 'prilohy_a_podmienky' => arsp_mcp_cut(isset($g['callAttach']) ? $g['callAttach'] : '', 1500), 'odkaz' => isset($g['callUrl']) ? $g['callUrl'] : '')),
             'cislo_zmluvy' => isset($g['contractNo']) ? $g['contractNo'] : '',
-            'rozpoctove_polozky' => $LB, 'sumy' => $masked ? 'skryté (účet agenta nemá prístup k sumám)' : '',
+            'rozpoctove_polozky' => $LB, 'sumy' => $masked ? 'skryté (tento účet nemá prístup k sumám)' : '',
             'casti_ziadosti' => $app, 'podujatia' => $ev,
             'otvorene_ulohy' => array_map('arsp_mcp_task_out', array_values($tasks)),
             'poznamka' => arsp_mcp_cut(isset($g['note']) ? $g['note'] : '', 800),
@@ -511,7 +548,7 @@ function arsp_mcp_call($name, $a) {
     }
 
     case 'kontakty': {
-        if (function_exists('arsp_acc_level') && arsp_acc_level('kontakty', arsp_acc_user()) < 1) throw new Exception('Účet agenta nemá prístup ku kontaktom (Ars Preuge → Prístupy).');
+        if (function_exists('arsp_acc_level') && arsp_acc_level('kontakty', arsp_acc_user()) < 1) throw new Exception('Tento účet nemá prístup ku kontaktom (Ars Preuge → Prístupy).');
         $q = isset($a['hladaj']) ? arsp_mcp_norm($a['hladaj']) : ''; $qd = preg_replace('/\D/', '', isset($a['hladaj']) ? (string) $a['hladaj'] : '');
         $rola = isset($a['rola']) ? arsp_mcp_norm($a['rola']) : ''; $typ = isset($a['typ']) ? (string) $a['typ'] : '';
         $lim = max(1, min(200, (int) (isset($a['limit']) ? $a['limit'] : 30)));
@@ -562,7 +599,8 @@ function arsp_mcp_one($m) {
                 'capabilities' => array('tools' => array('listChanged' => false)),
                 'serverInfo' => array('name' => 'ars-preuge', 'title' => 'Ars Preuge – pracovný priestor', 'version' => defined('ARSP_VER') ? ARSP_VER : ''),
                 'instructions' => 'Pracovný priestor občianskeho združenia Ars Preuge (kultúra, Prievidza): projekty, granty, podujatia a úlohy tímu. '
-                    . 'Odpovedaj po slovensky. Dátumy sú v tvare RRRR-MM-DD, sumy v eurách. Nástroje vracajú len to, čo smie vidieť účet agenta. '
+                    . 'Odpovedaj po slovensky. Dátumy sú v tvare RRRR-MM-DD, sumy v eurách. '
+                    . (arsp_mcp_personal() ? 'Pracuješ v mene prihláseného človeka z tímu a nástroje vracajú len to, čo smie vidieť on; kto to je a jeho otvorené úlohy povie nástroj prehlad (prihlaseny, moje_otvorene_ulohy), jeho úlohy vráti aj ulohy s moje=true. ' : 'Nástroje vracajú len to, čo smie vidieť účet agenta. ')
                     . 'Zapisovať vieš len novú úlohu (pridaj_ulohu) – urob to iba vtedy, keď o to človek výslovne požiada, a potvrď, čo si pridal. '
                     . 'E-maily a telefóny z nástroja kontakty používaj len pre potreby tímu a neposielaj ich nikomu mimo neho.',
             ));
